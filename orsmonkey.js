@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         mORS
 // @namespace    http://tampermonkey.net/
-// @version      0.8
+// @version      0.9
 // @description  Cleans up Oregon Legislature's ORS chapters
 // @author       Robert Mauger (bobby.mauger@gmail.com)
 // @match        *://www.oregonlegislature.gov/bills_laws/ors/*.html
@@ -51,7 +51,7 @@
         TableOfContents();
         function TableOfContents(){
             const tOC = new RegExp("(?<=<\\/h2>[^]*?)(<p[^>]*?>[^]*?<\\/p>)([^]*?)(?=\\1|<p class=default><b>)"); // is replaced by:
-            const repTOC = '<div id=toc><h2>Table of Contents</h2><div class=tocItems>$1$2</div></div><div class=orsbody>';
+            const repTOC = '<div id=toc><h2>Table of Contents</h2><div class=tocItems>$1$2</div></div><div class=orsbody><div class=temp>';
             temp = temp.replace(tOC, repTOC);
         };
 
@@ -66,8 +66,21 @@
         function Leadlines(){
             const orsLead = "(?:<span class=ors>)(" + chapNum + "\\.\\d{3})<\/span>([^\\.][^\\]]+?\\.)";
             const orsHead = new RegExp("<p class=default><b>" + tabs + orsLead + "</b>",'g');
-            const repOrsH = '<p class=leadline id="$1">$1$2</p><p class=default>';
+            const repOrsH = '</div><div class=section id="$1" break="~"><p class=leadline>$1$2</p><p class=default>';
             temp = temp.replace(orsHead, repOrsH);
+        };
+
+        Forms();
+        function Forms(){
+
+            const startForm = new RegExp("(form[^]*?:)<\\/p>"+ tabs +"(<p[^>]*>)_{78}", 'g');
+            const repStartForm = "$1</p><div class=orsForm break='`'>$2"
+            const endForm = /(`([^~`]*_{78}|[^`~]*?(?=<div class=orsForm)))/g;
+            const repEndForm = "$1</div>";
+            const endFormClean =/_{78}(<\/div>)/g;
+            temp = temp.replace(startForm, repStartForm);
+            temp = temp.replace(endForm, repEndForm);
+            temp = temp.replace(endFormClean, '$1')
         };
 
         ORSHyperLinks();
@@ -116,8 +129,8 @@
         function Notes(){
             const aNote = new RegExp('<p[^>]*>\\s?<b>' + tabs + '(Note(\\s\\d)?:\\s?<\\/b>[^]*?)(?=<\\/p>)', 'g'); // is replaced by:
             const repNote = "<p class=note><b>$1"
-            const noteSec = new RegExp('<p[^>]*?><b>' + tabs + "(<a[^>]*?>[\\S]{5,8}<\\/a>\\.<\\/b>)", 'g'); //is replaced by:
-            const repNS = '<p class=note><b>Note section for $1</p><p class=default>'
+            const noteSec = new RegExp('<p[^>]*?><b>' + tabs + "(<a[^>]*?>[\\S]{5,8}<\\/a>)\\.<\\/b>", 'g'); //is replaced by:
+            const repNS = '<p class=note><b>Note section for ORS $1:</b></p><p class=default>'
             const preface = /(Preface\sto\sOregon\sRevised\sStatutes)/g // is replaced by:
             const repPref = '<a href="https://www.oregonlegislature.gov/bills_laws/BillsLawsEDL/ORS_Preface.pdf">$1</a>';
             const v22 = /(\d{4}\sComparative\sSection\sTable\slocated\sin\sVolume\s22)/g; // is replaced by:
@@ -131,23 +144,66 @@
         SubUnits();
         function SubUnits(){
             const Sub1 = /<p[^>]*?>\s?(\(1\)[^]+?)<\/p>/g;
-            const aSub = new RegExp("<p[^>]*?>"+ tabs + "?\\s?(\\(\\d{1,2}\\)[^]+?)</p>", 'g');
-            const bPar = new RegExp("<p[^>]*?>"+ tabs + "\\s?(\\([a-z]{1,3}\\)[^]+?)</p>", 'g');
-            const cSPar = new RegExp("<p[^>]*?>"+ tabs + "\\s?(\\([A-Z]{1,3}\\)[^]+?)</p>", 'g');
-            const dSSPar = new RegExp("<p[^>]*?>"+ tabs + "\\s?(\\(\\d{1,2}\\)[^]+?)</p>", 'g');
+            const aSub = new RegExp("<p[^>]*?>"+ tabs + "?\\s?(\\(\\d{1,2}\\)[^]+?)</p>", 'g'); //subsection (1)
+            const bPar = new RegExp("<p[^>]*?>"+ tabs + "\\s?(\\([a-z]{1,5}\\)[^]+?)</p>", 'g'); //subsubparagraphs (roman) (for now)
+            const cSPar = new RegExp("<p[^>]*?>"+ tabs + "\\s?(\\([A-Z]{1,5}\\)[^]+?)</p>", 'g'); //subparagraphs (A)
             const repA = '<p class=subsec>$1</p>'
-            const repB = '<p class=para>$1</p>'
-            const repC = '<p class=subpara>$1</p>'
-            const repD = '<p class=subsubpara>$1</p>'
+            const repB = "<p class=subsubpara>$1</p>"
+            const repC = '<p class=subsubsubpara>$1</p>'
             temp = temp.replace(Sub1, repA);
             temp = temp.replace(aSub, repA);
             temp = temp.replace(bPar, repB);
             temp = temp.replace(cSPar, repC);
+
+            Romans();
+            function Romans(){
+          // Lower Case:
+                const sameLetter = /=subsubpara>(\(([a-z])(?:\2){0,4}\))/g; // turn roman back into paragraphs if 1 letter or matching letters (aa)
+                const repSameL = "=para break='!'>$1";
+                const ii = /=para[^>]*>(\(i\)[^!~]*?)=para[^>]*>(?=\(ii\))/g; // next, get matching (i) & (ii) labeled as subsubs again
+                const iiRep = "=subsubpara>$1=subsubpara>"
+                const leadRoman = "(?<=(?:=subsubpara>[^!]*))=para[^>]*>(?=\\("; // last dealing with the more ambiguous ones (iii, v, x, xx, xxx) should work through 27 (XXVIII is too large)
+                const repRoman = "=subsubpara>";
+                const iii = new RegExp(leadRoman + "iii)", 'g');
+                const v = new RegExp(leadRoman + "v)", 'g');
+                const x = new RegExp(leadRoman + "x)", 'g');
+                const xx = new RegExp(leadRoman + "xx)", 'g');
+
+                temp = temp.replace(sameLetter, repSameL);
+                temp = temp.replace(ii, iiRep);
+                temp = temp.replace(iii, repRoman);
+                temp = temp.replace(v, repRoman);
+                temp = temp.replace(x, repRoman);
+          // Upper Case:
+                const sameLetterC = /=subsubsubpara>(\(([A-Z])(?:\2){0,4}\))/g; // turn roman back into paragraphs if 1 letter or matching letters (aa)
+                const repSameLC = "=subpara break='?'>$1";
+                const iiC = /=subpara[^>]*>(\(I\)[^?~]*?)=subpara[^>]*>(?=\(II\))/g; // next, get matching (i) & (ii) labeled as subsubs again
+                const iiRepC = "=subsubsubpara>$1=subsubsubpara>"
+                const leadRomanC = "(?<=(?:=subsubsubpara>[^?]*))=subpara[^>]*>(?=\\("; // last dealing with the more ambiguous ones (iii, v, x, xx, xxx) should work through 27 (XXVIII is too large)
+                const repRomanC = "=subsubsubpara>";
+                const iiiC = new RegExp(leadRomanC + "III)", 'g');
+                const vC = new RegExp(leadRomanC + "V)", 'g');
+                const xC = new RegExp(leadRomanC + "X)", 'g');
+                const xxC = new RegExp(leadRomanC + "XX)", 'g');
+
+                temp = temp.replace(sameLetterC, repSameLC);
+                temp = temp.replace(iiC, iiRepC);
+                temp = temp.replace(iiiC, repRomanC);
+                temp = temp.replace(vC, repRomanC);
+                temp = temp.replace(xC, repRomanC);
+                }
+
+            LittleL();
+            function LittleL() {
+                const littleL = /(?<=(?:=para[^>]*>\(k\)[^~!]*))(?:=subpara)[^>]*(?=>\(L\))/g
+                const repLL = "=para";
+                temp = temp.replace(littleL, repLL);
+            }
         }
 
         Headings();
         function Headings(){
-            const head = /<p class=default>([^a-z]{4,}?)<\/p>/g //is replaced by:
+            const head = /<p class=default>([^a-z_]{4,}?)<\/p>/g //is replaced by:
             const repHead = '<p class=heading>$1</p>'
             const subHead = /<p class=default>(\([^]{5,}?\))<\/p>/g //is replaced by:
             const repSHead = '<p class=subhead>$1</p>'
@@ -164,7 +220,7 @@
             DeadORS();
             function DeadORS(){
                 const deadOrs = /<p class=default><b>[^>\[]*?<a[^>\[]+?>([^<\[]+?)\s?<\/a>\s?<\/b>\s?<p class=sourceNote>/g
-                const repDeadO = "<p class='sourceNote dead' id='$1'><b>$1</b>: "
+                const repDeadO = "<p class='sourceNote leadline' id='$1'><b>$1</b>: "
                 temp = temp.replace(deadOrs, repDeadO);
             }
 
@@ -172,8 +228,12 @@
             function HeinLinks(){
                 const heinURL = "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$1&chapter=$2&sgo=Search&collection=ssl&search=go";
                 const orLaw = /((?:20|19)\d{2})\W*c\.\W*(\d+)/g; // is replaced by:
-                const repOL = '<a href=' + heinURL + '>$1 c.$2</a>';
+                const repOL = '<a href=' + heinURL + '>$&</a>';
+                const heinURL2 = "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$2&chapter=$1&sgo=Search&collection=ssl&search=go";
+                const orLaw2 =/(?:C|c)hapter\s(\d{1,4}),\sOregon\sLaws\s(\d{4})/g
+                const repOL2 ='<a href=' + heinURL2 + '>$&</a>';
                 temp = temp.replace(orLaw, repOL);
+                temp = temp.replace(orLaw2, repOL2);
             }
         }
 
@@ -262,6 +322,15 @@ p {
   color: #900000;
   margin-block-start: 1.5em;
 }
+:target > .leadline {
+  background-color: #ffddea
+}
+.orsForm {
+  background-color: #C0C0C0;
+  margin: 1%;
+  border: 3px solid black;
+  padding: 0% 1%;
+}
 .sourceNote {
   color:#000099;
   font: 10pt "Times New Roman", Times, serif;
@@ -309,7 +378,15 @@ a.ors:hover {
   margin-block-start: .2em;
 }
 .subsubpara{
+  color:#ff8080;
   padding-left:`+ (indent1+3*indentInc) +`%;
+  text-indent:-1em;
+  margin-block-end:0;
+  margin-block-start: .2em;
+}
+.subsubsubpara{
+  color:#8080ff;
+  padding-left:`+ (indent1+4*indentInc) +`%;
   text-indent:-1em;
   margin-block-end:0;
   margin-block-start: .2em;
