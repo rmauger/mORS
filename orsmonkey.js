@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         mORS
 // @namespace    http://tampermonkey.net/
-// @version      0.7
+// @version      0.8
 // @description  Cleans up Oregon Legislature's ORS chapters
 // @author       Robert Mauger (bobby.mauger@gmail.com)
 // @match        *://www.oregonlegislature.gov/bills_laws/ors/*.html
 // @grant        none
 // ==/UserScript==
+
 
 (function() {
     'use strict';
@@ -15,7 +16,7 @@
 
     function ReplaceText(){
         //common variables:
-        const tabs = "(?:&nbsp;|\\s){2,8}";
+        const tabs = "(?:&nbsp;|\\s){0,8}";
         let temp=document.body.innerHTML;
         const chapNum = temp.match(/(?<=Chapter\s)(\d{1,3}[A-C]?)/)[1];
 
@@ -113,13 +114,18 @@
 
         Notes();
         function Notes(){
-            const aNote = new RegExp('<p[^>]*><b>' + tabs + '(Note:<\\/b>[^]*?)(?=<\\/p>)', 'g');
+            const aNote = new RegExp('<p[^>]*>\\s?<b>' + tabs + '(Note(\\s\\d)?:\\s?<\\/b>[^]*?)(?=<\\/p>)', 'g'); // is replaced by:
             const repNote = "<p class=note><b>$1"
-            temp = temp.replace(aNote, repNote);
-            const noteSec = new RegExp('<p[^>]*?><b>' + tabs + "(<a[^>]*?>[\\S]{5,8}<\\/a>\\.<\\/b>)", 'g');
+            const noteSec = new RegExp('<p[^>]*?><b>' + tabs + "(<a[^>]*?>[\\S]{5,8}<\\/a>\\.<\\/b>)", 'g'); //is replaced by:
             const repNS = '<p class=note><b>Note section for $1</p><p class=default>'
-            SendToConsole(temp, noteSec);
+            const preface = /(Preface\sto\sOregon\sRevised\sStatutes)/g // is replaced by:
+            const repPref = '<a href="https://www.oregonlegislature.gov/bills_laws/BillsLawsEDL/ORS_Preface.pdf">$1</a>';
+            const v22 = /(\d{4}\sComparative\sSection\sTable\slocated\sin\sVolume\s22)/g; // is replaced by:
+            const repV22 = '<a href="https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx#">$1</a>';
+            temp = temp.replace(aNote, repNote);
             temp = temp.replace(noteSec, repNS);
+            temp = temp.replace(preface, repPref);
+            temp = temp.replace(v22, repV22);
         }
 
         SubUnits();
@@ -141,7 +147,7 @@
 
         Headings();
         function Headings(){
-            const head = /<p class=default>((?:[A-Z]|\s){5,}?)<\/p>/g //is replaced by:
+            const head = /<p class=default>([^a-z]{4,}?)<\/p>/g //is replaced by:
             const repHead = '<p class=heading>$1</p>'
             const subHead = /<p class=default>(\([^]{5,}?\))<\/p>/g //is replaced by:
             const repSHead = '<p class=subhead>$1</p>'
@@ -157,8 +163,8 @@
 
             DeadORS();
             function DeadORS(){
-                const deadOrs = /<p class=default><b>[^>\[]*?<a[^>\[]+?>([^<\[]+?)<\/a><\/b> <p class=sourceNote>/g
-                const repDeadO = "<p class='sourceNote dead'><b>$1</b>: "
+                const deadOrs = /<p class=default><b>[^>\[]*?<a[^>\[]+?>([^<\[]+?)\s?<\/a>\s?<\/b>\s?<p class=sourceNote>/g
+                const repDeadO = "<p class='sourceNote dead' id='$1'><b>$1</b>: "
                 temp = temp.replace(deadOrs, repDeadO);
             }
 
@@ -182,6 +188,9 @@
         const indent1=3;
         const indentInc=1.5;
         const newStyle = `
+body  {
+  background-color: #F9F3FF;
+  }
 h1 {
   color: #004499;
   font:18pt Garamond, serif;
@@ -197,13 +206,20 @@ h3 {
   font-weight: bold;
   text-align: center;
 }
+a:link {
+  color:#2222DD;
+}
+a:visited {
+  color:#602299;
+}
+a:hover {
+  color:#4444FF;
+  background-color: #F0F0FF;
+}
 p {
   margin-block-start: .5em;
   margin-block-end:.5em;
   font: 11pt Arial, sans-serif;
-}
-.default {
-  color:#333300;
 }
 #toc {
   margin: 0% 1%;
@@ -222,12 +238,15 @@ p {
 }
 .orsbody {
 }
+.default {
+}
 .heading {
   font:12pt "Times New Roman", Times, serif;
   font-weight: bold;
   text-align:center;
   margin-block-start: 1.5em;
   margin-block-end: .5em;
+  padding: 0 10%;
 }
 .subhead {
   font:12pt "Times New Roman", Times, serif;
@@ -235,6 +254,7 @@ p {
   font-style:italic;
   margin-block-start: 1em;
   margin-block-end: .5em;
+  padding: 0 10%;
 }
 .leadline {
   font:12pt "Times New Roman", Times, serif;
@@ -258,6 +278,7 @@ p {
   width: 60%;
   margin: .5em 3%;
   border: 3px solid #ffff00;
+  padding: 6px;
   background-color: #ffffdd;
 }
 .ors {
@@ -267,7 +288,7 @@ p {
   color:#337555;
 }
 a.ors:hover {
-  color:#7777ee;
+  background-color:white;
 }
 .subsec{
   text-indent:-1em;
