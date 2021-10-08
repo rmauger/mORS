@@ -6,7 +6,7 @@
       body {
         min-width: 250px;
         width: 250px;
-        font-size: 12pt;
+        font-size: 10pt;
       }
       input {
         margin: 5px;
@@ -18,19 +18,20 @@
   <body>
     <h2>ORS Settings</h2>
     <p>I guess I'd need some explanation of options here.</p>
-    <ul id="options"></ul>
     <form>
-      <input type="checkbox" name="dark" id="isDark">
+      <input type="checkbox" id="isDark">
       <label for="isDark">Dark mode</label><br>
-	  <input type="radio" name="orLaws" value="Hein" id="Hein">
-	  <label for="Hein">Hein online (requires SOLL account)</label><br>
-	  <input type="radio" name="orLaws" value="OrLeg" id="OrLeg">
-	  <label for="OrLeg">Oregon Legislature (from 1997)</label><br>
-	  <input type="radio" name="orLaws" value="None" id="None">
-	  <label for="None">None</label><br>
-      <input type='submit' value='Submit' id='optionsSubmit'>
-      <button id="clearList">Clear</button>
-    </form>
+      <p></p><input type="radio" name="orLaws" id="Hein">
+      <label for="Hein">HeinOnline (SOLL account required)</label><br>
+      <input type="radio" name="orLaws" id="OrLeg">
+      <label for="OrLeg">Ore. Legislature (from 1997>)</label><br>
+      <input type="radio" name="orLaws" id="None">
+      <label for="None">None</label><br>
+      <p></p><input type='submit' value='Save' id='optionsSubmit'>
+      <p></p><input type='text' name="orsChapter" id="orsChapter" maxlength="4" size="4">
+      <label for="orsChapter">ORS Chapter</label>
+      <input type='submit' value='Launch' id='chapterLaunch'></label>
+    </form> 
   </body>
   <script src="mORSoptions.js"></script>
 </html>

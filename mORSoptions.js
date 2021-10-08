@@ -5,35 +5,34 @@ document.getElementById('optionsSubmit').onclick = function () {
   const radioButtons = document.querySelectorAll('input[name="orLaws"]');
   for (const choice of radioButtons){
     if (choice.checked) {
-      const orLaws = choice.value;
+      orLaws = choice.id;
     }
   }
   let UserData = {
-    doesExist: true,
-    isDark: (document.getElementById('isDark').checked),
-    sourceOrLaws: orLaws
+    isDark:document.getElementById("isDark").checked,    
   }
-  chrome.storage.sync.set({'mORSoptions': UserData});
+  chrome.storage.sync.set({'checkedOptions': UserData})
+  chrome.storage.sync.set({'lawsReader': orLaws});
 };
 
 function displayUserOptions(){
   
-  chrome.storage.sync.get(['mORSoptions'], function(object) {
-  let SavedData = object.mORSoptions || []; 
-    if (SavedData.doesExist){
-      alert (SavedData.sourceOrLaws + SavedData.doesExist + SavedData.isDark);
-      switch (SavedData.sourceOrLaws) {
-        case "Hein":
-          document.getElementById('Hein').checked=true;
-        break;
-        case "OrLeg": 
-          document.getElementById('OrLeg').checked=true;
-        break
-        default:
-          document.getElementById('None').checked=true; 
-        break;
-      };
-      document.getElementById('isDark').checked=SavedData.isDark
-    }; 
+  chrome.storage.sync.get(['checkedOptions'], function(object) {
+    let SavedData = object.checkedOptions || false;
+    document.getElementById('isDark').checked=SavedData.isDark
+  });
+  chrome.storage.sync.get(['lawsReader'], function(object) {
+    let SavedData = object.lawsReader || "";
+    switch (SavedData) {
+      case "Hein":
+        document.getElementById('Hein').checked=true;
+      break;
+      case "OrLeg": 
+        document.getElementById('OrLeg').checked=true;
+      break
+      default:
+        document.getElementById('None').checked=true; 
+      break;
+    };
   });  
 }
