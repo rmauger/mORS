@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ORS Settings</title>
+    <style>
+      body {
+        min-width: 300px;
+        font-size: 15px;
+      }
+      input {
+        margin: 5px;
+        outline: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>ORS Settings</h2>
+    <p>I guess I'd need some explanation of options here.</p>
+    <ul id="options"></ul>
+    <form>
+      <input type="checkbox" name="dark" id="isDark">
+      <label for="isDark">Dark mode</label><br>
+	  <input type="radio" name="orLaws" id="Hein">
+	  <label for="Hein">Hein online (requires SOLL account)</label><br>
+	  <input type="radio" name="orLaws" id="OrLeg">
+	  <label for="OrLeg">Oregon Legislature (from 1997)</label><br>
+	  <input type="radio" name="orLaws" id="none">
+	  <label for="none">None</label><br>
+      <input type='submit' value='Submit' id='optionsSubmit'>
+      <button id="clearList">Clear</button>
+    </form>
+  </body>
+  <script src="mORSoptions.js"></script>
+</html>

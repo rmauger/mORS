@@ -1,13 +1,19 @@
 {
     "manifest_version": 2,
     "name": "ORS Extension",
-    "version": "0.1",
+    "version": "0.2",
     "content_scripts":[
         {
             "matches": [
                 "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html"
             ],
-            "js": ["content.js"]
+            "js": ["mORS.js"]
+			"
         }
+    "permissions":[
+	        "*://www.oregonlegislature.gov/bills_laws/ors/*",
+			"storage",
+			"activetab"
+		]
     ]
 }
