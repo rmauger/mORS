@@ -2,18 +2,27 @@
     "manifest_version": 2,
     "name": "ORS Extension",
     "version": "0.2",
+    "description:": "Enhance display of Oregon Revised Statutes on Legislative Website",
+    "default_locale": "en",
+    "browser_action": {
+        "default_icon": {
+            "16": "images/icon16.png",
+            "24": "images/icon24.png",
+            "32": "images/icon32.png"
+        },
+        "default_title": "mORS",
+        "default_popup": "mORSoptions.html"
+    },
     "content_scripts":[
         {
-            "matches": [
-                "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html"
-            ],
-            "js": ["mORS.js"]
-			"
+            "matches": ["*://www.oregonlegislature.gov/bills_laws/ors/ors*.html"],
+            "js": ["mORS.js"],
+            "css": ["mORS.css"]
         }
-    "permissions":[
-	        "*://www.oregonlegislature.gov/bills_laws/ors/*",
-			"storage",
-			"activetab"
-		]
-    ]
+    ],
+    "permissions": [
+        "*://www.oregonlegislature.gov/bills_laws/ors/*",
+	    "storage",
+		"activeTab"
+	]
 }
