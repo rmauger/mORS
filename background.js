@@ -1,3 +1,25 @@
+ let promiseGetDark = new Promise((resolve) => {
+  chrome.storage.sync.get('isDarkStored', (object) => {
+    if (object) {
+      resolve(object.isDarkStored)
+    }
+  });
+});
+
+chrome.runtime.onMessage.addListener((received) => {
+    if (received.message == "updateCSS")
+    {
+      promiseGetDark.then((isDark) => {
+        if (isDark) {
+          chrome.tabs.insertCSS({file:"mORS_dark.css"});
+        } else {
+          chrome.tabs.insertCSS({file:"mORS_light.css"});
+        }
+      });
+    }
+ });
+
+
 /* Not sure if this will ever work, but low priority...
 chrome.storage.onChanged.addListener(function (changes, namespace) {
   alert('running, at least')

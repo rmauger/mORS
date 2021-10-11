@@ -1,7 +1,6 @@
 //popup.js
 
 "use strict";
-
 let promiseGetDark = new Promise((resolve) => {
   chrome.storage.sync.get('isDarkStored', (object) => {
     if (object) {
@@ -15,7 +14,7 @@ let promiseGetOrLaw = new Promise((resolve) => {
       resolve(object.lawsReaderStored)
     }
   });
-});
+}); 
 displayUserOptions();
 
 function displayUserOptions() {
@@ -23,7 +22,7 @@ function displayUserOptions() {
   promiseGetOrLaw.then((resolve) => {document.getElementById(resolve).checked=true;})
 };
 
-document.getElementById('optionsSubmit').onclick = function () {
+document.getElementById('optionsSubmit').onclick = () => {
   chrome.storage.sync.set({'isDarkStored': document.getElementById("isDark").checked}) 
   let orLaws="";
   const orLawRadios = document.querySelectorAll('input[name="orLaws"]');
@@ -33,4 +32,5 @@ document.getElementById('optionsSubmit').onclick = function () {
       orLaws=choice.id;
     };
   };
+  // Updates stylesheet on any page, not just ORS. Needs to check tabs first ==> chrome.runtime.sendMessage({message: "updateCSS"});
 };

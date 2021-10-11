@@ -14,8 +14,7 @@
     "content_scripts":[
         {
             "matches": ["*://www.oregonlegislature.gov/bills_laws/ors/ors*.html"],
-            "js": ["mORS.js"],
-            "css": ["mORS.css"]
+            "js": ["mORS.js"]
         }
     ],
     "background": {

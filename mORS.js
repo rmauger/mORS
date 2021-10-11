@@ -232,11 +232,8 @@ function ReplaceText(){
 }
 
 function StyleSheet() {
-	const indent1=3;
-	const indentInc=1.5;
-	const newStyle = '';
-	document.head.querySelectorAll("style")[0].innerHTML=newStyle;
-}
+	chrome.runtime.sendMessage({message: "updateCSS"});  // sends message to background.js
+};
 
 function SendToConsole(htmlText, logText){
 	let cleanUp = htmlText.replace(/(\r|\n|\f)+/g, '');
@@ -244,3 +241,5 @@ function SendToConsole(htmlText, logText){
 	console.log(logText);
 	console.log(cleanUp);
 }
+
+//from manifest.json             "css": ["mORS_light.css", "mORS_dark.css"]
