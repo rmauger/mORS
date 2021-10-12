@@ -1,26 +1,30 @@
 //popup.js
 
 "use strict";
-let promiseGetDark = new Promise((resolve) => {
-  chrome.storage.sync.get('isDarkStored', (object) => {
-    if (object) {
-      resolve(object.isDarkStored)
-    }
-  });
-});
-let promiseGetOrLaw = new Promise((resolve) => {
-  chrome.storage.sync.get('lawsReaderStored', (object) => {
-    if (object) {
-      resolve(object.lawsReaderStored)
-    }
-  });
-}); 
-displayUserOptions();
 
 function displayUserOptions() {
+  let promiseGetDark = new Promise((resolve, reject) => {
+    chrome.storage.sync.get('isDarkStored', (object) => {
+      if (object) {
+        resolve(object.isDarkStored)
+      } else {
+        reject(false);
+      }
+    });
+  })
+  let promiseGetOrLaw = new Promise((resolve) => {
+    chrome.storage.sync.get('lawsReaderStored', (object) => {
+      if (object) {
+        resolve(object.lawsReaderStored)
+      }
+    });
+  });
+
   promiseGetDark.then((resolve) => {document.getElementById("isDark").checked = resolve});
   promiseGetOrLaw.then((resolve) => {document.getElementById(resolve).checked=true;})
 };
+
+displayUserOptions();
 
 document.getElementById('optionsSubmit').onclick = () => {
   chrome.storage.sync.set({'isDarkStored': document.getElementById("isDark").checked}) 

@@ -1,5 +1,5 @@
 window.addEventListener("load", ReplaceText);
-window.addEventListener("load", StyleSheet);
+window.addEventListener("load", StyleSheetRefresh);
 
 function ReplaceText(){
 	//common variables:
@@ -169,7 +169,6 @@ function ReplaceText(){
 				const x = new RegExp(leadRoman + "x)", 'g');
 				const xx = new RegExp(leadRoman + "xx)", 'g');
 				temp = temp.replace(ii, iiRep);
-				SendToConsole(temp, iii)
 				if(breakIf('iii')) {break Roman_wrapper}
 				temp = temp.replace(iii, repRoman);
 				if(breakIf('v')) {break Roman_wrapper}
@@ -250,19 +249,26 @@ function ReplaceText(){
 		document.body.innerHTML = document.body.innerHTML.replace(doubleP, '');
 	}
 
-	cssButton();
+	cssButtons();
 	function cssButton(){
 		var cssOffButton = document.createElement("button");
-		cssOffButton.innerHTML = "Remove Stylesheet"
-		//cssOffButton.id="removeCSS"
-		cssOffButton.addEventListener("click", removeCssButtonFunction = () => {
+		var cssRefreshButton = document.createElement("button");
+		cssOffButton.innerHTML = "Remove Stylesheet";
+		cssRefreshButton.innerHTML = "Refresh Stylesheet";
+		cssOffButton.setAttribute('id', 'removeCssButton');
+		cssRefreshButton.setAttribute('id', 'refreshCssButton');
+		cssOffButton.addEventListener("click", () => {
 			chrome.runtime.sendMessage({message: "removeCSS"});  // sends message to background.js
-		})
+		});
+		cssRefreshButton.addEventListener("click", () => {
+			StyleSheetRefresh();
+		});
+		document.body.appendChild(cssRefreshButton);	
 		document.body.appendChild(cssOffButton);
 	}
 }
 
-function StyleSheet() {
+function StyleSheetRefresh() {
 	chrome.runtime.sendMessage({message: "updateCSS"});  // sends message to background.js
 };
 

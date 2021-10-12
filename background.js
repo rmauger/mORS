@@ -1,67 +1,36 @@
- let promiseGetDark = new Promise(returnDarkFunction = (resolve) => {
-  chrome.storage.sync.get('isDarkStored', getDarkFunction = (object) => {
-    if (object) {
-      resolve(object.isDarkStored)
-    }
+//background.js
+
+"use strict";
+chrome.runtime.onMessage.addListener((received)=>{
+  if (received.message == "updateCSS") {
+    updateCSS();}
+  if (received.message == "removeCSS") {
+    removeCSS();
+  };
+});
+
+function updateCSS() {
+  let promiseGetDark = new Promise((resolve, reject) => {
+    chrome.storage.sync.get('isDarkStored', (object) => {
+      if (object) {
+        resolve(object.isDarkStored);
+      } else {
+        reject(false);
+      }
+    })
   });
-});
-
-chrome.runtime.onMessage.addListener(cssButtonCheckListener = (received) => {
-    if (received.message == "updateCSS")
-    {
-      promiseGetDark.then(getDarkFunction = getDarkFunction2 = (isDark) => {
-        if (isDark) {
-          chrome.tabs.insertCSS({file:"mORS_dark.css"});
-        } else {
-          chrome.tabs.insertCSS({file:"mORS_light.css"});
-        }
-      });
+  promiseGetDark.then((resolve)=>{
+    if (resolve) {
+      removeCSS()
+      chrome.tabs.insertCSS({file:"mORS_dark.css"});
+    } else {
+      removeCSS()
+      chrome.tabs.insertCSS({file:"mORS_light.css"});
     }
- });
+  }).catch();
+};
 
-chrome.runtime.onMessage.addListener(addMessageListenerFunction = (received) => {
-  if (received.message == "removeCSS")
-  {
-        chrome.tabs.removeCSS({file:"mORS_dark.css"});
-        chrome.tabs.removeCSS({file:"mORS_light.css"});
-  }
-});
-
-
-/* Not sure if this will ever work, but low priority...
-chrome.storage.onChanged.addListener(function (changes, namespace) {
-  alert('running, at least')
-  var keys=Object.keys(Object.entries(changes));
-  for (var i=0; i < keys.length; i++) {
-    var myVal = Object.entries[keys[i]];
-    alert(myVal);
-  }
-}); 
-
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  var myA="";
-  const myQ = request.bgQuery;
-    switch (myQ) {
-    case "isDark":
-      chrome.storage.sync.get('isDarkStored', (object) => {
-        myA = object.isDarkStored||false
-      });
-      break;
-    case "lawsReader":
-      chrome.storage.sync.get('lawsReaderStored', function(object) {
-        myA = object.lawsReaderStored||"flagFalse"
-      });
-      break;
-    default:      
-      myA= "I don't understand the question."
-      break;
-    };
-  sendResponse({ans: myA});
-  console.log(`Sending in response to *${myQ}* answer: *${myA}*`);
-  return true;
-});
-
-function getDark() {
-  return chrome.storage.sync.get('isDarkStored', function(object) {return object.isDarkStored || false})
+function removeCSS(){
+  chrome.tabs.removeCSS({file:"mORS_dark.css"});
+  chrome.tabs.removeCSS({file:"mORS_light.css"});
 }
-*/
