@@ -250,7 +250,7 @@ function ReplaceText(){
 	}
 
 	cssButtons();
-	function cssButton(){
+	function cssButtons(){
 		var cssOffButton = document.createElement("button");
 		var cssRefreshButton = document.createElement("button");
 		cssOffButton.innerHTML = "Remove Stylesheet";
