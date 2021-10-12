@@ -82,7 +82,7 @@ function ReplaceText(){
 			let tempReplace = "";
 			let repNotChap = "";
 			const orsURL = "https://www.oregonlegislature.gov/bills_laws/ors/ors";
-			const notChap = /<span class=ors(>\d{1,3}[A-C]?\.\d{3}[^<[]*?<\/)span/;
+			const notChap = /=ors(>\d{1,3}[A-C]?\.\d{3})/;
 			const otherChap = /\d{1,3}[A-C]?(?=\.)/
 
 			while (temp.match(notChap) && oocCount < 1000) {
@@ -90,7 +90,7 @@ function ReplaceText(){
 				tempReplace = temp.match(notChap)[1];
 				tempReplace = tempReplace.match(otherChap);
 				tempReplace = ThreeDigit(tempReplace);
-				repNotChap = "<a href='" + orsURL + tempReplace + ".html'$1a";
+				repNotChap = " a href='" + orsURL + tempReplace + ".html'";
 				temp = temp.replace(notChap, repNotChap);
 			};
 
@@ -142,55 +142,75 @@ function ReplaceText(){
 		temp = temp.replace(bPar, repB);
 		temp = temp.replace(cSPar, repC);
 
+		
 		Romans();
+		
 		function Romans(){
+		
 	  // Lower Case:
 			const sameLetter = /=subsubpara>(\(([a-z])(?:\2){0,4}\))/g; // turn roman back into paragraphs if 1 letter or matching letters (aa)
 			const repSameL = "=para break='!'>$1";
-			const ii = /=para[^>]*>(\(i\)[^!~]*?)=para[^>]*>(?=\(ii\))/g; // next, get matching (i) & (ii) labeled as subsubs again
-			const iiRep = "=subsubpara>$1=subsubpara>"
-			const leadRoman = "(?<=(?:=subsubpara>[^!]*))=para[^>]*>(?=\\("; // last dealing with the more ambiguous ones (iii, v, x, xx, xxx) should work through 27 (XXVIII is too large)
-			const repRoman = "=subsubpara>";
-			const iii = new RegExp(leadRoman + "iii)", 'g');
-			const v = new RegExp(leadRoman + "v)", 'g');
-			const x = new RegExp(leadRoman + "x)", 'g');
-			const xx = new RegExp(leadRoman + "xx)", 'g');
-
 			temp = temp.replace(sameLetter, repSameL);
-			temp = temp.replace(ii, iiRep);
-			temp = temp.replace(iii, repRoman);
-			temp = temp.replace(v, repRoman);
-			temp = temp.replace(x, repRoman);
-	  // Upper Case:
 			const sameLetterC = /=subsubsubpara>(\(([A-Z])(?:\2){0,4}\))/g; // turn roman back into paragraphs if 1 letter or matching letters (aa)
 			const repSameLC = "=subpara break='?'>$1";
-			const iiC = /=subpara[^>]*>(\(I\)[^?~]*?)=subpara[^>]*>(?=\(II\))/g; // next, get matching (i) & (ii) labeled as subsubs again
-			const iiRepC = "=subsubsubpara>$1=subsubsubpara>"
-			const leadRomanC = "(?<=(?:=subsubsubpara>[^?]*))=subpara[^>]*>(?=\\("; // last dealing with the more ambiguous ones (iii, v, x, xx, xxx) should work through 27 (XXVIII is too large)
-			const repRomanC = "=subsubsubpara>";
-			const iiiC = new RegExp(leadRomanC + "III)", 'g');
-			const vC = new RegExp(leadRomanC + "V)", 'g');
-			const xC = new RegExp(leadRomanC + "X)", 'g');
-			const xxC = new RegExp(leadRomanC + "XX)", 'g');
-
 			temp = temp.replace(sameLetterC, repSameLC);
-			temp = temp.replace(iiC, iiRepC);
-			temp = temp.replace(iiiC, repRomanC);
-			temp = temp.replace(vC, repRomanC);
-			temp = temp.replace(xC, repRomanC);
-			}
+
+			Roman_wrapper: {
+				breakIf = (romanNum) => {
+					Boolean(temp.match(`(${romanNum})`) == false)
+				}
+				if(breakIf('ii')) {break Roman_wrapper}
+				const ii = /=para[^>]*>(\(i\)[^!~]*?)=para[^>]*>(?=\(ii\))/g; // next, get matching (i) & (ii) labeled as subsubs again
+				const iiRep = "=subsubpara>$1=subsubpara>"
+				const leadRoman = "((=subsubpara>[^!~]*))=para[^>]*?>(?=\\("; // last dealing with the more ambiguous ones (iii, v, x, xx, xxx) should work through 27 (XXVIII is too large)
+				const repRoman = "$1=subsubpara>";
+				const iii = new RegExp(leadRoman + "iii)", 'g');
+				const v = new RegExp(leadRoman + "v)", 'g');
+				const x = new RegExp(leadRoman + "x)", 'g');
+				const xx = new RegExp(leadRoman + "xx)", 'g');
+				temp = temp.replace(ii, iiRep);
+				SendToConsole(temp, iii)
+				if(breakIf('iii')) {break Roman_wrapper}
+				temp = temp.replace(iii, repRoman);
+				if(breakIf('v')) {break Roman_wrapper}
+				temp = temp.replace(v, repRoman);
+				if(breakIf('x')) {break Roman_wrapper}
+				temp = temp.replace(x, repRoman);
+				if(breakIf('xx')) {break Roman_wrapper}
+				temp = temp.replace(xx, repRoman);
+		// Upper Case:
+				if(breakIf('II')) {break Roman_wrapper}
+				const iiC = /=subpara[^>]*>(\(I\)[^?~]*?)=subpara[^>]*>(?=\(II\))/g; // next, get matching (i) & (ii) labeled as subsubs again
+				const iiRepC = "=subsubsubpara>$1=subsubsubpara>"
+				const leadRomanC = "((subsubsubpara>[^~!?]*))=subpara[^>]*>(?=\\("; // last dealing with the more ambiguous ones (iii, v, x, xx, xxx) should work through 27 (XXVIII is too large)
+				const repRomanC = "$1=subsubsubpara>";
+				const iiiC = new RegExp(leadRomanC + "III)", 'g');
+				const vC = new RegExp(leadRomanC + "V)", 'g');
+				const xC = new RegExp(leadRomanC + "X)", 'g');
+				const xxC = new RegExp(leadRomanC + "XX)", 'g');				
+				temp = temp.replace(iiC, iiRepC);
+				if(breakIf('III')) {break Roman_wrapper}
+				temp = temp.replace(iiiC, repRomanC);
+				if(breakIf('V')) {break Roman_wrapper}
+				temp = temp.replace(vC, repRomanC);
+				if(breakIf('X')) {break Roman_wrapper}
+				temp = temp.replace(xC, repRomanC);
+				if(breakIf('XX')) {break Roman_wrapper}
+				temp = temp.replace(xxC, repRomanC);
+			}			
+		}
 
 		LittleL();
 		function LittleL() {
-			const littleL = /(?<=(?:=para[^>]*>\(k\)[^~!]*))(?:=subpara)[^>]*(?=>\(L\))/g
-			const repLL = "=para";
+			const littleL = /((=para[^>]*>\(k\)[^~!]*))(?:=subpara)[^>]*(?=>\(L\))/g
+			const repLL = "$1=para";
 			temp = temp.replace(littleL, repLL);
 		}
 	}
 
 	Headings();
 	function Headings(){
-		const head = /<p class=default>([^a-z_]{4,}?)<\/p>/g //is replaced by:
+		const head = /<p class=default>([^a-z][^a-z]{3,}?)<\/p>/g //is replaced by:
 		const repHead = '<p class=heading>$1</p>'
 		const subHead = /<p class=default>(\([^]{5,}?\))<\/p>/g //is replaced by:
 		const repSHead = '<p class=subhead>$1</p>'
@@ -229,6 +249,17 @@ function ReplaceText(){
 		document.body.innerHTML = temp;
 		document.body.innerHTML = document.body.innerHTML.replace(doubleP, '');
 	}
+
+	cssButton();
+	function cssButton(){
+		var cssOffButton = document.createElement("button");
+		cssOffButton.innerHTML = "Remove Stylesheet"
+		//cssOffButton.id="removeCSS"
+		cssOffButton.addEventListener("click", removeCssButtonFunction = () => {
+			chrome.runtime.sendMessage({message: "removeCSS"});  // sends message to background.js
+		})
+		document.body.appendChild(cssOffButton);
+	}
 }
 
 function StyleSheet() {
@@ -241,5 +272,3 @@ function SendToConsole(htmlText, logText){
 	console.log(logText);
 	console.log(cleanUp);
 }
-
-//from manifest.json             "css": ["mORS_light.css", "mORS_dark.css"]

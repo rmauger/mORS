@@ -1,15 +1,15 @@
- let promiseGetDark = new Promise((resolve) => {
-  chrome.storage.sync.get('isDarkStored', (object) => {
+ let promiseGetDark = new Promise(returnDarkFunction = (resolve) => {
+  chrome.storage.sync.get('isDarkStored', getDarkFunction = (object) => {
     if (object) {
       resolve(object.isDarkStored)
     }
   });
 });
 
-chrome.runtime.onMessage.addListener((received) => {
+chrome.runtime.onMessage.addListener(cssButtonCheckListener = (received) => {
     if (received.message == "updateCSS")
     {
-      promiseGetDark.then((isDark) => {
+      promiseGetDark.then(getDarkFunction = getDarkFunction2 = (isDark) => {
         if (isDark) {
           chrome.tabs.insertCSS({file:"mORS_dark.css"});
         } else {
@@ -18,6 +18,14 @@ chrome.runtime.onMessage.addListener((received) => {
       });
     }
  });
+
+chrome.runtime.onMessage.addListener(addMessageListenerFunction = (received) => {
+  if (received.message == "removeCSS")
+  {
+        chrome.tabs.removeCSS({file:"mORS_dark.css"});
+        chrome.tabs.removeCSS({file:"mORS_light.css"});
+  }
+});
 
 
 /* Not sure if this will ever work, but low priority...
