@@ -276,6 +276,10 @@ function ReplaceText(){
 	function FinalClean(){
 		document.body.innerHTML = chapHTML;
 		document.body.innerHTML = document.body.innerHTML.replace(doubleP, '');
+		allTocPs = document.getElementById('toc').getElementsByTagName("p");
+		for (let aP of allTocPs) {
+			aP.className+=' toc'
+		}
 	}
 
 	cssButtons();

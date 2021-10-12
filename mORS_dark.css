@@ -39,14 +39,20 @@ p {
   border: 3px solid #7c5e2b;
   background-color: #352c1c;
 }
-#toc.default, #toc.heading, #toc.subhead {
-  font-size: 10pt;
-  text-indent:-1em;
+.toc {
   break-inside: avoid;
+}
+.toc.heading, .toc.subhead {
+  font-size:12pt;
   text-align: center;
 }
+.toc.default {
+  padding-left:3%;
+  text-indent:-5%;
+  font-size: 10pt;
+}
 .tocItems {
-  columns: 250px 4;
+  columns: 250px 3;
   column-gap:5%
 }
 .orsbody {
