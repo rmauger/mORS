@@ -254,7 +254,6 @@ function ReplaceText(){
 			aP.className+=' toc'
 		};
 	};
-
 	OrLawLinking();
 	function OrLawLinking() {
 		let backgroundPort = chrome.runtime.connect({name: "OrLawsSource"});
@@ -290,7 +289,7 @@ function ReplaceText(){
 			const repOrLaw1 = '<a href=' + orLegURL + '$1orlaw$2.pdf>$&</a>';
 			const orLaw2 = new RegExp('(20(?:11|10|09|08|07)|1999)'+ orLawTail, 'g')
 			const repOrLaw2 = '<a href=' + orLegURL + '$1orlaw000$2.html>$&</a>';
-			const orLaw3 = new RegExp('(20(?:05|03|01))'+ orLawTail, 'g')
+			const orLaw3 = new RegExp('(20(?:03|01))'+ orLawTail, 'g')
 			const repOrLaw3 = '<a href=' + orLegURL + '$1orlaw000$2ses.html>$&</a>';
 			const orLaw4 = new RegExp('(2014)'+ orLawTail, 'g')
 			const repOrLaw4 = '<a href=' + orLegURL + '$1R1orlaw000$2ses.html>$&</a>';	
@@ -298,6 +297,8 @@ function ReplaceText(){
 			const repOrLaw5 = '<a href=' + orLegURL + '$1adv000$2ss.pdf>$&</a>';	
 			const orLaw6 = new RegExp('(2006)'+ orLawTail, 'g')
 			const repOrLaw6 = '<a href=' + orLegURL + '$1orLaw000$2ss1.pdf>$&</a>';
+			const orLaw7 = new RegExp('(2005)'+ orLawTail, 'g')
+			const repOrLaw7 = '<a href=' + orLegURL + '$1orLaw000$2ses.html>$&</a>';
 			const xtraZero = /(aw|adv)\d*(\d{4})/g
 			const repZero ='$1$2'
 			chapHTML= document.body.innerHTML;
@@ -307,6 +308,7 @@ function ReplaceText(){
 			chapHTML = chapHTML.replace(orLaw4, repOrLaw4);
 			chapHTML = chapHTML.replace(orLaw5, repOrLaw5);
 			chapHTML = chapHTML.replace(orLaw6, repOrLaw6);
+			chapHTML = chapHTML.replace(orLaw7, repOrLaw7);
 			chapHTML = chapHTML.replace(xtraZero, repZero);
 			document.body.innerHTML = chapHTML;
 			cssButtons();
