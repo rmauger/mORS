@@ -245,37 +245,29 @@ function ReplaceText(){
 			chapHTML = chapHTML.replace(deadOrs, repDeadO);
 		}
 	}
+	FinalClean();
+	function FinalClean(){
+		document.body.innerHTML = chapHTML;
+		document.body.innerHTML = document.body.innerHTML.replace(doubleP, '');
+		allTocPs = document.getElementById('toc').getElementsByTagName("p");
+		for (let aP of allTocPs) {
+			aP.className+=' toc'
+		};
+	};
+
 	OrLawLinking();
 	function OrLawLinking() {
-/*		chrome.runtime.sendMessage({message: "OrLawsSource"}, (response)=> {
-			console.log('message sent re: OrLaws reader' + response.toString())
-			switch (response) {
-				case "Hein":
-					console.log('response = Hein\n')
-					HeinLinks();
-					break;
-				case "OrLeg":
-					console.log('response = OrLeg\n')
-					OrLeg();
-					break;
-				default:
-					break;
-			}
-			*/
-		console.log("orLawLinking")
-		var backgroundPort = chrome.runtime.connect({name: "OrLawsSource"});
+		let backgroundPort = chrome.runtime.connect({name: "OrLawsSource"});
 		backgroundPort.postMessage({message: "RequestOrLawsSource"});
-			console.log("M: Opening channel")
 		backgroundPort.onMessage.addListener((msg) => {
-			console.log("M: listening")
+			console.log("mORS.js heard: " + msg.response);
   			if (msg.response == "Hein") {
-				console.log ('M: Hein')
 				HeinLinks();
 			} else if (msg.response == "OrLeg") {
 				OrLeg();
-				console.log ('OrLeg')
 			} else {
-				console.log ('nothing')
+				console.log ('No OrLaw Lookup Ran.')
+				cssButtons();
 			}
 		});
 		function HeinLinks(){
@@ -285,48 +277,30 @@ function ReplaceText(){
 			const heinURL2 = "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$2&chapter=$1&sgo=Search&collection=ssl&search=go";
 			const orLaw2 =/(?:C|c)hapter\s(\d{1,4}),\sOregon\sLaws\s(\d{4})/g
 			const repOL2 ='<a href=' + heinURL2 + '>$&</a>';
+			chapHTML= document.body.innerHTML;
 			chapHTML = chapHTML.replace(orLaw, repOL);
 			chapHTML = chapHTML.replace(orLaw2, repOL2);
+			document.body.innerHTML = chapHTML;
+			cssButtons();
 		}
 		function OrLeg(){
-			const OrLegSource = {
-				"OL2021":"2021orlaw$$$$.pdf",
-				"OL2020":"2020orlaw$$$$.pdf",
-				"OL2019":"2019orlaw$$$$.pdf",
-				"OL2018":"2018orlaw$$$$.pdf",
-				"OL2017":"2017orlaw$$$$.pdf",
-				"OL2016":"2016orlaw$$$$.pdf",
-				"OL2015":"2015orlaw$$$$.pdf",
-				"OL2013":"2013orlaw$$$$.pdf",
-				"OL2011":"2011orLaw$$$$.html",
-				"OL2010":"2010orLaw$$$$.html",
-				"OL2009":"2009orLaw$$$$.html",
-				"OL2008":"2008orLaw$$$$.html",
-				"OL2007":"2007orLaw$$$$.html",
-				"OL1999":"1999orLaw$$$$.html",
-				"OL2005":"2005orLaw$$$$ses.html",
-				"OL2003":"2003orLaw$$$$ses.html",
-				"OL2001":"2001orLaw$$$$ses.html",
-				"OL2014":"2014R1orLaw$$$$ss.pdf",
-				"OL2012":"2012adv$$$$ss.pdf",
-				"OL2006":"2006orLaw$$$$ss1.pdf",
-			}
 			const orLegURL = "https://www.oregonlegislature.gov/bills_laws/lawsstatutes/";
-			const orLawTail = "\\W+c\\.\\W(\\d{1,4})"
+			const orLawTail = "\\W+c\\.\\W*(\\d{1,4})"
 			const orLaw1 = new RegExp('(20(?:2[\\d]|19|18|17|16|15|13))'+ orLawTail, 'g')
 			const repOrLaw1 = '<a href=' + orLegURL + '$1orlaw$2.pdf>$&</a>';
-			const orLaw2 = new RegExp('(20(?:11|10|09|08|07}|1999)'+ orLawTail, 'g')
+			const orLaw2 = new RegExp('(20(?:11|10|09|08|07)|1999)'+ orLawTail, 'g')
 			const repOrLaw2 = '<a href=' + orLegURL + '$1orlaw000$2.html>$&</a>';
 			const orLaw3 = new RegExp('(20(?:05|03|01))'+ orLawTail, 'g')
 			const repOrLaw3 = '<a href=' + orLegURL + '$1orlaw000$2ses.html>$&</a>';
-			const orLaw4 = new RegExp('2014'+ orLawTail, 'g')
+			const orLaw4 = new RegExp('(2014)'+ orLawTail, 'g')
 			const repOrLaw4 = '<a href=' + orLegURL + '$1R1orlaw000$2ses.html>$&</a>';	
 			const orLaw5 = new RegExp('(2012)'+ orLawTail, 'g')
 			const repOrLaw5 = '<a href=' + orLegURL + '$1adv000$2ss.pdf>$&</a>';	
 			const orLaw6 = new RegExp('(2006)'+ orLawTail, 'g')
 			const repOrLaw6 = '<a href=' + orLegURL + '$1orLaw000$2ss1.pdf>$&</a>';
-			const xtraZero = /(aw|adv)\d*(\d{4})/
-			const repZero ='$1$2'	
+			const xtraZero = /(aw|adv)\d*(\d{4})/g
+			const repZero ='$1$2'
+			chapHTML= document.body.innerHTML;
 			chapHTML = chapHTML.replace(orLaw1, repOrLaw1);
 			chapHTML = chapHTML.replace(orLaw2, repOrLaw2);
 			chapHTML = chapHTML.replace(orLaw3, repOrLaw3);
@@ -334,34 +308,28 @@ function ReplaceText(){
 			chapHTML = chapHTML.replace(orLaw5, repOrLaw5);
 			chapHTML = chapHTML.replace(orLaw6, repOrLaw6);
 			chapHTML = chapHTML.replace(xtraZero, repZero);
-		}
-	}
-
-	FinalClean();
-	function FinalClean(){
-		document.body.innerHTML = chapHTML;
-		document.body.innerHTML = document.body.innerHTML.replace(doubleP, '');
-		allTocPs = document.getElementById('toc').getElementsByTagName("p");
-		for (let aP of allTocPs) {
-			aP.className+=' toc'
-		}
-	}
-	cssButtons();
+			document.body.innerHTML = chapHTML;
+			cssButtons();
+		};
+	};
 	function cssButtons(){
+		document.head.getElementsByTagName('style')[0].innerHTML="";
 		var cssOffButton = document.createElement("button");
 		var cssRefreshButton = document.createElement("button");
 		cssOffButton.innerHTML = "Remove Stylesheet";
 		cssRefreshButton.innerHTML = "Refresh Stylesheet";
 		cssOffButton.setAttribute('id', 'removeCssButton');
 		cssRefreshButton.setAttribute('id', 'refreshCssButton');
-		cssOffButton.addEventListener("click", () => {
-			chrome.runtime.sendMessage({message: "removeCSS"});  // sends message to background.js
-		});
-		cssRefreshButton.addEventListener("click", () => {
-			StyleSheetRefresh();
-		});
 		document.body.appendChild(cssRefreshButton);	
 		document.body.appendChild(cssOffButton);
+		cssOffButton.addEventListener("click", () => {
+			chrome.runtime.sendMessage({message: "removeCSS"});  // sends message to background.js
+			console.log("Remove button press")
+		});
+		cssRefreshButton.addEventListener("click", () => {
+			console.log("Refresh button press")
+			StyleSheetRefresh();
+		});
 	}
 };
 

@@ -47,8 +47,8 @@ p {
   text-align: center;
 }
 .toc.default {
-  padding-left:3%;
-  text-indent:-5%;
+  padding-left:20%;
+  text-indent:-25%;
   font-size: 10pt;
 }
 .tocItems {
