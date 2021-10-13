@@ -6,7 +6,6 @@ function ReplaceText(){
 	const tabs = "(?:&nbsp;|\\s){0,8}";
 	let chapHTML=document.body.innerHTML;
 	const chapNum = chapHTML.match(/(?<=Chapter\s)(\d{1,3}[A-C]?)/)[1];
-
 	const doubleP = /<(\w)[^>]*?>(?:&nbsp;|\s)*<\/\1>/g; // is deleted (used in FinalClean also)
 	HTMLCleanUp();
 	function HTMLCleanUp(){
@@ -21,7 +20,6 @@ function ReplaceText(){
 		chapHTML = chapHTML.replace(divGarb, '');
 		chapHTML = chapHTML.replace(doubleP, '');
 	};
-
 	ChapterHeadings();
 	function ChapterHeadings(){
 		const chapHead = /<p class=default>(Chapter (\d{1,3}[A-C]?) — ([^]*?))<\/p>/; // is replaced by:
@@ -34,21 +32,18 @@ function ReplaceText(){
 		chapHTML = chapHTML.replace(edYear, yearClean);
 		chapHTML = chapHTML.replace(title, titleClean);
 	};
-
 	TableOfContents();
 	function TableOfContents(){
 		const tOC = new RegExp("(?<=<\\/h2>[^]*?)(<p[^>]*?>[^]*?<\\/p>)([^]*?)(?=\\1|<p class=default><b>)"); // is replaced by:
-		const repTOC = '<div id=toc><h2>Table of Contents</h2><div class=tocItems>$1$2</div></div><div class=orsbody><div class=chapHTML>';
+		const repTOC = '<div id=toc><h1>Table of Contents</h1><div class=tocItems>$1$2</div></div><div class=orsbody><div class=chapHTML>';
 		chapHTML = chapHTML.replace(tOC, repTOC);
 	};
-
 	ORSHighlight();
 	function ORSHighlight(){
 		const orsRef = /((\d{1,3}[A-C]?\.\d{3})((?:\s?(?:\(\w{1,4}\))){0,5})(\sto\s(?:(?:\(\w{1,4}\))))?)/g; // is replaced by:
 		const repORS = '<span class=ors>$1</span>';
 		chapHTML = chapHTML.replace(orsRef, repORS);
 	};
-
 	Leadlines();
 	function Leadlines(){
 		const orsLead = "(?:<span class=ors>)(" + chapNum + "\\.\\d{3})<\/span>([^\\.][^\\]]+?\\.)";
@@ -56,7 +51,6 @@ function ReplaceText(){
 		const repOrsH = '</div><div class=section id="$1" break="~"><p class=leadline>$1$2</p><p class=default>';
 		chapHTML = chapHTML.replace(orsHead, repOrsH);
 	};
-
 	Forms();
 	function Forms(){
 
@@ -69,14 +63,12 @@ function ReplaceText(){
 		chapHTML = chapHTML.replace(endForm, repEndForm);
 		chapHTML = chapHTML.replace(endFormClean, '$1')
 	};
-
 	orsInChapLink();
 	function orsInChapLink(){
 		const inChap = new RegExp("<span class=ors(>(" + chapNum + "\\.\\d{3})[^]*?<\\/)span", 'g');
 		const repInChap = '<a class=ors href="#$2"$1a';
 		chapHTML = chapHTML.replace(inChap, repInChap);
 	}
-
 	orsOutChapLink();
 	function orsOutChapLink(){
 		let orsList =[];
@@ -91,10 +83,8 @@ function ReplaceText(){
 			if (whileBreak>500) {continueLoop=false};
 			strMatch=temp.match(notChap);
 			if (strMatch) {
-				console.log(strMatch);
 				chapNo=strMatch[0].match(/\d{1,3}[A-C]?/);
 				orsList.push(chapNo);
-				console.log(`${chapNo}`)
 				tempReplace = new RegExp('>'+chapNo +'\\.', 'g')
 				temp=temp.replace(tempReplace, "XXX");
 				whileBreak++;
@@ -140,7 +130,6 @@ function ReplaceText(){
 			element.tag
 		}
 	};
-
 	Notes();
 	function Notes(){
 		const aNote = new RegExp('<p[^>]*>\\s?<b>' + tabs + '(Note(\\s\\d)?:\\s?<\\/b>[^]*?)(?=<\\/p>)', 'g'); // is replaced by:
@@ -156,7 +145,6 @@ function ReplaceText(){
 		chapHTML = chapHTML.replace(preface, repPref);
 		chapHTML = chapHTML.replace(v22, repV22);
 	}
-
 	SubUnits();
 	function SubUnits(){
 		const Sub1 = /<p[^>]*?>\s?(\(1\)[^]+?)<\/p>/g;
@@ -235,7 +223,6 @@ function ReplaceText(){
 			chapHTML = chapHTML.replace(littleL, repLL);
 		}
 	}
-
 	Headings();
 	function Headings(){
 		const head = /<p class=default>([^a-z][^a-z]{3,}?)<\/p>/g //is replaced by:
@@ -245,7 +232,6 @@ function ReplaceText(){
 		chapHTML = chapHTML.replace(head, repHead);
 		chapHTML = chapHTML.replace(subHead, repSHead);
 	}
-
 	SourceNotes();
 	function SourceNotes(){
 		const sNote = /(\[(19\d{2}|20\d{2}|Fo|Re|Am)[^]+?\]<\/p>)/g; //is replaced by:
@@ -258,8 +244,40 @@ function ReplaceText(){
 			const repDeadO = "<p class='sourceNote leadline' id='$1'><b>$1</b>: "
 			chapHTML = chapHTML.replace(deadOrs, repDeadO);
 		}
-
-		HeinLinks();
+	}
+	OrLawLinking();
+	function OrLawLinking() {
+/*		chrome.runtime.sendMessage({message: "OrLawsSource"}, (response)=> {
+			console.log('message sent re: OrLaws reader' + response.toString())
+			switch (response) {
+				case "Hein":
+					console.log('response = Hein\n')
+					HeinLinks();
+					break;
+				case "OrLeg":
+					console.log('response = OrLeg\n')
+					OrLeg();
+					break;
+				default:
+					break;
+			}
+			*/
+		console.log("orLawLinking")
+		var backgroundPort = chrome.runtime.connect({name: "OrLawsSource"});
+		backgroundPort.postMessage({message: "RequestOrLawsSource"});
+			console.log("M: Opening channel")
+		backgroundPort.onMessage.addListener((msg) => {
+			console.log("M: listening")
+  			if (msg.response == "Hein") {
+				console.log ('M: Hein')
+				HeinLinks();
+			} else if (msg.response == "OrLeg") {
+				OrLeg();
+				console.log ('OrLeg')
+			} else {
+				console.log ('nothing')
+			}
+		});
 		function HeinLinks(){
 			const heinURL = "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$1&chapter=$2&sgo=Search&collection=ssl&search=go";
 			const orLaw = /((?:20|19)\d{2})\W*c\.\W*(\d+)/g; // is replaced by:
@@ -269,6 +287,53 @@ function ReplaceText(){
 			const repOL2 ='<a href=' + heinURL2 + '>$&</a>';
 			chapHTML = chapHTML.replace(orLaw, repOL);
 			chapHTML = chapHTML.replace(orLaw2, repOL2);
+		}
+		function OrLeg(){
+			const OrLegSource = {
+				"OL2021":"2021orlaw$$$$.pdf",
+				"OL2020":"2020orlaw$$$$.pdf",
+				"OL2019":"2019orlaw$$$$.pdf",
+				"OL2018":"2018orlaw$$$$.pdf",
+				"OL2017":"2017orlaw$$$$.pdf",
+				"OL2016":"2016orlaw$$$$.pdf",
+				"OL2015":"2015orlaw$$$$.pdf",
+				"OL2013":"2013orlaw$$$$.pdf",
+				"OL2011":"2011orLaw$$$$.html",
+				"OL2010":"2010orLaw$$$$.html",
+				"OL2009":"2009orLaw$$$$.html",
+				"OL2008":"2008orLaw$$$$.html",
+				"OL2007":"2007orLaw$$$$.html",
+				"OL1999":"1999orLaw$$$$.html",
+				"OL2005":"2005orLaw$$$$ses.html",
+				"OL2003":"2003orLaw$$$$ses.html",
+				"OL2001":"2001orLaw$$$$ses.html",
+				"OL2014":"2014R1orLaw$$$$ss.pdf",
+				"OL2012":"2012adv$$$$ss.pdf",
+				"OL2006":"2006orLaw$$$$ss1.pdf",
+			}
+			const orLegURL = "https://www.oregonlegislature.gov/bills_laws/lawsstatutes/";
+			const orLawTail = "\\W+c\\.\\W(\\d{1,4})"
+			const orLaw1 = new RegExp('(20(?:2[\\d]|19|18|17|16|15|13))'+ orLawTail, 'g')
+			const repOrLaw1 = '<a href=' + orLegURL + '$1orlaw$2.pdf>$&</a>';
+			const orLaw2 = new RegExp('(20(?:11|10|09|08|07}|1999)'+ orLawTail, 'g')
+			const repOrLaw2 = '<a href=' + orLegURL + '$1orlaw000$2.html>$&</a>';
+			const orLaw3 = new RegExp('(20(?:05|03|01))'+ orLawTail, 'g')
+			const repOrLaw3 = '<a href=' + orLegURL + '$1orlaw000$2ses.html>$&</a>';
+			const orLaw4 = new RegExp('2014'+ orLawTail, 'g')
+			const repOrLaw4 = '<a href=' + orLegURL + '$1R1orlaw000$2ses.html>$&</a>';	
+			const orLaw5 = new RegExp('(2012)'+ orLawTail, 'g')
+			const repOrLaw5 = '<a href=' + orLegURL + '$1adv000$2ss.pdf>$&</a>';	
+			const orLaw6 = new RegExp('(2006)'+ orLawTail, 'g')
+			const repOrLaw6 = '<a href=' + orLegURL + '$1orLaw000$2ss1.pdf>$&</a>';
+			const xtraZero = /(aw|adv)\d*(\d{4})/
+			const repZero ='$1$2'	
+			chapHTML = chapHTML.replace(orLaw1, repOrLaw1);
+			chapHTML = chapHTML.replace(orLaw2, repOrLaw2);
+			chapHTML = chapHTML.replace(orLaw3, repOrLaw3);
+			chapHTML = chapHTML.replace(orLaw4, repOrLaw4);
+			chapHTML = chapHTML.replace(orLaw5, repOrLaw5);
+			chapHTML = chapHTML.replace(orLaw6, repOrLaw6);
+			chapHTML = chapHTML.replace(xtraZero, repZero);
 		}
 	}
 
@@ -281,7 +346,6 @@ function ReplaceText(){
 			aP.className+=' toc'
 		}
 	}
-
 	cssButtons();
 	function cssButtons(){
 		var cssOffButton = document.createElement("button");
@@ -311,4 +375,3 @@ function SendToConsole(htmlText, logText){
 	console.log(logText);
 	console.log(cleanUp);
 };
-

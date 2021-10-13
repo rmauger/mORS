@@ -19,7 +19,6 @@ function displayUserOptions() {
       }
     });
   });
-
   promiseGetDark.then((resolve) => {document.getElementById("isDark").checked = resolve});
   promiseGetOrLaw.then((resolve) => {document.getElementById(resolve).checked=true;})
 };
@@ -36,5 +35,25 @@ document.getElementById('optionsSubmit').onclick = () => {
       orLaws=choice.id;
     };
   };
-  // Updates stylesheet on any page, not just ORS. Needs to check tabs first ==> chrome.runtime.sendMessage({message: "updateCSS"});
+};
+
+document.getElementById('chapterLaunch').onclick = () => {
+  let orsChapter = makeThreeDigit(document.getElementById("orsChapter").value);
+  chrome.tabs.create({url: 'https://www.oregonlegislature.gov/bills_laws/ors/ors' + orsChapter +'.html'});
+};
+
+function makeThreeDigit(orsNumber){
+  orsNumber=orsNumber.toString();  //ensuring ORS chapter number is string
+  let myLen = orsNumber.length;
+  if (orsNumber.match(/\d+[A-C]/)) {
+    myLen=myLen-1
+  };
+  switch(myLen) {
+    case 1:
+      return "00" + orsNumber;
+    case 2:
+      return "0" + orsNumber;
+    default:
+      return "" + orsNumber
+  };
 };
