@@ -4,9 +4,11 @@
     <title>ORS Settings</title>
     <style>
       body {
-        min-width: 250px;
-        width: 250px;
+        min-width: 300px;
+        width: 300px;
         font-size: 10pt;
+        background-color: #403000;
+        color:#ffdb7a;
       }
       input {
         margin: 5px;
@@ -14,9 +16,15 @@
       }
     </style>
   </head>
-
   <body>
+    <h2>ORS Chapter selection</h2>
+    <form>
+      <p></p><input type='text' name="orsChapter" id="orsChapter" maxlength="4" size="4">
+      <label for="orsChapter">ORS Chapter</label>
+      <input type='submit' value='Launch' id='chapterLaunch'></label>
+    </form>    
     <h2>ORS Options</h2>
+    <!-- WORKING TEMPLATE 10/10/21
     <form>
       <input type="checkbox" id="isDark">
       <label for="isDark">Dark mode</label><br>
@@ -27,13 +35,18 @@
       <input type="radio" name="orLaws" id="None">
       <label for="None">None</label><br>
       <p></p><input type='submit' value='Save' id='optionsSubmit'>
-    </form>
-    <h2>ORS Chapter selection</h2>
-    <form>
-      <p></p><input type='text' name="orsChapter" id="orsChapter" maxlength="4" size="4">
-      <label for="orsChapter">ORS Chapter</label>
-      <input type='submit' value='Launch' id='chapterLaunch'></label>
-    </form>
+    </form>-->
+    <p>Display mode:</p>
+    <select id="isDark">
+      <option selected value="Dark">Dark</option>
+      <option value="Light">Light</option>
+    </select>
+    <p>OrLaws Lookup Source</p>
+    <select id="OrLaws" onchange="StoreOrLaws()">
+      <option selected value="OrLeg">Ore. Legislature (1999-present)</option>
+      <option value="Hein">HeinOnline (1859-present; account required)</option>
+      <option value="None">None</option>
+    </select>
   </body>
   <script src="popup.js"></script>
 </html>
