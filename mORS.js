@@ -1,5 +1,8 @@
 window.addEventListener("load", ReplaceText);
 window.addEventListener("load", StyleSheetRefresh);
+/*chrome.runtime.onMessage.addListener((received)=>{
+	if (received.message=="refreshCSS"){StyleSheetRefresh()};
+});*/
 
 function ReplaceText(){
 	//common variables:
@@ -249,9 +252,13 @@ function ReplaceText(){
 	function FinalClean(){
 		document.body.innerHTML = chapHTML;
 		document.body.innerHTML = document.body.innerHTML.replace(doubleP, '');
-		allTocPs = document.getElementById('toc').getElementsByTagName("p");
-		for (let aP of allTocPs) {
-			aP.className+=' toc'
+		let allTocPs = document.getElementById('toc')
+		//console.log(allTocPs.toString)
+		if (Boolean(allTocPs)) {
+			allTocPs = allTocPs.getElementsByTagName("p")
+			for (let aP of allTocPs) {
+				aP.className+=' toc'
+			};
 		};
 	};
 	OrLawLinking();
@@ -270,6 +277,7 @@ function ReplaceText(){
 			}
 		});
 		function HeinLinks(){
+			console.log('running Hein replacement')
 			const heinURL = "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$1&chapter=$2&sgo=Search&collection=ssl&search=go";
 			const orLaw = /((?:20|19)\d{2})\W*c\.\W*(\d+)/g; // is replaced by:
 			const repOL = '<a href=' + heinURL + '>$&</a>';

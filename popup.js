@@ -10,13 +10,13 @@ let orLawTempValue="";
 
 //setup event listeners for form dropdowns & buttons
 darkSelector.addEventListener("change", ()=>{
-  if (darkTempValue!=darkSelector.value) {   // if new value selected
-    chrome.storage.sync.set({'isDarkStored': (darkSelector.value == 'Dark')})
+  if (darkTempValue!=darkSelector.value) {   // if new value selected...
+    chrome.storage.sync.set({'isDarkStored': (darkSelector.value == 'Dark')}, refreshPage(darkTempValue, darkSelector.value))
     displayUserOptions();
   }
 });
 orLawSelector.addEventListener("change", ()=>{
-  if (orLawTempValue!=orLawSelector.value) {
+  if (orLawTempValue!=orLawSelector.value) {  // if new value selected...
     chrome.storage.sync.set({'lawsReaderStored': orLawSelector.value}, reloadORS());
     displayUserOptions();
   };
@@ -29,8 +29,8 @@ chpLaunchButton.addEventListener("click", () => {
 // update displayed info at page launch & after dropdown changes:
 displayUserOptions();
 function displayUserOptions() {
-  darkTempValue=darkSelector;
-  orLawTempValue=orLawSelector;
+  darkTempValue=darkSelector.value;
+  orLawTempValue=orLawSelector.value;
   let promiseGetDark = new Promise((resolve, reject) => {
     chrome.storage.sync.get('isDarkStored', (object) => {
       if (object) {
@@ -52,7 +52,10 @@ function displayUserOptions() {
         break;
       }
     }
-  }).catch(console.log("error, user's stored dark/light status not found"));
+    darkTempValue=darkSelector.value;
+  }).catch((reject) => {
+    if (reject) {alert("Error: user's stored dark/light status not found!")};
+  });
   promiseGetOrLaw.then((resolve) => {
     for (let i=0; i<orLawSelector.options.length; i++) {
       if(orLawSelector.options[i].value==resolve) {
@@ -60,13 +63,24 @@ function displayUserOptions() {
         break;
       }
     }
-  }).catch("error - source of Ore Laws not retrie from popup.html formved from storages")
+  }).catch((reject) => {
+    if (reject) {alert("Error: Ore Laws source not found!")};
+  })
 };
 
 function reloadORS() {
-  chrome.tabs.query({url:'*://www.oregonlegislature.gov/bills_laws/ors/ors*.html'}, function(tabs) {
+  chrome.tabs.query({url:'*://www.oregonlegislature.gov/bills_laws/ors/ors*.html'}, (tabs)=> {
     for (const aTab of tabs) {
       chrome.tabs.reload(aTab.id)
     };
+  });
+};
+
+function refreshPage(oldCSS, newCSS) {
+  chrome.tabs.query({url:'*://www.oregonlegislature.gov/bills_laws/ors/ors*.html'}, (tabs)=> {
+    for (const aTab of tabs) {
+      chrome.tabs.removeCSS(aTab.id, {file:`mORS_${oldCSS.toLowerCase()}.css`})
+      chrome.tabs.insertCSS(aTab.id, {file:`mORS_${newCSS.toLowerCase()}.css`});  
+    }
   });
 };

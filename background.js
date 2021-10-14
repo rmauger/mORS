@@ -1,7 +1,7 @@
 //background.js
 
 "use strict";
-chrome.runtime.onMessage.addListener((received, sender, response)=>{
+chrome.runtime.onMessage.addListener((received)=>{
   switch (received.message) {
     case 'updateCSS':
       updateCSS();
@@ -15,19 +15,23 @@ chrome.runtime.onMessage.addListener((received, sender, response)=>{
 });
 
 chrome.runtime.onConnect.addListener((port) => {
-  console.assert(port.name === "OrLawsSource");
   port.onMessage.addListener(function(msg) {
-    console.log ("B: Channel open");
     if (msg.message == "RequestOrLawsSource") {
       let promiseGetOrLaw = new Promise((resolve, reject) => {
         chrome.storage.sync.get('lawsReaderStored', (object) => {
           if (object) {resolve(object.lawsReaderStored);
-          } else {reject(false);}
+          } else {
+            reject(true);
+          }
         })
       });
       promiseGetOrLaw.then((resolve)=>{
         if (resolve) {port.postMessage({response:resolve})}
-      }).catch(console.log("Error broke from orLawsSource Function in background.js"));
+      }).catch((reject)=> {
+        if (reject) {
+          alert("Error broke from orLawsSource Function in background.js")
+        };
+      });
     };
   });
 });
@@ -38,7 +42,7 @@ function updateCSS() {
       if (object) {
         resolve(object.isDarkStored);
       } else {
-        reject(false);
+        reject(true);
       }
     })
   });
@@ -50,11 +54,13 @@ function updateCSS() {
       removeCSS()
       chrome.tabs.insertCSS({file:"mORS_light.css"});
     }
-  }).catch();
+  }).catch((reject)=> {
+    if (reject) {
+    alert("Error. Didn't find dark status.")
+  }});
 };
 
 function removeCSS(){
   chrome.tabs.removeCSS({file:"mORS_dark.css"});
   chrome.tabs.removeCSS({file:"mORS_light.css"});
 }
-
