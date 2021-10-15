@@ -1,4 +1,5 @@
 //popup.js
+//@ts-nocheck
 "use strict";
 
 //set global variables from popup.html form
@@ -46,7 +47,7 @@ orLawSelector.addEventListener("change", ()=>{
 });
 chpLaunchButton.addEventListener("click", () => {
   let orsChapter = "00"+document.getElementById("orsChapter").value
-  orsChapter = orsChapter.match(/\d{3}[A-C]?\b/)
+  orsChapter = orsChapter.match(/\d{3}[A-C]?\b/)[0]
   let orsURL = 'https://www.oregonlegislature.gov/bills_laws/ors/ors' + orsChapter +'.html'
   chrome.tabs.create({url: orsURL});
 });

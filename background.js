@@ -1,4 +1,5 @@
 //background.js
+// @ts-nocheck - only "errors" found were in chrome
 
 "use strict";
 chrome.runtime.onMessage.addListener((received)=>{

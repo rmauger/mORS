@@ -1,3 +1,5 @@
+// @ts-check all errors resolved (except it doesn't understand "chrome")
+
 window.addEventListener("load", ReplaceText);
 window.addEventListener("load", StyleSheetRefresh);
 
@@ -82,9 +84,9 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 		const notChap = new RegExp(`=ors>${orsChapter}`, 'g'); 
 		let temp=chpHTML;
 		for (let i = 0; i < 500; i++) { //getting list of referenced ORS sections not in this chapter & chapter for each
-			strMatch=temp.match(notChap);
+			let strMatch=temp.match(notChap);
 			if (strMatch) {
-				chapNo=strMatch[0].match(new RegExp(orsChapter)); // finds chapter to match
+				let chapNo=strMatch[0].match(new RegExp(orsChapter)); // finds chapter to match
 				listOfORSChps.push(chapNo);
 				temp=temp.replace(new RegExp('>'+chapNo +'\\.', 'g'), "XXX"); // removes chapter so it doesn't get picked up again
 			} else {
@@ -157,8 +159,8 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 			const XUpper = new RegExp(romanUpperLead + "X)", 'g');
 			const XXUpper = new RegExp(romanUpperLead + "XX)", 'g');				
 			Roman_wrapper: {
-				breakIf = (romanNum) => { // ensure that when matches dry up, stop looking for more
-					Boolean(chpHTML.match(`(${romanNum})`) == false)
+				let breakIf = (romanNum) => { // ensure that when matches dry up, stop looking for more
+					return (new RegExp(`/\(${romanNum}\)/`).test(chpHTML))
 				}
 				if(breakIf('ii')) {break Roman_wrapper}
 				chpHTML = chpHTML.replace(iiLower, iiRepl);
@@ -210,10 +212,10 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 	function finalCleanUp() { // dump HTML back into document, clean up double returns & classify TOC paragraphs
 		document.body.innerHTML = chpHTML;
 		document.body.innerHTML = document.body.innerHTML.replace(doubleP, '');
-		let allTocPs = document.getElementById('toc')
+		let tocID = document.getElementById('toc')
 		//console.log(allTocPs.toString)
-		if (Boolean(allTocPs)) {
-			allTocPs = allTocPs.getElementsByTagName("p")
+		if (Boolean(tocID)) {
+			let allTocPs = tocID.getElementsByTagName("p")
 			for (let aP of allTocPs) {
 				aP.className+=' toc'
 			};
@@ -221,6 +223,7 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 	};
 	OrLawLinking();
 	function OrLawLinking() { // get user data for OrLaws for link for 'year c.###' & 'chapter ###, Oregon Laws [year]'
+		// @ts-ignore
 		let backgroundPort = chrome.runtime.connect({name: "OrLawsSource"}); //open port to background.cs 
 		backgroundPort.postMessage({message: "RequestOrLawsSource"});
 		backgroundPort.onMessage.addListener((msg) => { //listen to its response
@@ -282,6 +285,7 @@ function cssButtons(){ // add buttons to remove & refresh stylesheet
 	document.body.appendChild(cssRefreshButton);
 	document.body.appendChild(cssOffButton);
 	cssOffButton.addEventListener("click", () => {
+		// @ts-ignore
 		chrome.runtime.sendMessage({message: "removeCSS"});  // sends message to background.js
 		console.log("Remove button press")
 	});
@@ -292,5 +296,6 @@ function cssButtons(){ // add buttons to remove & refresh stylesheet
 };
 
 function StyleSheetRefresh() { // sends message to background.js to apply right stlye sheet
+	// @ts-ignore
 	chrome.runtime.sendMessage({message: "updateCSS"});  
 };
