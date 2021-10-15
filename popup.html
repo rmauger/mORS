@@ -6,47 +6,68 @@
       body {
         min-width: 300px;
         width: 300px;
-        font-size: 10pt;
+        font-size: 9pt;
         background-color: #403000;
         color:#ffdb7a;
       }
+      h2, h3 {
+        margin-block-end: .5em;
+        text-align: center;
+      }
+      table {
+        outline: black solid 3px;
+        margin: 2px;
+        padding: 2px;
+      }
+      td {
+        text-align: center;
+        padding: 4px;
+      }
       input {
-        margin: 5px;
+        margin: 2px;
         outline: none;
       }
     </style>
   </head>
   <body>
-    <h2>ORS Chapter selection</h2>
-    <form>
-      <p></p><input type='text' name="orsChapter" id="orsChapter" maxlength="4" size="4">
-      <label for="orsChapter">ORS Chapter</label>
-      <input type='submit' value='Launch' id='chapterLaunch'></label>
-    </form>    
-    <h2>ORS Options</h2>
-    <!-- WORKING TEMPLATE 10/10/21
-    <form>
-      <input type="checkbox" id="isDark">
-      <label for="isDark">Dark mode</label><br>
-      <p></p><input type="radio" name="orLaws" id="Hein">
-      <label for="Hein">HeinOnline (SOLL account required)</label><br>
-      <input type="radio" name="orLaws" id="OrLeg">
-      <label for="OrLeg">Ore. Legislature (from 1999>)</label><br>
-      <input type="radio" name="orLaws" id="None">
-      <label for="None">None</label><br>
-      <p></p><input type='submit' value='Save' id='optionsSubmit'>
-    </form>-->
-    <p>Display mode:</p>
-    <select id="isDark">
-      <option selected value="Dark">Dark</option>
-      <option value="Light">Light</option>
-    </select>
-    <p>OrLaws Lookup Source</p>
-    <select id="OrLaws" onchange="StoreOrLaws()">
-      <option selected value="OrLeg">Ore. Legislature (1999-present)</option>
-      <option value="Hein">HeinOnline (1859-present; account required)</option>
-      <option value="None">None</option>
-    </select>
+    <table>
+      <th><h2>Oregon Legal Lookup</h2></th>
+      <tr><td><h3>Oregon Revised Statutes</h3></td></tr>
+      <tr><td>
+        <form>
+          ORS Chapter:
+          <input type='text' name="orsChapter" id="orsChapter" maxlength="4" size="3">
+          <input type='submit' value='Launch' id='chapterLaunch'></label>
+        </form>
+      </td></tr>
+      <tr><td><h3>Session Laws</h3></td></th>
+      <tr><td>
+        <form>
+          Chap.
+          <input type='text' name="orLawsChapter" id="orLawsChapter" maxlength="4" size="3">
+          , Or. Laws
+          <input type='text' name="orLawsChapter" id="orLawsChapter" maxlength="4" size="3">
+          [year]
+          <input type='submit' value='Launch' id='orLawsLaunch'></label>
+        </form>
+      </td></tr>
+    </table>
+    <h2>Extension Options</h2>
+    <div>
+      <p>
+        Display mode:
+        <select id="isDark">
+          <option selected value="Dark">Dark</option>
+          <option value="Light">Light</option>
+        </select>
+      </p>
+      <p>OrLaws Lookup Source:<p>
+      <select id="OrLaws" onchange="StoreOrLaws()">
+        <option selected value="OrLeg">Ore. Legislature (1999-present)</option>
+        <option value="Hein">HeinOnline (1859-present; account required)</option>
+        <option value="None">None</option>
+      </select>
+    </div>
   </body>
   <script src="popup.js"></script>
 </html>
