@@ -1,5 +1,5 @@
 body  {
-  background-color: #303040;
+  background-color: #333025;
   color:#eeeeee;
   }
 h1 {
@@ -36,7 +36,7 @@ p {
 #toc {
   margin: 0% 1%;
   padding: 2% 3%;
-  border: 3px solid #806040;
+  border: 3px solid #805740;
   background-color: #403020;
 }
 .toc {
@@ -47,7 +47,7 @@ p {
   text-align: center;
 }
 .toc.default {
-  color: #FFa040;
+  color: #ffbb77;
   padding-left:20%;
   text-indent:-25%;
   font-size: 10pt;
@@ -57,7 +57,7 @@ p {
   column-gap:5%
 }
 .default {
-    color:#fffff7;
+    color:#fffcf7;
 }
 .heading {
   font:12pt "Times New Roman", Times, serif;
@@ -76,20 +76,20 @@ p {
 .leadline {
   font:12pt "Times New Roman", Times, serif;
   font-weight: bold;
-  color: #7fffff;
+  color: #fdbdad;
   margin-block-start: 1.5em;
 }
 :target > .leadline {
-  background-color: #005838
+  background-color: #6b2b1b;
 }
 .orsForm {
-  background-color: #434333;
+  background-color: #423f3a;
   margin: 1%;
   border: 3px solid white;
   padding: 0% 1%;
 }
 .sourceNote {
-  color:#ffff77;
+  color:#f0f0a0;
   font: 10pt "Times New Roman", Times, serif;
   margin-block-start:.2em;
   margin-block-end:1em;
@@ -103,46 +103,46 @@ p {
   min-width: 300px;
   width: 60%;
   margin: .5em 3%;
-  border: 1px solid #2e2e31;
+  border: 1px solid #805740;
   padding: 6px;
-  background-color: #202050;
+  background-color: #403020;
 }
 .ors {
   color: #dd0000;
 }
   a.ors:link, a.ors:visited {
-  color:#36fa9b;
+  color:#f7a75d;
 }
 .subsec{
-  color: #f0f0f0;
+  color: #f8f4f0;
   text-indent:-1em;
   padding-left:3%;
   margin-block-end:0;
   margin-block-start: .2em;
 }
 .para{
-  color: #e8e8e8;
+  color: #f0ebe8;
   text-indent:-1em;
   padding-left:4.5%;
   margin-block-end:0;
   margin-block-start: .2em;
 }
 .subpara{
-  color: #e0e0e0;
+  color: #e8e4e0;
   text-indent:-1em;
   padding-left:6%;
   margin-block-end:0;
   margin-block-start: .2em;
 }
 .subsubpara{
-  color: #d8d8d8;
+  color: #e0dbd8;
   padding-left:7.5%;
   text-indent:-1em;
   margin-block-end:0;
   margin-block-start: .2em;
 }
 .subsubsubpara{
-  color: #d0d0d0;
+  color: #d8d4d0;
   padding-left:9%;
   text-indent:-1em;
   margin-block-end:0;
