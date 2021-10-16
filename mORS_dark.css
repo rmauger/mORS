@@ -1,5 +1,5 @@
 body  {
-  background-color: #080800;
+  background-color: #303040;
   color:#eeeeee;
   }
 h1 {
@@ -36,8 +36,8 @@ p {
 #toc {
   margin: 0% 1%;
   padding: 2% 3%;
-  border: 3px solid #7c5e2b;
-  background-color: #352c1c;
+  border: 3px solid #806040;
+  background-color: #403020;
 }
 .toc {
   break-inside: avoid;
@@ -47,6 +47,7 @@ p {
   text-align: center;
 }
 .toc.default {
+  color: #FFa040;
   padding-left:20%;
   text-indent:-25%;
   font-size: 10pt;
@@ -54,9 +55,6 @@ p {
 .tocItems {
   columns: 250px 3;
   column-gap:5%
-}
-.orsbody {
-    background-color: #000000;
 }
 .default {
     color:#fffff7;

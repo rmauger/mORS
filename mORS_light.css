@@ -1,5 +1,5 @@
 body  {
-  background-color: #F9F3FF;
+  background-color: #E0E0F0;
   color:#111111;
   }
 h1 {
@@ -54,9 +54,6 @@ p {
 .tocItems {
   columns: 250px 3;
   column-gap:5%
-}
-.orsbody {
-    background-color: #FFFFFF;
 }
 .default {
     color:#000099;
