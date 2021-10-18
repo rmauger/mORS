@@ -35,8 +35,6 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 		const yearRepl = '</h1><h2>$1</h2>'
 		const title = /<h1>([^]*?)<\/h1>[^]*?(<h2>[^]*?<\/h2>)[^]*?<p[^]*?\/p>[^]*?<p[^]*?>([^]*?)<\/p>/; //is replaced by:
 		const titleRepl = '<h3>TITLE: $3</h3><h1>$1</h1>$2';
-		console.log(chpHTML);
-		console.log(chapMainHead);
 		chpHTML = chpHTML.replace(chapMainHead, mainHeadRepl);
 		chpHTML = chpHTML.replace(edYear, yearRepl);
 		chpHTML = chpHTML.replace(title, titleRepl);
@@ -44,7 +42,7 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 	TableOfContents();
 	function TableOfContents() { //create & label new division for table of contents
 		const tocFind = new RegExp("(?<=<\\/h2>[^]*?)(<p[^>]*?>[^]*?<\\/p>)([^]*?)(?=\\1|<p class=default><b>)"); // is replaced by:
-		const tocRepl = '<div id=toc><h1>Table of Contents</h1><div class=tocItems>$1$2</div></div><div class=orsbody><div class=chapHTML>';
+		const tocRepl = '<div id=toc><h1>Table of Contents</h1><div class=tocItems><div><div>$1$2</div></div>?#@<div class=orsbody>';
 		chpHTML = chpHTML.replace(tocFind, tocRepl);
 	};
 	ORSHighlight();
@@ -57,16 +55,16 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 	function Leadlines() { //highlight & create new div for each new section 
 		const orsSecLead = "(?:<span class=ors>)(" + chapNum + "\\.\\d{3,4}\\b)<\/span>([^\\.][^\\]]+?\\.)";
 		const leadFind = new RegExp("<p class=default><b>" + tabs + orsSecLead + "</b>",'g');
-		const leadRepl = '</div><div class=section id="$1" break="~"><p class=leadline><b>$1$2</b></p><p class=default>';
+		const leadRepl = '</div><div class=section id="$1" break="~"><b class=leadline>$1$2</b><p class=default>';
 		chpHTML = chpHTML.replace(leadFind, leadRepl);
 	};
 	Forms();
 	function Forms() { // find beginning and end of forms to create new div for each
-		const startForm = new RegExp("(form[^]*?:)<\\/p>"+ tabs +"(<p[^>]*>)_{78}", 'g');
-		const startFormRepl = "$1</p><div class=orsForm break='`'>$2"
-		const endForm = /(`([^~`]*_{78}|[^`~]*?(?=<div class=orsForm)))/g;
-		const endFormRepl = "$1</div>";
-		const endFormCleanup =/_{78}(<\/div>)/g;
+		const startForm = new RegExp("(form[^]*?:)<\\/p>"+ tabs +"(<p[^>]*>)_{78}", 'g'); // finds start of form
+		const startFormRepl = "$1</p><div class=orsForm break='`'>$2" //inserts it as a new div
+		const endForm = /(`([^~`]*_{78}|[^`~]*?(?=<div class=orsForm)))/g;  
+		const endFormRepl = "$1</div break='`'>";
+		const endFormCleanup =/(_{78}<\/div>)/g;
 		chpHTML = chpHTML.replace(startForm, startFormRepl);
 		chpHTML = chpHTML.replace(endForm, endFormRepl);
 		chpHTML = chpHTML.replace(endFormCleanup, '$1')
@@ -189,13 +187,36 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 	}
 	headingsRepl();
 	function headingsRepl() { // classify HEADINGS and (Subheadings)
-		const headingFind = /<p class=default>([^a-z][^a-z]{3,}?)<\/p>/g //is replaced by:
-		const headingRepl = '<p class=heading><b>$1</b></p>'
+		const headingFind = /<p class=default>([A-Z][^a-z]{3,}?)<\/p>/g //is replaced by:
+		const headingRepl = '</div></div><div class=headingSec><p class=heading><b>$1</b></p><div>'
 		const subheadFind = /<p class=default>(\([^]{5,}?\))<\/p>/g //is replaced by:
-		const subheadRepl = '<p class=subhead>$1</p>'
+		const subheadRepl = '</div></div><div class=subheadSec><p class=subhead>$1</p><div>'
+		function cleanupTocBreadCrumbs() {
+			let headCount = 0
+			let extraDivs=""
+			if ((/=head/).test) {headCount++}
+			if ((/=subhead/).test) {headCount++}
+			for (let i = 0; i < headCount; i++) {
+				extraDivs+="</div>" ;
+			}
+			return extraDivs
+		}	
+		const tempSec = /<div class=subheadSec><p class=subhead">(\(Temporary\sprovision)/g;
+		const tempSecRepl = '<div class=TempSec><p class=TempSec>$1'
+		const headInForm = /(=orsForm break=\'\`\'[^`~]*)<\/div><\/div><div\sclass=headingSec>([^`~]*?)<div>/g
+		const subheadInForm = /(=orsForm break=\'\`\'[^`~]*)<\/div><\/div><div\sclass=subheadSec>([^`~]*?)<div>/g
 		chpHTML = chpHTML.replace(headingFind, headingRepl);
 		chpHTML = chpHTML.replace(subheadFind, subheadRepl);
+		chpHTML = chpHTML.replace("?#@", cleanupTocBreadCrumbs())
+		console.log(chpHTML);
+		console.log(headInForm + "\\");
+		while (headInForm.test(chpHTML) || subheadInForm.test(chpHTML)) {
+			chpHTML = chpHTML.replace(headInForm, '$1$2');
+			chpHTML = chpHTML.replace(subheadInForm, '$1$2	');
+		}
+		chpHTML = chpHTML.replace(tempSec, tempSecRepl)
 	}
+
 	sourceNotesRepl();
 	function sourceNotesRepl() { // Find source notes and classify
 		const sourceNote = /(\[(19\d{2}|20\d{2}|Fo|Re|Am)[^]+?\]<\/p>)/g; //is replaced by:
@@ -204,7 +225,7 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 		burntORS();
 		function burntORS(){ // Find burnt ORS (repealed/renumbered) and classify
 			const deadOrs = /<p class=default><b>[^>\[]*?<a[^>\[]+?>([^<\[]+?)\s?<\/a>\s?<\/b>\s?<p class=sourceNote>/g
-			const repDeadO = "<p class='sourceNote leadline' id='$1'><b>$1</b>: "
+			const repDeadO = "</div><div class='sourceNote leadline' id='$1'>$1: "
 			chpHTML = chpHTML.replace(deadOrs, repDeadO);
 		}
 	}
@@ -213,7 +234,6 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 		document.body.innerHTML = chpHTML;
 		document.body.innerHTML = document.body.innerHTML.replace(doubleP, '');
 		let tocID = document.getElementById('toc')
-		//console.log(allTocPs.toString)
 		if (Boolean(tocID)) {
 			let allTocPs = tocID.getElementsByTagName("p")
 			for (let aP of allTocPs) {
@@ -255,7 +275,6 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 				let orLawSourceNote=(new RegExp(yearRegExp + orLawSourceNoteTail, 'g'));
 				let yearOrLawChp=(new RegExp(yearOrLawChpHead + yearRegExp, 'g'));
 				let orLawRepl=(orLegURL + strFormat + urlTail);
-				console.log(orLawSourceNote +"  :  " + yearOrLawChp)
 				chpHTML = chpHTML.replace(orLawSourceNote, orLawRepl);
 				chpHTML = chpHTML.replace(yearOrLawChp, orLawRepl.replace(/(\$1)([^]*?)(\$2)/, '$3$2$1'));
 			}
