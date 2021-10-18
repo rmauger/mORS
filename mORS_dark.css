@@ -58,6 +58,12 @@ p {
 .default {
     color:#fffcf7;
 }
+.section {
+  /* columns: 800px 2; */
+  border: 1px solid black;
+  margin-block: 1em;
+  padding: 1em 0;
+}
 .heading {
   font:12pt "Times New Roman", Times, serif;
   font-weight: bold;

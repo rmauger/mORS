@@ -191,7 +191,7 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 		const headingRepl = '</div></div><div class=headingSec><p class=heading><b>$1</b></p><div>'
 		const subheadFind = /<p class=default>(\([^]{5,}?\))<\/p>/g //is replaced by:
 		const subheadRepl = '</div></div><div class=subheadSec><p class=subhead>$1</p><div>'
-		function cleanupTocBreadCrumbs() {
+		function cleanupTocBreadCrumbs() { // makes sure the TOC has the right number of closing </div>s to deal with TOC headings
 			let headCount = 0
 			let extraDivs=""
 			if ((/=head/).test) {headCount++}
