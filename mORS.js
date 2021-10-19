@@ -6,6 +6,7 @@ window.addEventListener("load", StyleSheetRefresh);
 function ReplaceText() { //main function adjusting HTML of Oregon Legislature ORS pages
 	//global variables:
 	let chpHTML=document.body.innerHTML;
+	let headAndTOC = ""; // stores TOC & heading after TOC() function
 	const tabs = "(?:&nbsp;|\\s){0,8}";
 	const orsChapter = "\\b\\d{1,3}[A-C]?\\b"
 	const orsSection = `(?:${orsChapter}\\.\\d{3}\\b|\\b7\\dA?\\.\\d{4}\b)`
@@ -40,9 +41,9 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 		chpHTML = chpHTML.replace(title, titleRepl);
 	};
 	TableOfContents();
-	function TableOfContents() { //create & label new division for table of contents
+	function TableOfContents() { //create & label new division for table of contents 
 		const tocFind = new RegExp("(?<=<\\/h2>[^]*?)(<p[^>]*?>[^]*?<\\/p>)([^]*?)(?=\\1|<p class=default><b>)"); // is replaced by:
-		const tocRepl = '<div id=toc><h1>Table of Contents</h1><div class=tocItems><div><div>$1$2</div></div>?#@<div class=orsbody>';
+		const tocRepl = '<div id=toc><h1>Table of Contents</h1><div class=tocItems>$1$2</div></div>?#@';
 		chpHTML = chpHTML.replace(tocFind, tocRepl);
 	};
 	ORSHighlight();
@@ -104,6 +105,11 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 			};
 		};		
 	};
+	SeparateTOC()
+	function SeparateTOC() { //separate TOC & chapter heading from rest of body to facilitate editing body 
+		headAndTOC = chpHTML.match(/[^]*?(?=\?#@)/)[0] // copy TOC to own variable
+		chpHTML = chpHTML.replace(/[^]*?\?#@/, "") // and remove it from the editing document
+	}
 	Notes();
 	function Notes() { // finds Note: in ORS & classes; finds note secs; Adds hyperlinks for Preface to ORS & vol22
 		const noteFind = new RegExp('<p[^>]*>\\s?<b>' + tabs + '(Note(\\s\\d)?:\\s?<\\/b>[^]*?)(?=<\\/p>)', 'g'); // is replaced by:
@@ -185,38 +191,53 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 			chpHTML = chpHTML.replace(lilL, lilLRepl);
 		}
 	}
-	headingsRepl();
-	function headingsRepl() { // classify HEADINGS and (Subheadings)
+	headingReformat();
+	function headingReformat() { // classify HEADINGS and (Subheadings) and (Temporary Labels)- 
 		const headingFind = /<p class=default>([A-Z][^a-z]{3,}?)<\/p>/g //is replaced by:
-		const headingRepl = '</div></div><div class=headingSec><p class=heading><b>$1</b></p><div>'
+		const headingRepl = '#hclose#</div><div class=headingDiv><p class=headingLabel><b>$1</b></p><div>'
 		const subheadFind = /<p class=default>(\([^]{5,}?\))<\/p>/g //is replaced by:
-		const subheadRepl = '</div></div><div class=subheadSec><p class=subhead>$1</p><div>'
-		function cleanupTocBreadCrumbs() { // makes sure the TOC has the right number of closing </div>s to deal with TOC headings
-			let headCount = 0
-			let extraDivs=""
-			if ((/=head/).test) {headCount++}
-			if ((/=subhead/).test) {headCount++}
-			for (let i = 0; i < headCount; i++) {
-				extraDivs+="</div>" ;
-			}
-			return extraDivs
-		}	
-		const tempSec = /<div class=subheadSec><p class=subhead">(\(Temporary\sprovision)/g;
+		const subheadRepl = '#sclose#</div><div class=subheadDiv><p class=subheadLabel>$1</p><div>'
+		const headInTOCRepl = "<p class=tocHeading>$1</p>"
+		const tempSec = /<div class=subheadDiv><p class=subhead">(\(Temporary\sprovision)/g;
 		const tempSecRepl = '<div class=TempSec><p class=TempSec>$1'
-		const headInForm = /(=orsForm break=\'\`\'[^`~]*)<\/div><\/div><div\sclass=headingSec>([^`~]*?)<div>/g
-		const subheadInForm = /(=orsForm break=\'\`\'[^`~]*)<\/div><\/div><div\sclass=subheadSec>([^`~]*?)<div>/g
+		const headInForm = /(=orsForm break=\'\`\'[^`~]*)#hclose#[^`~]*?<p[^`~>]*>([^`~]*?)<div>/g
+		const subheadInForm = /(=orsForm break=\'\`\'[^`~]*)#sclose#[^`~]*?<p[^`~>]*>([^`~]*?)<div>/g
 		chpHTML = chpHTML.replace(headingFind, headingRepl);
 		chpHTML = chpHTML.replace(subheadFind, subheadRepl);
-		chpHTML = chpHTML.replace("?#@", cleanupTocBreadCrumbs())
-		console.log(chpHTML);
-		console.log(headInForm + "\\");
-		while (headInForm.test(chpHTML) || subheadInForm.test(chpHTML)) {
-			chpHTML = chpHTML.replace(headInForm, '$1$2');
-			chpHTML = chpHTML.replace(subheadInForm, '$1$2	');
-		}
 		chpHTML = chpHTML.replace(tempSec, tempSecRepl)
+		headAndTOC = headAndTOC.replace(headingFind, headInTOCRepl);
+		headAndTOC = headAndTOC.replace(subheadFind, headInTOCRepl);
+		while (headInForm.test(chpHTML) || subheadInForm.test(chpHTML)) {
+			chpHTML = chpHTML.replace(headInForm, '$1<p class=formHeading>$2');
+			chpHTML = chpHTML.replace(subheadInForm, '$1<p class=default>$2');
+		}
 	}
-
+	headingDivs();
+	function headingDivs () {
+		const closeHeadTags = /(#hclose#|#sclose#)/
+		let hCount=0;
+		while (closeHeadTags.test(chpHTML)){
+			let divHeadClose="";
+			let nextTag = chpHTML.match(closeHeadTags)[0];
+			if (nextTag[1]=="s") {
+				if (hCount==2) {divHeadClose="</div>"}
+				console.log("subheading: " + chpHTML.match(/#sclose#[^~]*?\/p/)[0])
+				hCount=2;
+			} else {
+				switch (hCount) {
+					case 2:
+						divHeadClose="</div></div>"
+						break;
+					case 1:
+ 						divHeadClose="</div>"
+					default:
+						break;
+				}
+				hCount=1;
+			}
+			chpHTML=chpHTML.replace(closeHeadTags, divHeadClose)
+		}
+	}
 	sourceNotesRepl();
 	function sourceNotesRepl() { // Find source notes and classify
 		const sourceNote = /(\[(19\d{2}|20\d{2}|Fo|Re|Am)[^]+?\]<\/p>)/g; //is replaced by:
@@ -224,14 +245,14 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 		chpHTML = chpHTML.replace(sourceNote, sourceNoteRepl);
 		burntORS();
 		function burntORS(){ // Find burnt ORS (repealed/renumbered) and classify
-			const deadOrs = /<p class=default><b>[^>\[]*?<a[^>\[]+?>([^<\[]+?)\s?<\/a>\s?<\/b>\s?<p class=sourceNote>/g
-			const repDeadO = "</div><div class='sourceNote leadline' id='$1'>$1: "
-			chpHTML = chpHTML.replace(deadOrs, repDeadO);
+			const burntOrs = /<p class=default><b>[^>\[]*?<a[^>\[]+?>([^<\[]+?)\s?<\/a>\s?<\/b>\s?<p class=sourceNote>/g
+			const burntOrsRepl = "</div><div class='burnt' id='$1'>$1: "
+			chpHTML = chpHTML.replace(burntOrs, burntOrsRepl);
 		}
 	}
 	finalCleanUp();
 	function finalCleanUp() { // dump HTML back into document, clean up double returns & classify TOC paragraphs
-		document.body.innerHTML = chpHTML;
+		document.body.innerHTML = headAndTOC + chpHTML;
 		document.body.innerHTML = document.body.innerHTML.replace(doubleP, '');
 		let tocID = document.getElementById('toc')
 		if (Boolean(tocID)) {

@@ -1,7 +1,10 @@
+/* Page background */
 body  {
   background-color: #2b211b;
   color:#eeeeee;
-  }
+}
+
+/* Headings */
 h1 {
   color: #ffbb77;
   font:18pt Garamond, serif;
@@ -9,19 +12,26 @@ h1 {
   text-align: center;
 }
 h2 {
+  color: #ffbb77;
   font:16pt Garamond, serif;
   text-align: center;
 }
 h3 {
+  color: #ffbb77;
   font:14pt Garamond, serif;
   font-weight: bold;
   text-align: center;
 }
+
+/* Hyperlinks */
 a:link {
   color:#b0c8ff;
 }
 a:visited {
   color:#d4a7ff;
+}
+a.ors:link, a.ors:visited {
+  color:#f7a75d;
 }
 a:hover {
   background-color: #bb6432;
@@ -32,51 +42,67 @@ p {
   margin-block-end:.5em;
   font: 11pt Arial, sans-serif;
 }
+
+/* Table of contents */
 #toc {
-  margin: 0% 1%;
-  padding: 2% 3%;
-  border: 3px solid #805740;
+  margin: 2px;
+  padding: 4px;
+  border: 2px solid #805740;
   background-color: #403020;
 }
 .toc {
   break-inside: avoid;
 }
-.toc.heading, .toc.subhead {
+.tocHeading {
   font-size:12pt;
+  font-weight: bold;
   text-align: center;
+  color:#fdca97;
+  break-inside: avoid;
 }
 .toc.default {
   color: #ffbb77;
   padding-left:20%;
   text-indent:-25%;
   font-size: 10pt;
+
 }
 .tocItems {
   columns: 250px 3;
   column-gap:5%
 }
-.default {
-    color:#fffcf7;
+
+/* Headings & Subheadings */
+.headingDiv {
+  /* padding: 1em 0; */
+  /* border-bottom: 2px double  #fd6303; */
+  padding: 4px;
+  margin: 2px;
+  border: 2px solid yellow;
 }
-.section {
-  /* columns: 800px 2; */
-  border: 1px solid black;
-  margin-block: 1em;
-  padding: 1em 0;
-}
-.heading {
+.headingLabel {
   font:12pt "Times New Roman", Times, serif;
   font-weight: bold;
   text-align:center;
-  margin-block-start: 1.5em;
-  margin-block-end: .5em;
-  padding: 0 10%;
+  color: yellow;
 }
-.subhead {
-  font:11pt "Times New Roman", Times, serif;
+.subheadDiv {
+  border: 2px solid green;
+  padding: 4px;
+  margin: 2px;
+}
+.subheadLabel {
+  font:12pt "Times New Roman", Times, serif;
   font-style:italic;
-  margin-block-start: 1em;
-  margin-block-end: .5em;
+  color: green;
+  text-align: center;
+}
+
+/* Sections & parts of sections */
+.section {
+  background-color: #382c24;
+  margin-block: 1em;
+  padding: 1em 0;
 }
 .leadline {
   font:12pt "Times New Roman", Times, serif;
@@ -99,12 +125,13 @@ p {
   margin-block-start:.2em;
   margin-block-end:1em;
 }
-.dead {
+.burnt {
   margin-block-start:1.5em;
+  background-color: red;
 }
 .note {
   font: 10pt, "Times New Roman", Times, serif;
-  max-width: 600px;
+  max-width: 800px;
   min-width: 300px;
   width: 60%;
   margin: .5em 3%;
@@ -112,9 +139,10 @@ p {
   padding: 6px;
   background-color: #403020;
 }
-  a.ors:link, a.ors:visited {
-  color:#f7a75d;
+.default {
+  color:#fffcf7;
 }
+/* Section Subunits */
 .subsec{
   color: #f8f4f0;
   text-indent:-1em;
