@@ -110,21 +110,6 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 		headAndTOC = chpHTML.match(/[^]*?(?=\?#@)/)[0] // copy TOC to own variable
 		chpHTML = chpHTML.replace(/[^]*?\?#@/, "") // and remove it from the editing document
 	}
-	Notes();
-	function Notes() { // finds Note: in ORS & classes; finds note secs; Adds hyperlinks for Preface to ORS & vol22
-		const noteFind = new RegExp('<p[^>]*>\\s?<b>' + tabs + '(Note(\\s\\d)?:\\s?<\\/b>[^]*?)(?=<\\/p>)', 'g'); // is replaced by:
-		const noteRepl = '<p class=note><b>$1'
-		const noteSec = new RegExp('<p[^>]*?><b>' + tabs + "(<a[^>]*?>[\\S]{5,8}<\\/a>)\\.<\\/b>", 'g'); //is replaced by:
-		const noteSecRepl = '<p class=note><b>Note section for ORS $1:</b></p><p class=default>'
-		const prefaceFind = /(Preface\sto\sOregon\sRevised\sStatutes)/g // is replaced by:
-		const prefaceRepl = '<a href="https://www.oregonlegislature.gov/bills_laws/BillsLawsEDL/ORS_Preface.pdf">$1</a>';
-		const v22Find = /(\d{4}\sComparative\sSection\sTable\slocated\sin\sVolume\s22)/g; // is replaced by:
-		const v22Repl = '<a href="https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx#">$1</a>';
-		chpHTML = chpHTML.replace(noteFind, noteRepl);
-		chpHTML = chpHTML.replace(noteSec, noteSecRepl);
-		chpHTML = chpHTML.replace(prefaceFind, prefaceRepl);
-		chpHTML = chpHTML.replace(v22Find, v22Repl);
-	};
 	SubUnits();
 	function SubUnits() { // finds and classifies subunits (subsections, paragraphs, subsections etc.)
 		const subsecOne = /<p[^>]*?>\s?(\(1\)[^]+?)<\/p>/g;
@@ -140,19 +125,17 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 		chpHTML = chpHTML.replace(subsubsubPara, subsubsubRepl);
 		Romans();
 		function Romans() { // separate roman numerals (subsubpara & subsubsubpara) from letters (para & subpara)
-	  		const sameLtrLower = /=subsubpara>(\(([a-z])(?:\2){0,4}\))/g; // paragraphs if 1 letter (a) or letters match (aa)
-			const sameLetterUpper = /=subsubsubpara>(\(([A-Z])(?:\2){0,4}\))/g; // subpara if 1 letter (A) or matching letters (AA)
+	  		const sameLtrLower = /=subsubpara>(\(([a-z])(?:\2){0,4}\))/g; // reclassifies single letter (a) or letters match (aa) as:
 			const ltrLowerRepl = "=para break='!'>$1";
+			const sameLetterUpper = /=subsubsubpara>(\(([A-Z])(?:\2){0,4}\))/g; // reclassifies single letter (A) or matching letters (AA) as:
 			const ltrUpperRepl = "=subpara break='?'>$1";
-			chpHTML = chpHTML.replace(sameLtrLower, ltrLowerRepl);
-			chpHTML = chpHTML.replace(sameLetterUpper, ltrUpperRepl);
-			const romanLowerLead = "((=subsubpara>[^!~]*))=para[^>]*?>(?=\\("; 
+			const romanLowerLead = "((=subsubpara>[^!~]*))=para[^>]*?>(?=\\("; // common data in para that needs converted to roman 
 			const romanLowerRepl = "$1=subsubpara>";
-			const romanUpperLead = "((subsubsubpara>[^~!?]*))=subpara[^>]*>(?=\\("; // last dealing with the more ambiguous ones (iii, v, x, xx, xxx) should work through 27 (XXVIII is too large)
+			const romanUpperLead = "((subsubsubpara>[^~!?]*))=subpara[^>]*>(?=\\("; // upper case
 			const romanUpperRepl = "$1=subsubsubpara>";
-			const iiLower = /=para[^>]*>(\(i\)[^!~]*?)=para[^>]*>(?=\(ii\))/g; // next, get matching (i) & (ii) labeled as subsubs again
+			const iiLower = /=para[^>]*>(\([A-Z]\)?\(i\)[^!~]*?)=para[^>]*>(?=\(ii\))/g; // reclassify matching [(X)](i) & (ii) to:
 			const iiRepl = "=subsubpara>$1=subsubpara>"
-			const IIUpper = /=subpara[^>]*>(\(I\)[^?~]*?)=subpara[^>]*>(?=\(II\))/g; // next, get matching (i) & (ii) labeled as subsubs again
+			const IIUpper = /=subpara[^>]*>(\(I\)[^?~]*?)=subpara[^>]*>(?=\(II\))/g; // next, get matching (I) & (II) labeled as subsubs again
 			const IIRepl = "=subsubsubpara>$1=subsubsubpara>"
 			const iiiLower = new RegExp(romanLowerLead + "iii)", 'g');
 			const vLower = new RegExp(romanLowerLead + "v)", 'g');
@@ -162,6 +145,9 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 			const VUpper = new RegExp(romanUpperLead + "V)", 'g');
 			const XUpper = new RegExp(romanUpperLead + "X)", 'g');
 			const XXUpper = new RegExp(romanUpperLead + "XX)", 'g');				
+			chpHTML = chpHTML.replace(sameLtrLower, ltrLowerRepl);
+			chpHTML = chpHTML.replace(sameLetterUpper, ltrUpperRepl);
+
 			Roman_wrapper: {
 				let breakIf = (romanNum) => { // ensure that when matches dry up, stop looking for more
 					return (new RegExp(`/\(${romanNum}\)/`).test(chpHTML))
@@ -193,51 +179,71 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 	}
 	headingReformat();
 	function headingReformat() { // classify HEADINGS and (Subheadings) and (Temporary Labels)- 
-		const headingFind = /<p class=default>([A-Z][^a-z]{3,}?)<\/p>/g //is replaced by:
+		const headingFind = /<p class=default>([A-Z][^a-z]{3,}?)<\/p>/g //Replaces 3+ initial capital letters with:
 		const headingRepl = '#hclose#</div><div class=headingDiv><p class=headingLabel><b>$1</b></p><div>'
-		const subheadFind = /<p class=default>(\([^]{5,}?\))<\/p>/g //is replaced by:
+		const tempSec = /p class=default>(\(Temporary\sprovisions[^~]*?<\/)p/g;  //Replaces "(Temporary provisions ..." with:
+		const tempSecRepl = 'div class=TempHead style="text-align:center">$1div'
+		const subheadFind = /<p class=default>(\([^]{5,}?\))<\/p>/g //Replaces leading parens with at least 5 letters with:
 		const subheadRepl = '#sclose#</div><div class=subheadDiv><p class=subheadLabel>$1</p><div>'
 		const headInTOCRepl = "<p class=tocHeading>$1</p>"
-		const tempSec = /<div class=subheadDiv><p class=subhead">(\(Temporary\sprovision)/g;
-		const tempSecRepl = '<div class=TempSec><p class=TempSec>$1'
-		const headInForm = /(=orsForm break=\'\`\'[^`~]*)#hclose#[^`~]*?<p[^`~>]*>([^`~]*?)<div>/g
-		const subheadInForm = /(=orsForm break=\'\`\'[^`~]*)#sclose#[^`~]*?<p[^`~>]*>([^`~]*?)<div>/g
+		const headInForm = /(=orsForm break=\'\`\'[^`~]*)#hclose#[^`~]*?<p[^`~>]*>([^`~]*?)<div>/g //Used to count headings to get "<div> breaks to line up" 
+		const subheadInForm = /(=orsForm break=\'\`\'[^`~]*)#sclose#[^`~]*?<p[^`~>]*>([^`~]*?)<div>/g //Used to count subheadings
 		chpHTML = chpHTML.replace(headingFind, headingRepl);
-		chpHTML = chpHTML.replace(subheadFind, subheadRepl);
 		chpHTML = chpHTML.replace(tempSec, tempSecRepl)
+		chpHTML = chpHTML.replace(subheadFind, subheadRepl);
 		headAndTOC = headAndTOC.replace(headingFind, headInTOCRepl);
 		headAndTOC = headAndTOC.replace(subheadFind, headInTOCRepl);
-		while (headInForm.test(chpHTML) || subheadInForm.test(chpHTML)) {
+		while (headInForm.test(chpHTML) || subheadInForm.test(chpHTML)) { // replaces headings found within forms (which probably aren't actual headings) with with:
 			chpHTML = chpHTML.replace(headInForm, '$1<p class=formHeading>$2');
 			chpHTML = chpHTML.replace(subheadInForm, '$1<p class=default>$2');
 		}
-	}
-	headingDivs();
-	function headingDivs () {
-		const closeHeadTags = /(#hclose#|#sclose#)/
-		let hCount=0;
-		while (closeHeadTags.test(chpHTML)){
-			let divHeadClose="";
-			let nextTag = chpHTML.match(closeHeadTags)[0];
-			if (nextTag[1]=="s") {
-				if (hCount==2) {divHeadClose="</div>"}
-				console.log("subheading: " + chpHTML.match(/#sclose#[^~]*?\/p/)[0])
-				hCount=2;
-			} else {
-				switch (hCount) {
-					case 2:
-						divHeadClose="</div></div>"
-						break;
-					case 1:
- 						divHeadClose="</div>"
-					default:
-						break;
+		headingDivs();
+		function headingDivs () { // makes sure that all headings & subheading <divs> are closed exactly once. Could break if there's a subheading w/o heading
+			const closeHeadTags = /(#hclose#|#sclose#)/
+			let hCount=0;
+			while (closeHeadTags.test(chpHTML)){
+				let divHeadClose="";
+				let nextTag = chpHTML.match(closeHeadTags)[0];
+				if (nextTag[1]=="s") {
+					if (hCount==2) {divHeadClose="</div>"}
+					console.log("subheading: " + chpHTML.match(/#sclose#[^~]*?\/p/)[0])
+					hCount=2;
+				} else {
+					switch (hCount) {
+						case 2:
+							divHeadClose="</div></div>"
+							break;
+						case 1:
+							divHeadClose="</div>"
+						default:
+							break;
+					}
+					hCount=1;
 				}
-				hCount=1;
+				chpHTML=chpHTML.replace(closeHeadTags, divHeadClose)
 			}
-			chpHTML=chpHTML.replace(closeHeadTags, divHeadClose)
 		}
 	}
+	Notes();
+	function Notes() { // finds Note: in ORS & classes; finds note secs; Adds hyperlinks for Preface to ORS & vol22
+		const noteFind = new RegExp('<p[^>]*>\\s?<b>' + tabs + '(Note(\\s\\d)?:\\s?<\\/b>[^]*?<\\/p>)', 'g'); // Finds "Note:" or "Note #:"; is replaced by:  
+		const noteRepl = '<div class=note><b>$1</div>'
+		const noteSec = new RegExp('<\\/div>'+ tabs + '<p[^>]*?><b>' + tabs + '(<a[^>]*?>[\\S]{5,8}<\\/a>)\\.<\\/b>([^~]*?)<div', 'g'); // Finds bold ORS links w/o leadline; is replaced by:
+		const noteSecRepl = '<p class=default><b>Note section for ORS $1:</b></p><p class=default>$2</div><div'
+		const noteSesLaw = /(class=note>[^~]*?Section[^~]*?provides?:)[^~]*?<\/div>([^~]*?)<div/g
+		const noteSesLawRepl = "$1$2</div><div"
+		const prefaceFind = /(Preface\sto\sOregon\sRevised\sStatutes)/g // "preface" is replaced by link:
+		const prefaceRepl = '<a href="https://www.oregonlegislature.gov/bills_laws/BillsLawsEDL/ORS_Preface.pdf">$1</a>';
+		const v22Find = /(\d{4}\sComparative\sSection\sTable\slocated\sin\sVolume\s22)/g; // CST is replaced by link:
+		const v22Repl = '<a href="https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx#">$1</a>';
+		chpHTML = chpHTML.replace(noteFind, noteRepl);
+		chpHTML = chpHTML.replace(noteSec, noteSecRepl);
+		console.log(noteSesLaw);
+		console.log(chpHTML);
+		chpHTML = chpHTML.replace(noteSesLaw, noteSesLawRepl)
+		chpHTML = chpHTML.replace(prefaceFind, prefaceRepl);
+		chpHTML = chpHTML.replace(v22Find, v22Repl);
+	};
 	sourceNotesRepl();
 	function sourceNotesRepl() { // Find source notes and classify
 		const sourceNote = /(\[(19\d{2}|20\d{2}|Fo|Re|Am)[^]+?\]<\/p>)/g; //is replaced by:

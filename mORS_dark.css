@@ -31,7 +31,7 @@ a:visited {
   color:#d4a7ff;
 }
 a.ors:link, a.ors:visited {
-  color:#f7a75d;
+  color:#fdca97;
 }
 a:hover {
   background-color: #bb6432;
@@ -104,7 +104,15 @@ p {
   margin-block: 1em;
   padding: 1em 0;
 }
-.leadline {
+.tempSec {
+  border: 2px solid pink;
+  margin: 0 2px;
+  padding: 0 2px;
+}
+.burnt {
+  margin-block-start:1.5em;
+}
+.leadline, .tempHead {
   font:12pt "Times New Roman", Times, serif;
   font-weight: bold;
   color: #fdbdad;
@@ -113,21 +121,22 @@ p {
 :target > .leadline {
   background-color: #6b2b1b;
 }
+/* Forms */
 .orsForm {
   background-color: #44413f;
   margin: 1%;
   border: 3px solid #bb6432;
   padding: 0% 1%;
 }
+.formHeading{
+  text-align: center;
+  font-weight: bold;
+}
 .sourceNote {
   color:#f0f0a0;
   font: 10pt "Times New Roman", Times, serif;
   margin-block-start:.2em;
   margin-block-end:1em;
-}
-.burnt {
-  margin-block-start:1.5em;
-  background-color: red;
 }
 .note {
   font: 10pt, "Times New Roman", Times, serif;
