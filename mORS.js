@@ -1,4 +1,4 @@
-// @ts-check all errors resolved (except it doesn't understand "chrome")
+//@ts-nocheck all errors resolved (except it doesn't understand "chrome" or DOM?)
 
 window.addEventListener("load", ReplaceText);
 window.addEventListener("load", StyleSheetRefresh);
@@ -9,7 +9,7 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 	let headAndTOC = ""; // stores TOC & heading after TOC() function
 	const tabs = "(?:&nbsp;|\\s){0,8}";
 	const orsChapter = "\\b\\d{1,3}[A-C]?\\b"
-	const orsSection = `(?:${orsChapter}\\.\\d{3}\\b|\\b7\\dA?\\.\\d{4}\b)`
+	const orsSection = `(?:${orsChapter}\\.\\d{3}\\b|\\b7\\dA?\\.\\d{4}\\b)`
 	const chapMatch = new RegExp(`(?<=Chapter\\s)${orsChapter}`)
 	const chapNum = chpHTML.match(chapMatch)[0];
 	const doubleP = /<(\w)[^>]*?>(?:&nbsp;|\s)*<\/\1>/g; // is deleted (in first HTMLCleanUp & FinalClean)
@@ -56,7 +56,7 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 	function Leadlines() { //highlight & create new div for each new section 
 		const orsSecLead = "(?:<span class=ors>)(" + chapNum + "\\.\\d{3,4}\\b)<\/span>([^\\.][^\\]]+?\\.)";
 		const leadFind = new RegExp("<p class=default><b>" + tabs + orsSecLead + "</b>",'g');
-		const leadRepl = '</div><div class=section id="$1" break="~"><b class=leadline>$1$2</b><p class=default>';
+		const leadRepl = '</div><div class=section break="~"><button id="$1" class="collapsible"><p class=leadline>$1$2</p></button><p class=default>';
 		chpHTML = chpHTML.replace(leadFind, leadRepl);
 	};
 	Forms();
@@ -206,7 +206,6 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 				let nextTag = chpHTML.match(closeHeadTags)[0];
 				if (nextTag[1]=="s") {
 					if (hCount==2) {divHeadClose="</div>"}
-					console.log("subheading: " + chpHTML.match(/#sclose#[^~]*?\/p/)[0])
 					hCount=2;
 				} else {
 					switch (hCount) {
@@ -238,8 +237,6 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 		const v22Repl = '<a href="https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx#">$1</a>';
 		chpHTML = chpHTML.replace(noteFind, noteRepl);
 		chpHTML = chpHTML.replace(noteSec, noteSecRepl);
-		console.log(noteSesLaw);
-		console.log(chpHTML);
 		chpHTML = chpHTML.replace(noteSesLaw, noteSesLawRepl)
 		chpHTML = chpHTML.replace(prefaceFind, prefaceRepl);
 		chpHTML = chpHTML.replace(v22Find, v22Repl);
@@ -270,11 +267,9 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 	};
 	OrLawLinking();
 	function OrLawLinking() { // get user data for OrLaws for link for 'year c.###' & 'chapter ###, Oregon Laws [year]'
-		// @ts-ignore
 		let backgroundPort = chrome.runtime.connect({name: "OrLawsSource"}); //open port to background.cs 
 		backgroundPort.postMessage({message: "RequestOrLawsSource"});
 		backgroundPort.onMessage.addListener((msg) => { //listen to its response
-			console.log("mORS.js heard: " + msg.response);
   			if (msg.response == "Hein") {HeinLinks();} 
 			else if (msg.response == "OrLeg") {OrLeg();}
 			else {cssButtons();}
@@ -333,13 +328,47 @@ function cssButtons(){ // add buttons to remove & refresh stylesheet
 	cssOffButton.addEventListener("click", () => {
 		// @ts-ignore
 		chrome.runtime.sendMessage({message: "removeCSS"});  // sends message to background.js
-		console.log("Remove button press")
 	});
 	cssRefreshButton.addEventListener("click", () => {
 		console.log("Refresh button press")
 		StyleSheetRefresh();
 	});
+	javaDOM();
 };
+
+function javaDOM() {
+	buildCollapsibles();
+	function buildCollapsibles(){ // build buttom by which leadlines collapse & expand section below
+		var collapsibles=document.getElementsByClassName("collapsible");
+		for (let i = 0; i < collapsibles.length; i++) {
+			const buttonElement = collapsibles[i];
+			const sectionDiv = collapsibles[i].parentNode;
+			const collapseHeight = `${buttonElement.scrollHeight}px`
+			sectionDiv.style.maxHeight=collapseHeight;
+			buttonElement.addEventListener("click", ()=> {
+				buttonElement.classList.toggle("active");
+				if (sectionDiv.style.maxHeight==collapseHeight) {
+					sectionDiv.style.maxHeight=`${sectionDiv.scrollHeight}px`;
+				} else {
+					sectionDiv.style.maxHeight = collapseHeight;
+				};
+			});		
+		};
+	};
+	buildOrsLinkButton();
+	function buildOrsLinkButton(){ //adds button element to internal link ORS to expand target section
+		var aLinkOrs=document.getElementsByClassName("ors");
+		for (let i = 0; i < aLinkOrs.length; i++) {
+			const aLink = aLinkOrs[i];
+			const buttonElement = document.getElementById(aLink.innerText)
+			const sectionDiv=buttonElement.parentNode;  // get ORS target from link text
+			aLink.addEventListener("click", ()=> {
+				sectionDiv.style.maxHeight=`${sectionDiv.scrollHeight}px`;
+				buttonElement.classList.add("active");
+			})
+		}
+	}
+}
 
 function StyleSheetRefresh() { // sends message to background.js to apply right stlye sheet
 	// @ts-ignore
