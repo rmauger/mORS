@@ -1,7 +1,7 @@
 //@ts-nocheck all errors resolved (except it doesn't understand "chrome" or DOM?)
 
+StyleSheetRefresh();
 window.addEventListener("load", ReplaceText);
-window.addEventListener("load", StyleSheetRefresh);
 
 function ReplaceText() { //main function adjusting HTML of Oregon Legislature ORS pages
 	//global variables:
@@ -272,7 +272,7 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 		backgroundPort.onMessage.addListener((msg) => { //listen to its response
   			if (msg.response == "Hein") {HeinLinks();} 
 			else if (msg.response == "OrLeg") {OrLeg();}
-			else {cssButtons();}
+			else {javaDOM();}
 		});
 		function HeinLinks() { // replace with URL to HeinOnline search link through SOLL
 			const heinURL = "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$1&chapter=$2&sgo=Search&collection=ssl&search=go";
@@ -285,7 +285,7 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 			chpHTML = chpHTML.replace(orLawH1, orLawH1Repl);
 			chpHTML = chpHTML.replace(orLawH2, orLawH2Repl);
 			document.body.innerHTML = chpHTML;
-			cssButtons();
+			javaDOM();
 		}
 		function OrLeg() { // replace with URL to Or.Leg.
 			const orLegURL = '<a href="https://www.oregonlegislature.gov/bills_laws/lawsstatutes/';
@@ -311,53 +311,46 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 			const xtraZerosRepl ='$1$2'
 			chpHTML = chpHTML.replace(xtraZeros, xtraZerosRepl);
 			document.body.innerHTML = chpHTML;
-			cssButtons();
+			javaDOM();
 		};
 	};
 };
 
-function cssButtons(){ // add buttons to remove & refresh stylesheet
-	var cssOffButton = document.createElement("button");
-	var cssRefreshButton = document.createElement("button");
-	cssOffButton.innerHTML = "Remove Stylesheet";
-	cssRefreshButton.innerHTML = "Add Stylesheet";
-	cssOffButton.setAttribute('id', 'removeCssButton');
-	cssRefreshButton.setAttribute('id', 'refreshCssButton');
-	document.body.appendChild(cssRefreshButton);
-	document.body.appendChild(cssOffButton);
-	cssOffButton.addEventListener("click", () => {
-		// @ts-ignore
-		chrome.runtime.sendMessage({message: "removeCSS"});  // sends message to background.js
-	});
-	cssRefreshButton.addEventListener("click", () => {
-		console.log("Refresh button press")
-		StyleSheetRefresh();
-	});
-	javaDOM();
-};
-
 function javaDOM() {
-	buildCollapsibles();
-	function buildCollapsibles(){ // build buttom by which leadlines collapse & expand section below
-		var collapsibles=document.getElementsByClassName("collapsible");
+	const collapsibles=document.getElementsByClassName("collapsible");
+	function expandAllSections() {
 		for (let i = 0; i < collapsibles.length; i++) {
+			const buttonElement = collapsibles[i]
+			const sectionDiv = buttonElement.parentElement;
+			sectionDiv.style.maxHeight=`${sectionDiv.scrollHeight}px`;
+			buttonElement.classList.add("active");
+		}
+	}
+	function collapseAllSections(doAddButton=Boolean){
+		for (let i = 0; i < collapsibles.length; i++) {	
 			const buttonElement = collapsibles[i];
 			const sectionDiv = collapsibles[i].parentNode;
 			const collapseHeight = `${buttonElement.scrollHeight}px`
 			sectionDiv.style.maxHeight=collapseHeight;
-			buttonElement.addEventListener("click", ()=> {
-				buttonElement.classList.toggle("active");
-				if (sectionDiv.style.maxHeight==collapseHeight) {
-					sectionDiv.style.maxHeight=`${sectionDiv.scrollHeight}px`;
-				} else {
-					sectionDiv.style.maxHeight = collapseHeight;
-				};
-			});		
-		};
+			if (doAddButton) {
+				buttonElement.addEventListener("click", ()=> {
+					buttonElement.classList.toggle("active");
+					if (sectionDiv.style.maxHeight==collapseHeight) {
+						sectionDiv.style.maxHeight=`${sectionDiv.scrollHeight}px`;
+					} else {
+						sectionDiv.style.maxHeight = collapseHeight;
+					}
+				});
+			};
+		}
+	}
+	buildCollapsibles();
+	function buildCollapsibles(){ // build button by which leadlines collapse & expand section below
+		collapseAllSections(true);
 	};
 	buildOrsLinkButton();
 	function buildOrsLinkButton(){ //adds button element to internal link ORS to expand target section
-		var aLinkOrs=document.getElementsByClassName("ors");
+		let aLinkOrs=document.getElementsByClassName("ors");
 		for (let i = 0; i < aLinkOrs.length; i++) {
 			const aLink = aLinkOrs[i];
 			const buttonElement = document.getElementById(aLink.innerText)
@@ -367,6 +360,58 @@ function javaDOM() {
 				buttonElement.classList.add("active");
 			})
 		}
+	}
+	buildFixedDiv();
+	function buildFixedDiv(){
+		let fixedDiv = document.createElement("div")
+		fixedDiv.classList.add("fixed");
+		let versionPar = document.createElement("p")
+		let manifest=chrome.runtime.getManifest();
+		let thisVersion = manifest.version;
+		versionPar.classList.add("version")
+		versionPar.innerHTML = `style markup by <a href="">mORS<\/a> v.${thisVersion}`
+		fixedDiv.appendChild(versionPar)
+		addExpandButton()
+		function addExpandButton(){
+			var expandAllButton=document.createElement("button");
+			expandAllButton.innerText="Expand all";
+			expandAllButton.id="buttonExpand"
+			fixedDiv.appendChild(expandAllButton);
+			expandAllButton.addEventListener("click", ()=>expandAllSections())
+		}
+		AddCollapseButton()
+		function AddCollapseButton(){
+			var collapseAllButton=document.createElement("button");
+			collapseAllButton.innerText="Collapse all";
+			collapseAllButton.id="buttonCollapse";
+			fixedDiv.appendChild(collapseAllButton);
+			collapseAllButton.addEventListener("click", ()=>collapseAllSections());
+		}
+		cssToggleButton()
+		function cssToggleButton(){ // add buttons to remove & refresh stylesheet
+			var toggleCSSButton = document.createElement("button");
+			toggleCSSButton.innerHTML = "Remove Style"
+			toggleCSSButton.classList.add("cssOn");
+			toggleCSSButton.id='buttonToggleCSS';
+			fixedDiv.appendChild(toggleCSSButton);
+			toggleCSSButton.addEventListener("click", () => {
+				if (toggleCSSButton.classList.contains("cssOn")) {
+					expandAllSections();
+					document.getElementById("buttonCollapse").style.display="none"
+					document.getElementById("buttonExpand").style.display="none"
+					document.getElementById("buttonToggleCSS").innerText="Add Style"
+					chrome.runtime.sendMessage({message: "removeCSS"});  // sends message to background.js
+				} else {
+					document.getElementById("buttonCollapse").style.display="inline"
+					document.getElementById("buttonExpand").style.display="inline"
+					document.getElementById("buttonToggleCSS").innerText="Remove Style"
+					StyleSheetRefresh();
+					collapseAllSections(false);
+				};
+				toggleCSSButton.classList.toggle("cssOn")
+			});
+		}		
+		document.body.appendChild(fixedDiv);
 	}
 }
 

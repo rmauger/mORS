@@ -13,7 +13,6 @@
   --linkInt: #fdc;
   --linkVisited: #dcf;
 }
-
 body  {
   background-color: var(--background);
   color:var(--maintext);
@@ -22,6 +21,18 @@ p {
   padding: 4px;
   margin-block: .3em;
   font: 12pt Arial, sans-serif;
+}
+.fixed {
+  position:fixed;
+  bottom: 3px;
+  right: 3px;
+  width: max-content;
+  text-align: center;
+  border: 3px solid var(--maintext);
+  background-color: var(--background);
+}
+.version {
+  font: 10pt "Times New Roman", Times, serif;
 }
 
 /* Headings */
@@ -66,10 +77,10 @@ h3 {
 }
 
 /* Hyperlinks */
-a:link, visited {
+a:link {
   color: var(--linkExt);
 }
-a.ors:link {
+a.ors:link, a.ors:visited {
   color:var(--linkInt);
 }
 a:visited {
@@ -140,7 +151,6 @@ a:hover {
 }
 .burnt {
   margin:0.5em;
-
 }
 
 /* Forms */
