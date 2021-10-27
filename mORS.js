@@ -2,6 +2,9 @@
 
 StyleSheetRefresh();
 window.addEventListener("load", ReplaceText);
+const initNavID = window.addEventListener("load", getTabURL);
+
+	
 
 function ReplaceText() { //main function adjusting HTML of Oregon Legislature ORS pages
 	//global variables:
@@ -267,7 +270,7 @@ function ReplaceText() { //main function adjusting HTML of Oregon Legislature OR
 	};
 	OrLawLinking();
 	function OrLawLinking() { // get user data for OrLaws for link for 'year c.###' & 'chapter ###, Oregon Laws [year]'
-		let backgroundPort = chrome.runtime.connect({name: "OrLawsSource"}); //open port to background.cs 
+		let backgroundPort = chrome.runtime.connect()  // open port to background.cs 
 		backgroundPort.postMessage({message: "RequestOrLawsSource"});
 		backgroundPort.onMessage.addListener((msg) => { //listen to its response
   			if (msg.response == "Hein") {HeinLinks();} 
@@ -331,14 +334,16 @@ function javaDOM() {
 			const buttonElement = collapsibles[i];
 			const sectionDiv = collapsibles[i].parentNode;
 			const collapseHeight = `${buttonElement.scrollHeight}px`
-			sectionDiv.style.maxHeight=collapseHeight;
+			sectionDiv.style.maxHeight = collapseHeight;
+			buttonElement.classList.remove("active");
 			if (doAddButton) {
 				buttonElement.addEventListener("click", ()=> {
-					buttonElement.classList.toggle("active");
 					if (sectionDiv.style.maxHeight==collapseHeight) {
 						sectionDiv.style.maxHeight=`${sectionDiv.scrollHeight}px`;
+						buttonElement.classList.add("active");
 					} else {
 						sectionDiv.style.maxHeight = collapseHeight;
+						buttonElement.classList.remove("active");
 					}
 				});
 			};
@@ -385,7 +390,7 @@ function javaDOM() {
 			collapseAllButton.innerText="Collapse all";
 			collapseAllButton.id="buttonCollapse";
 			fixedDiv.appendChild(collapseAllButton);
-			collapseAllButton.addEventListener("click", ()=>collapseAllSections());
+			collapseAllButton.addEventListener("click", ()=>collapseAllSections(false));
 		}
 		cssToggleButton()
 		function cssToggleButton(){ // add buttons to remove & refresh stylesheet
@@ -419,3 +424,17 @@ function StyleSheetRefresh() { // sends message to background.js to apply right 
 	// @ts-ignore
 	chrome.runtime.sendMessage({message: "updateCSS"});  
 };
+
+function getTabURL() {	//send message to background.js to see if there is an initial pincite in URL & navigates.
+	let backgroundPort = chrome.runtime.connect({name: "OrLawsSource"}); //open port to background.cs 
+	backgroundPort.postMessage({message: "RequestTagURL"});
+	backgroundPort.onMessage.addListener((msg) => { //listen to its response
+	if (msg.response) {
+		tabUrl= msg.response;
+		alert("Received Response re: URL: "+tabURL);
+//		orsNavIDSection = tabURL.match(/(?<=.html)#[\s]*?\b)/)[0];
+//		alert("Navigating to ORS "+orsNavIDSection);
+//		window.location.href(orsNavIDSection)
+		}	
+	})
+}
