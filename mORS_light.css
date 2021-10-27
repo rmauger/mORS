@@ -1,52 +1,114 @@
+/* Page background */
+:root {
+/* light / background*/
+  --background: #def;
+  --lightBack: #bdf;
+  --formBack: #bcd;
+/* dark / foreground */
+  --maintext: #333;
+  --heading: #129;
+  --subheading: #169;
+  --sourceNote: #234;
+  --linkExt: #03c;
+  --linkInt: #047;
+  --linkVisited: #507;
+  --highContrast: #f46;
+}
 body  {
-  background-color: #E0E0F0;
-  color:#111111;
-  }
+  background-color: var(--background);
+  color:var(--maintext);
+}
+p {
+  padding: 2px;
+  margin-block: .3em;
+  font: 12pt Arial, sans-serif;
+}
+.fixed {
+  position:fixed;
+  top: 3px;
+  right: 3px;
+  width: max-content;
+  text-align: center;
+  border: 3px solid var(--maintext);
+  background-color: var(--background);
+}
+.version {
+  font: 10pt "Times New Roman", Times, serif;
+}
+
+/* Headings */
 h1 {
-  color: #004499;
-  font:18pt Garamond, serif;
+  color: var(--heading);
+  font:24pt Garamond, serif;
   font-weight: bold;
   text-align: center;
 }
 h2 {
-  font:16pt Garamond, serif;
+  color: var(--heading);
+  font:18pt Garamond, serif;
   text-align: center;
 }
 h3 {
-  font:14pt Garamond, serif;
+  color: var(--heading);
+  font:16pt Garamond, serif;
   font-weight: bold;
   text-align: center;
 }
+.headingDiv {
+  padding: 4px;
+  margin: 2px;
+  border: 2px solid var(--heading);
+}
+.headingLabel {
+  font:14pt "Times New Roman", Times, serif;
+  font-weight: bold;
+  text-align:center;
+  color: var(--heading);
+}
+.subheadDiv {
+  border: 2px solid var(--subheading);
+  padding: 8px ;
+  margin: 2px;
+}
+.subheadLabel {
+  font:14pt "Times New Roman", Times, serif;
+  font-style:italic;
+  color: var(--subheading);
+  text-align: center;
+}
+
+/* Hyperlinks */
 a:link {
-  color:#2222DD;
+  color: var(--linkExt);
+}
+a.ors:link, a.ors:visited {
+  color:var(--linkInt);
 }
 a:visited {
-  color:#602299;
+  color:var(--linkVisited);
 }
 a:hover {
-  color:#4444FF;
-  background-color: #F0F0FF;
+  background-color: var(--lightBack);
 }
-p {
-  padding: 0 .5%;
-  margin-block-start: .5em;
-  margin-block-end:.5em;
-  font: 11pt Arial, sans-serif;
-}
+/* Table of contents */
 #toc {
-  margin: 0% 1%;
-  padding: 2% 3%;
-  border: 3px solid #dddd77;
-  background-color: #ffffd0;
+  margin: 2px;
+  padding: 4px;
+  border: 2px solid var(--heading);
+  background-color: var(--lightBack);
 }
 .toc {
   break-inside: avoid;
 }
-.toc.heading, .toc.subhead {
+.tocHeading {
   font-size:12pt;
+  font-weight: bold;
   text-align: center;
+  color:var(--heading);
+  break-inside: avoid;
 }
 .toc.default {
+  color: var(--heading);
   padding-left:20%;
   text-indent:-25%;
   font-size: 10pt;
@@ -55,93 +117,99 @@ p {
   columns: 250px 3;
   column-gap:5%
 }
-.default {
-    color:#000099;
+
+/* Sections & parts of sections */
+.section {
+  margin: 0;
+  padding: 2px 2px;
+  display: block;
+  overflow: hidden;
+  transition: max-height .25s ease-out;
 }
-.heading {
-  font:12pt "Times New Roman", Times, serif;
+.leadline, .tempHead {
+  font:13pt "Times New Roman", Times, serif;
   font-weight: bold;
-  text-align:center;
-  margin-block-start: 1.5em;
-  margin-block-end: .5em;
-  padding: 0 10%;
+  text-align: left;
+  color: var(--subheading);
+  margin-block: 0.6em;
 }
-.subhead {
-  font:11pt "Times New Roman", Times, serif;
-  font-style:italic;
-  margin-block-start: 1em;
-  margin-block-end: .5em;
+.collapsible {
+  cursor:pointer;
+  background-color: var(--lightBack);
+  width:100%;
+  border:none;
 }
-.leadline {
-  font:12pt "Times New Roman", Times, serif;
-  font-weight: bold;
-  color: #900000;
-  margin-block-start: 1.5em;
+.collapsible:hover, .active{
+  background-color: var(--formBack);
 }
 :target > .leadline {
-  background-color: #ffddea
+  color: var(--highContrast);
 }
+.tempSec {
+  border: 2px solid var(--subheading);
+  margin: 0 2px;
+  padding: 0 2px;
+}
+.burnt {
+  margin:0.4em;
+  color:var(--subheading);
+}
+
+/* Forms */
 .orsForm {
-  background-color: #EEEED0;
+  background-color: var(--formBack);
   margin: 1%;
-  border: 3px solid black;
+  border: 3px solid var(--subheading);
   padding: 0% 1%;
 }
-.sourceNote {
-  color:#000099;
-  font: 10pt "Times New Roman", Times, serif;
-  margin-block-start:.2em;
-  margin-block-end:1em;
+.formHeading{
+  text-align: center;
+  font-weight: bold;
+  color: var(--subheading);
 }
-.dead {
-  margin-block-start:1.5em;
+.sourceNote {
+  color:var(--sourceNote);
+  font: 11pt "Times New Roman", Times, serif;
+  margin-block-start:.3em;
+  margin-block-end:.3em;
 }
 .note {
   font: 10pt, "Times New Roman", Times, serif;
-  max-width: 600px;
+  max-width: 800px;
   min-width: 300px;
-  width: 60%;
-  margin: .5em 3%;
-  border: 1px solid #ddddef;
+  width: 75%;
+  margin: 0 auto;
+  border: 2px solid var(--subheading);
   padding: 6px;
-  background-color: #ffffdd;
+  background-color: var(--lightBack);
 }
-.ors {
-  color: #dd0000;
-}
-  a.ors:link, a.ors:visited {
-  color:#205a3e;
-}
+
+/* Section Subunits */
 .subsec{
-  color: #101010;
   text-indent:-1em;
   padding-left:3%;
   margin-block-end:0;
   margin-block-start: .2em;
 }
 .para{
-  color: #181818;
   text-indent:-1em;
   padding-left:4.5%;
   margin-block-end:0;
   margin-block-start: .2em;
 }
 .subpara{
-  color: #202020;
   text-indent:-1em;
   padding-left:6%;
   margin-block-end:0;
   margin-block-start: .2em;
 }
 .subsubpara{
-  color: #282828;
   padding-left:7.5%;
   text-indent:-1em;
   margin-block-end:0;
   margin-block-start: .2em;
 }
 .subsubsubpara{
-  color: #303030;
   padding-left:9%;
   text-indent:-1em;
   margin-block-end:0;

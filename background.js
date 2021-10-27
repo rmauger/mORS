@@ -16,23 +16,47 @@ chrome.runtime.onMessage.addListener((received)=>{
 });
 
 chrome.runtime.onConnect.addListener((port) => {
-  port.onMessage.addListener(function(msg) {
-    if (msg.message == "RequestOrLawsSource") {
-      let promiseGetOrLaw = new Promise((resolve, reject) => {
-        chrome.storage.sync.get('lawsReaderStored', (object) => {
-          if (object) {resolve(object.lawsReaderStored);
-          } else {
-            reject(true);
-          }
-        })
-      });
-      promiseGetOrLaw.then((resolve)=>{
-        if (resolve) {port.postMessage({response:resolve})}
-      }).catch((reject)=> {
-        if (reject) {
+  port.onMessage.addListener((msg) => {
+    switch (msg.message) {
+      case "RequestOrLawsSource":
+        let promiseGetOrLaw = new Promise((resolve, reject) => {
+          chrome.storage.sync.get('lawsReaderStored', (retrievedLawReader) => {
+            if (retrievedLawReader) {
+              resolve(retrievedLawReader.lawsReaderStored);
+            } else {
+              reject(true);
+            }
+          })
+        });
+        promiseGetOrLaw.then((resolve)=>{
+          if (resolve) { //TODO:can I just get rid of if(resolve)?
+            port.postMessage({response:resolve})
+          } 
+        }).catch(()=> {
           alert("Error broke from orLawsSource Function in background.js")
-        };
-      });
+        });
+        break;
+      case "RequestTagURL":
+        let promiseGetURL = new Promise((resolve, reject) => {
+          chrome.tabs.query({currentWindow:true, active:true}, (tabs) => {
+            if (tabs) {
+              resolve(tabs[0].url);
+            } else {
+              reject(true);
+            }
+          })
+        })
+        promiseGetURL.then((resolve)=>{
+          if (resolve) {
+            port.postMessage({response:resolve})
+            alert("Sending: " +resolve)
+          };
+        }).catch(()=> {
+          alert("Error. Broke attempting to retrieve tab URL.")
+        });        
+        break;
+      default:
+        break;
     };
   });
 });

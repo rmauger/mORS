@@ -1,0 +1,149 @@
+body  {
+  background-color: #E0E0F0;
+  color:#111111;
+  }
+h1 {
+  color: #004499;
+  font:18pt Garamond, serif;
+  font-weight: bold;
+  text-align: center;
+}
+h2 {
+  font:16pt Garamond, serif;
+  text-align: center;
+}
+h3 {
+  font:14pt Garamond, serif;
+  font-weight: bold;
+  text-align: center;
+}
+a:link {
+  color:#2222DD;
+}
+a:visited {
+  color:#602299;
+}
+a:hover {
+  color:#4444FF;
+  background-color: #F0F0FF;
+}
+p {
+  padding: 0 .5%;
+  margin-block-start: .5em;
+  margin-block-end:.5em;
+  font: 11pt Arial, sans-serif;
+}
+#toc {
+  margin: 0% 1%;
+  padding: 2% 3%;
+  border: 3px solid #dddd77;
+  background-color: #ffffd0;
+}
+.toc {
+  break-inside: avoid;
+}
+.toc.heading, .toc.subhead {
+  font-size:12pt;
+  text-align: center;
+}
+.toc.default {
+  padding-left:20%;
+  text-indent:-25%;
+  font-size: 10pt;
+}
+.tocItems {
+  columns: 250px 3;
+  column-gap:5%
+}
+.default {
+    color:#000099;
+}
+.heading {
+  font:12pt "Times New Roman", Times, serif;
+  font-weight: bold;
+  text-align:center;
+  margin-block-start: 1.5em;
+  margin-block-end: .5em;
+  padding: 0 10%;
+}
+.subhead {
+  font:11pt "Times New Roman", Times, serif;
+  font-style:italic;
+  margin-block-start: 1em;
+  margin-block-end: .5em;
+}
+.leadline {
+  font:12pt "Times New Roman", Times, serif;
+  font-weight: bold;
+  color: #900000;
+  margin-block-start: 1.5em;
+}
+:target > .leadline {
+  background-color: #ffddea
+}
+.orsForm {
+  background-color: #EEEED0;
+  margin: 1%;
+  border: 3px solid black;
+  padding: 0% 1%;
+}
+.sourceNote {
+  color:#000099;
+  font: 10pt "Times New Roman", Times, serif;
+  margin-block-start:.2em;
+  margin-block-end:1em;
+}
+.dead {
+  margin-block-start:1.5em;
+}
+.note {
+  font: 10pt, "Times New Roman", Times, serif;
+  max-width: 600px;
+  min-width: 300px;
+  width: 60%;
+  margin: .5em 3%;
+  border: 1px solid #ddddef;
+  padding: 6px;
+  background-color: #ffffdd;
+}
+.ors {
+  color: #dd0000;
+}
+  a.ors:link, a.ors:visited {
+  color:#205a3e;
+}
+.subsec{
+  color: #101010;
+  text-indent:-1em;
+  padding-left:3%;
+  margin-block-end:0;
+  margin-block-start: .2em;
+}
+.para{
+  color: #181818;
+  text-indent:-1em;
+  padding-left:4.5%;
+  margin-block-end:0;
+  margin-block-start: .2em;
+}
+.subpara{
+  color: #202020;
+  text-indent:-1em;
+  padding-left:6%;
+  margin-block-end:0;
+  margin-block-start: .2em;
+}
+.subsubpara{
+  color: #282828;
+  padding-left:7.5%;
+  text-indent:-1em;
+  margin-block-end:0;
+  margin-block-start: .2em;
+}
+.subsubsubpara{
+  color: #303030;
+  padding-left:9%;
+  text-indent:-1em;
+  margin-block-end:0;
+  margin-block-start: .2em;
+}
