@@ -46,7 +46,7 @@ function ReplaceText() {
   TableOfContents();
   function TableOfContents() {
     //create & label new division for table of contents
-    const tocFind = /?<=<\/h2>[^]*?)(<p[^>]*?>[^]*?<\/p>)([^]*?)(?=\1|<p class=default><b>)/ // is replaced by:
+    const tocFind = /(?<=<\/h2>[^]*?)(<p[^>]*?>[^]*?<\/p>)([^]*?)(?=\1|<p class=default><b>)/ // is replaced by:
     const tocRepl = "<div id=toc><h1>Table of Contents</h1><div class=tocItems>$1$2</div></div>?#@";
     chpHTML = chpHTML.replace(tocFind, tocRepl);
   }
