@@ -34,21 +34,25 @@ let orLawOrLegLookup={
 
 //setup event listeners for form dropdowns & buttons
 darkSelector.addEventListener("change", ()=>{
+  darkSelector=document.getElementById("isDark");
   if (darkTempValue!=darkSelector.value) {   // if new value selected...
     chrome.storage.sync.set({'isDarkStored': (darkSelector.value == 'Dark')}, refreshPage(darkTempValue, darkSelector.value))
     displayUserOptions();
   }
 });
 orLawSelector.addEventListener("change", ()=>{
+  orLawSelector=document.getElementById("OrLaws");
   if (orLawTempValue!=orLawSelector.value) {  // if new value selected...
     chrome.storage.sync.set({'lawsReaderStored': orLawSelector.value}, reloadORS());
     displayUserOptions();
+    {}
   };
 });
 chpLaunchButton.addEventListener("click", () => {
-  let orsChapter = "00"+document.getElementById("orsChapter").value
+  let orsSection = document.getElementById("orsChapter").value
+  let orsChapter = "00"+ orsSection
   orsChapter = orsChapter.match(/\d{3}[A-C]?\b/)[0]
-  let orsURL = 'https://www.oregonlegislature.gov/bills_laws/ors/ors' + orsChapter +'.html'
+  let orsURL = `https://www.oregonlegislature.gov/bills_laws/ors/ors${orsChapter}.html#${orsSection}`
   chrome.tabs.create({url: orsURL});
 });
 orLawsLaunchButton.addEventListener("click", ()=>{  

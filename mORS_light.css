@@ -5,11 +5,11 @@
   --lightBack: #bdf;
   --formBack: #bcd;
 /* dark / foreground */
-  --maintext: #333;
+  --maintext: #224;
   --heading: #129;
   --subheading: #169;
-  --sourceNote: #234;
-  --linkExt: #03c;
+  --sourceNote: #236;
+  --linkExt: #12a;
   --linkInt: #047;
   --linkVisited: #507;
   --highContrast: #f46;
@@ -145,8 +145,8 @@ a:hover {
 .collapsible:hover, .active{
   background-color: var(--formBack);
 }
-:target > .leadline {
-  color: var(--highContrast);
+:target {
+  color: var(--highContrast) !important;
 }
 .tempSec {
   border: 2px solid var(--subheading);
@@ -154,7 +154,7 @@ a:hover {
   padding: 0 2px;
 }
 .burnt {
-  margin:0.4em;
+  margin:0.4em, 0, .4em, 2em;
   color:var(--subheading);
 }
 

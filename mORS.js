@@ -1,21 +1,35 @@
-//@ts-nocheck all errors resolved (except it doesn't understand "chrome" or DOM?)
+//mORS.js
 
-StyleSheetRefresh();
-window.addEventListener("load", ReplaceText);   //main function adjusting HTML of Oregon Legislature ORS pages
+StyleSheetRefresh(); // sends message to background.js to apply user selected style sheet
+window.addEventListener("load", ReplaceText); //main function adjusting HTML of Oregon Legislature ORS pages
+
+function ifMatch(aRegExp, searchString) {
+  if(aRegExp.test(searchString)){
+    return searchString.match(aRegExp)[0]
+  } else {
+    return "~N/A~"
+  }
+}
 
 function ReplaceText() {
   //global variables:
-  let chpHTML = document.body.innerHTML;
+  let headHTML = document.head.innerHTML;
+  let chpHTML = ""
   let headAndTOC = ""; // stores TOC & heading after TOC() function
   const tabs = "(?:&nbsp;|\\s){0,8}";
   const orsChapter = "\\b\\d{1,3}[A-C]?\\b";
   const orsSection = `(?:${orsChapter}\\.\\d{3}\\b|\\b7\\dA?\\.\\d{4}\\b)`;
+  const orsVolume = /(?<=\<mso:Volume[^>]*\>)([^<]*)(?=\<)/
+  const orsTitle = /(?<=\<mso:ORS_x0020_Chapter[^>]*\>)([^<]*)(?=\<)/
   const chapMatch = new RegExp(`(?<=Chapter\\s)${orsChapter}`);
-  const chapNum = chpHTML.match(chapMatch)[0];
+  const thisChapter = ifMatch(chapMatch, headHTML);
+  const thisVolume = ifMatch(orsVolume, headHTML);
+  const thisTitle = ifMatch(orsTitle, headHTML);
   const doubleP = /<(\w)[^>]*?>(?:&nbsp;|\s)*<\/\1>/g; // is deleted (in first HTMLCleanUp & FinalClean)
   HTMLCleanUp(); // delete stylesheet & references to it and confusing span syntex from HTML
   function HTMLCleanUp() {
-    document.head.getElementsByTagName("style")[0].innerHTML = "";
+    document.head.remove("style");
+    document.head.remove("title");
     chpHTML = document.body.innerHTML;
     const styleGarb = /<span style=[^]+?>([^]+?)<\/span>/g; // is deleted
     const msoGarb = /<p\sclass=\W?Mso[^>]*>/g; // is replaced by:
@@ -28,17 +42,17 @@ function ReplaceText() {
     chpHTML = chpHTML.replace(divGarb, "");
     chpHTML = chpHTML.replace(doubleP, "");
   }
-  ChapterHeadings();     // Add tags to volume title & ORS chapter & edition year; set title displayed on tab
+  ChapterHeadings(); // Add tags to volume title & ORS chapter & edition year; set title displayed on tab
   function ChapterHeadings() {
     const chapMainHead = new RegExp(
-      `<p class=default>(Chapter\\s(${chapNum})\\s—?\\s?([^]*?))<\\/p>`
+      `<p class=default>(Chapter\\s(${thisChapter})\\s—?\\s?([^]*?))<\\/p>`
     ); // is replaced by:
-    const mainHeadRepl = "<title>ORS $2: $3</title><h1>$1</h1>";
+    const mainHeadRepl = "<title>ORS $2 $3</title><h1>$1</h1>";
     const edYear = /(?=<\/h1>)[^]*?<p class=default>([^]+?)<\/p>/; // is replaced by:
-    const yearRepl = "</h1><h2>$1</h2>";
+    const yearRepl = "</h1><h3>$1</h3>";
     const title =
-      /<h1>([^]*?)<\/h1>[^]*?(<h2>[^]*?<\/h2>)[^]*?<p[^]*?\/p>[^]*?<p[^]*?>([^]*?)<\/p>/; //is replaced by:
-    const titleRepl = "<h3>TITLE: $3</h3><h1>$1</h1>$2";
+      /<h1>([^]*?)<\/h1>[^]*?(<h3>[^]*?<\/h3>)[^]*?<p[^]*?\/p>[^]*?<p[^]*?>([^]*?)<\/p>/; //is replaced by:
+    const titleRepl = `<h2>Volume ${thisVolume}</h2><h2>Title ${thisTitle}</h2><h1>\$1</h1>\$2`;
     chpHTML = chpHTML.replace(chapMainHead, mainHeadRepl);
     chpHTML = chpHTML.replace(edYear, yearRepl);
     chpHTML = chpHTML.replace(title, titleRepl);
@@ -46,8 +60,10 @@ function ReplaceText() {
   TableOfContents();
   function TableOfContents() {
     //create & label new division for table of contents
-    const tocFind = /(?<=<\/h2>[^]*?)(<p[^>]*?>[^]*?<\/p>)([^]*?)(?=\1|<p class=default><b>)/ // is replaced by:
-    const tocRepl = "<div id=toc><h1>Table of Contents</h1><div class=tocItems>$1$2</div></div>?#@";
+    const tocFind =
+      /(?<=<\/h2>[^]*?)(<p[^>]*?>[^]*?<\/p>)([^]*?)(?=\1|<p class=default><b>)/; // is replaced by:
+    const tocRepl =
+      "<div id=toc><h1>Table of Contents</h1><div class=tocItems>$1$2</div></div>?#@";
     chpHTML = chpHTML.replace(tocFind, tocRepl);
   }
   ORSHighlight();
@@ -63,12 +79,9 @@ function ReplaceText() {
   Leadlines();
   function Leadlines() {
     //highlight & create new div for each new section
-    const orsSecLead =
-      "(?:<span class=ors>)(" +
-      chapNum +
-      "\\.\\d{3,4}\\b)</span>([^\\.][^\\]]+?\\.)";
+    const orsSecLead = `(?:<span class=ors>)(${thisChapter}\\.\\d{3,4}\\b)\\s?</span>([^\\.][^\\]]+?\\.\\s?)`;
     const leadFind = new RegExp(
-      "<p class=default><b>" + tabs + orsSecLead + "</b>",
+      `<p class=default><b>${tabs}${orsSecLead}</b>`,
       "g"
     );
     const leadRepl =
@@ -79,7 +92,7 @@ function ReplaceText() {
   function Forms() {
     // find beginning and end of forms to create new div for each
     const startForm = new RegExp(
-      "(form[^]*?:)<\\/p>" + tabs + "(<p[^>]*>)_{78}",
+      `(form[^]*?:)<\\/p>${tabs}(<p[^>]*>)_{78}`,
       "g"
     ); // finds start of form
     const startFormRepl = "$1</p><div class=orsForm break='`'>$2"; //inserts it as a new div
@@ -94,7 +107,7 @@ function ReplaceText() {
   function orsInChapLink() {
     // change xrefs to ORS sections in chapter to links to #id of ORS section
     const orsInChp = new RegExp(
-      "<span class=ors(>(" + chapNum + "\\.\\d{3,4}\\b)[^]*?<\\/)span",
+      `<span class=ors(>(${thisChapter}\\.\\d{3,4}\\b)[^]*?<\\/)span`,
       "g"
     );
     const orsInChpRepl = '<a class=ors href="#$2"$1a';
@@ -109,9 +122,8 @@ function ReplaceText() {
     let temp = chpHTML;
     for (let i = 0; i < 500; i++) {
       //getting list of referenced ORS sections not in this chapter & chapter for each
-      let strMatch = temp.match(notChap);
-      if (strMatch) {
-        let chapNo = strMatch[0].match(new RegExp(orsChapter)); // finds chapter to match
+      if (notChap.test(temp)) {
+        let chapNo = ifMatch(notChap, temp).match(new RegExp(orsChapter)); // finds chapter to match
         listOfORSChps.push(chapNo);
         temp = temp.replace(new RegExp(">" + chapNo + "\\.", "g"), "XXX"); // removes chapter so it doesn't get picked up again
       } else {
@@ -126,25 +138,23 @@ function ReplaceText() {
     if (listOfORSChps.length > 0) {
       for (let eachORSChp of listOfORSChps) {
         let orsOutChp = new RegExp(
-          "<span class=ors>(" + eachORSChp + "\\.\\d{3,4}\\b[^]*?)<\\/span>",
+          "<span class=ors>((" + eachORSChp + "\\.\\d{3,4}\\b)[^]*?)<\\/span>",
           "g"
         );
-        let orsOutChpRepl = `<a href="${orsOrLegURL}${eachORSChp}.html">$1</a>`;
+        let orsOutChpRepl = `<a href="${orsOrLegURL}00${eachORSChp}.html#$2">$1</a>`;
         chpHTML = chpHTML.replace(orsOutChp, orsOutChpRepl);
-        chpHTML = chpHTML.replace(/\d+(\d{3}[A-C]?\\.html)/g, "$1");
+        chpHTML = chpHTML.replace(/\d+(\d{3}[A-C]?\.html)/g, "$1");  // removing excess zeros until padded to exactly 3 digits
       }
     }
   }
-  SeparateTOC();
+  SeparateTOC(); //separate TOC & chapter heading from rest of body to facilitate editing body
   function SeparateTOC() {
-    //separate TOC & chapter heading from rest of body to facilitate editing body
-    headAndTOC = chpHTML.match(/[^]*?(?=\?#@)/)[0]; // copy TOC to own variable
+    headAndTOC = ifMatch(/[^]*?(?=\?#@)/, chpHTML); // copy TOC to own variable
     chpHTML = chpHTML.replace(/[^]*?\?#@/, ""); // and remove it from the editing document
   }
-  SubUnits();
+  SubUnits();     // finds and classifies subunits (subsections, paragraphs, subsections etc.)
   function SubUnits() {
-    // finds and classifies subunits (subsections, paragraphs, subsections etc.)
-    const subsecOne = /<p[^>]*?>\s?(\(1\)[^]+?)<\/p>/g;
+    
     const subsecFind = new RegExp(
       `<p[^>]*?>${tabs}?\\s?(\\(\\d{1,2}\\)[^]+?)</p>`,
       "g"
@@ -160,13 +170,11 @@ function ReplaceText() {
     const subsecRepl = "<p class=subsec>$1</p>";
     const subsubRepl = "<p class=subsubpara>$1</p>";
     const subsubsubRepl = "<p class=subsubsubpara>$1</p>";
-    chpHTML = chpHTML.replace(subsecOne, subsecRepl);
     chpHTML = chpHTML.replace(subsecFind, subsecRepl);
     chpHTML = chpHTML.replace(subsubPara, subsubRepl);
     chpHTML = chpHTML.replace(subsubsubPara, subsubsubRepl);
-    Romans();
+    Romans(); // separate roman numerals (subsubpara & subsubsubpara) from letters (para & subpara)
     function Romans() {
-      // separate roman numerals (subsubpara & subsubsubpara) from letters (para & subpara)
       const sameLtrLower = /=subsubpara>(\(([a-z])(?:\2){0,4}\))/g; // reclassifies single letter (a) or letters match (aa) as:
       const ltrLowerRepl = "=para break='!'>$1";
       const sameLetterUpper = /=subsubsubpara>(\(([A-Z])(?:\2){0,4}\))/g; // reclassifies single letter (A) or matching letters (AA) as:
@@ -190,7 +198,6 @@ function ReplaceText() {
       const XXUpper = new RegExp(romanUpperLead + "XX)", "g");
       chpHTML = chpHTML.replace(sameLtrLower, ltrLowerRepl);
       chpHTML = chpHTML.replace(sameLetterUpper, ltrUpperRepl);
-
       Roman_wrapper: {
         let breakIf = (romanNum) => {
           // ensure that when matches dry up, stop looking for more
@@ -267,7 +274,7 @@ function ReplaceText() {
       let hCount = 0;
       while (closeHeadTags.test(chpHTML)) {
         let divHeadClose = "";
-        let nextTag = chpHTML.match(closeHeadTags)[0];
+        let nextTag = ifMatch(closeHeadTags, chpHTML);
         if (nextTag[1] == "s") {
           if (hCount == 2) {
             divHeadClose = "</div>";
@@ -298,15 +305,12 @@ function ReplaceText() {
     ); // Finds "Note:" or "Note #:"; is replaced by:
     const noteRepl = "<div class=note><b>$1</div>";
     const noteSec = new RegExp(
-      "<\\/div>" +
-        tabs +
-        "<p[^>]*?><b>" +
-        tabs +
-        "(<a[^>]*?>[\\S]{5,8}<\\/a>)\\.<\\/b>([^~]*?)<div",
+      `<\\/div>${tabs}<p[^>]*?><b>${tabs}(<a[^>]*?>[\\S]{5,8}<\\/a>)\\.<\\/b>([^~]*?)<div`,
       "g"
     ); // Finds bold ORS links w/o leadline; is replaced by:
     const noteSecRepl =
       "<p class=default><b>Note section for ORS $1:</b></p><p class=default>$2</div><div";
+   
     const noteSesLaw =
       /(class=note>[^~]*?Section[^~]*?provides?:)[^~]*?<\/div>([^~]*?)<div/g;
     const noteSesLawRepl = "$1$2</div><div";
@@ -322,6 +326,9 @@ function ReplaceText() {
     chpHTML = chpHTML.replace(noteSesLaw, noteSesLawRepl);
     chpHTML = chpHTML.replace(prefaceFind, prefaceRepl);
     chpHTML = chpHTML.replace(v22Find, v22Repl);
+    const subsecOne = /<p[^>]*?>\s?(\(1\)[^]+?)<\/p>/g;  
+    const subsecRepl = "<p class=subsec>$1</p>";
+    chpHTML = chpHTML.replace(subsecOne, subsecRepl);
   }
   sourceNotesRepl();
   function sourceNotesRepl() {
@@ -351,24 +358,20 @@ function ReplaceText() {
       }
     }
   }
-  OrLawLinking();
+  OrLawLinking(); // get user data for OrLaws for link for 'year c.###' & 'chapter ###, Oregon Laws [year]'
   function OrLawLinking() {
-    // get user data for OrLaws for link for 'year c.###' & 'chapter ###, Oregon Laws [year]'
-	// @ts-ignore
+    // @ts-ignore
     let backgroundPort = chrome.runtime.connect(); // open port to background.cs
     backgroundPort.postMessage({ message: "RequestOrLawsSource" });
     backgroundPort.onMessage.addListener((msg) => {
-      //listen to its response
       if (msg.response == "Hein") {
-        HeinLinks();
+        HeinLinks(); // replace with URL to HeinOnline search link through SOLL
       } else if (msg.response == "OrLeg") {
-        OrLeg();
-      } else {
-        javaDOM();
-      }
+        OrLeg(); // replace with URL to Or.Leg.
+      } 
+      javaDOM(); // Add buttons & javascript elements
     });
     function HeinLinks() {
-      // replace with URL to HeinOnline search link through SOLL
       const heinURL =
         "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$1&chapter=$2&sgo=Search&collection=ssl&search=go";
       const orLawH1 = /((?:20|19)\d{2})\W*c\.\W*(\d+)/g; // is replaced by:
@@ -381,10 +384,8 @@ function ReplaceText() {
       chpHTML = chpHTML.replace(orLawH1, orLawH1Repl);
       chpHTML = chpHTML.replace(orLawH2, orLawH2Repl);
       document.body.innerHTML = chpHTML;
-      javaDOM();
     }
     function OrLeg() {
-      // replace with URL to Or.Leg.
       const orLegURL =
         '<a href="https://www.oregonlegislature.gov/bills_laws/lawsstatutes/';
       const urlTail = '">$&</a>';
@@ -411,37 +412,33 @@ function ReplaceText() {
       orLawReplacer("(2012)", "$1adv000$2ss.pdf");
       orLawReplacer("(2006)", "$1orLaw000$2ss1.pdf");
       orLawReplacer("(2005)", "$1orLaw000$2ses.html");
-      const xtraZeros = /(aw|adv)\d+(\d{4})/g;
-      const xtraZerosRepl = "$1$2";
-      chpHTML = chpHTML.replace(xtraZeros, xtraZerosRepl);
+      removeExtraZeros() // Make sure chapter is padded to exactly 4 digits
+      function removeExtraZeros () {
+        const xtraZeros = /(aw|adv)\d+(\d{4})/g;
+        const xtraZerosRepl = "$1$2";
+        chpHTML = chpHTML.replace(xtraZeros, xtraZerosRepl);
+      }
       document.body.innerHTML = chpHTML;
-      javaDOM();
     }
   }
 }
 
 function javaDOM() {
   const collapsibles = document.getElementsByClassName("collapsible");
-  function expandAllSections() {
-    for (let i = 0; i < collapsibles.length; i++) {
-      const buttonElement = collapsibles[i];
-      const sectionDiv = buttonElement.parentElement;
-      sectionDiv.style.maxHeight = `${sectionDiv.scrollHeight}px`;
-      buttonElement.classList.add("active");
-    }
-  }
   function collapseAllSections(doAddButton) {
     for (let i = 0; i < collapsibles.length; i++) {
       const buttonElement = collapsibles[i];
       const sectionDiv = buttonElement.parentNode;
       const collapseHeight = `${buttonElement.scrollHeight}px`;
-      sectionDiv.style.maxHeight = collapseHeight;
+      //TODO: Convert maxheight into changing classes to make text hidden, so resizing won't mess with things
+      //TODO: Alternatively, just make "active" unhide text
+      sectionDiv.style.maxHeight = collapseHeight; //
       buttonElement.classList.remove("active");
       if (doAddButton) {
         buttonElement.addEventListener("click", () => {
-          if (sectionDiv.style.maxHeight == collapseHeight) {
-            sectionDiv.style.maxHeight = `${sectionDiv.scrollHeight}px`;
-            buttonElement.classList.add("active");
+          
+          if (sectionDiv.style.maxHeight == collapseHeight) {  
+            expandSingle(buttonElement)
           } else {
             sectionDiv.style.maxHeight = collapseHeight;
             buttonElement.classList.remove("active");
@@ -450,37 +447,44 @@ function javaDOM() {
       }
     }
   }
-  buildCollapsibles();
-  function buildCollapsibles() {
-    // build button by which leadlines collapse & expand section below
+  function expandAllSections() {
+    for (let i = 0; i < collapsibles.length; i++) {
+      expandSingle(collapsibles[i]);
+    }
+  }
+  buildCollapseToggeButtons(); // build button by which leadlines collapse & expand section below
+  function buildCollapseToggeButtons() {
     collapseAllSections(true);
   }
-  buildOrsLinkButton();
+  buildOrsLinkButton(); //adds button element to internal link ORS to expand target upon selection
   function buildOrsLinkButton() {
-    //adds button element to internal link ORS to expand target section
     let aLinkOrs = document.getElementsByClassName("ors");
     for (let i = 0; i < aLinkOrs.length; i++) {
       const aLink = aLinkOrs[i];
       const buttonElement = document.getElementById(aLink.innerText);
-      const sectionDiv = buttonElement.parentNode; // get ORS target from link text
-      aLink.addEventListener("click", () => {
-        sectionDiv.style.maxHeight = `${sectionDiv.scrollHeight}px`;
-        buttonElement.classList.add("active");
-      });
+      if (buttonElement) {
+        // dealing with issues caused if there is a reference to ORS section that does not exist
+        if (buttonElement.classList.contains("collapsible")) {
+          // dealing with reference to ORS section that is burnt
+          aLink.addEventListener("click", () => {
+            expandSingle(buttonElement)
+          });
+        };
+      }
     }
   }
-  buildFixedDiv();
+  buildFixedDiv(); // add floating div with version info & buttons
   function buildFixedDiv() {
     let fixedDiv = document.createElement("div");
     fixedDiv.classList.add("fixed");
     let versionPar = document.createElement("p");
-	//@ts-ignore
+    //@ts-ignore
     let manifest = chrome.runtime.getManifest();
     let thisVersion = manifest.version;
     versionPar.classList.add("version");
-    versionPar.innerHTML = `style markup by <a href="">mORS<\/a> v.${thisVersion}`;
+    versionPar.innerHTML = `style markup by <a href="https://github.com/rmauger/mORS/#readme">mORS<\/a> v.${thisVersion}`;
     fixedDiv.appendChild(versionPar);
-    addExpandButton();
+    addExpandButton(); // "Expand all" button
     function addExpandButton() {
       var expandAllButton = document.createElement("button");
       expandAllButton.innerText = "Expand all";
@@ -488,7 +492,7 @@ function javaDOM() {
       fixedDiv.appendChild(expandAllButton);
       expandAllButton.addEventListener("click", () => expandAllSections());
     }
-    AddCollapseButton();
+    AddCollapseButton(); // "Collapse all" button
     function AddCollapseButton() {
       var collapseAllButton = document.createElement("button");
       collapseAllButton.innerText = "Collapse all";
@@ -498,9 +502,8 @@ function javaDOM() {
         collapseAllSections(false)
       );
     }
-    cssToggleButton();
+    cssToggleButton(); // "Remove Style" or "Add Style" button
     function cssToggleButton() {
-      // add buttons to remove & refresh stylesheet
       var toggleCSSButton = document.createElement("button");
       toggleCSSButton.innerHTML = "Remove Style";
       toggleCSSButton.classList.add("cssOn");
@@ -512,7 +515,7 @@ function javaDOM() {
           document.getElementById("buttonCollapse").style.display = "none";
           document.getElementById("buttonExpand").style.display = "none";
           document.getElementById("buttonToggleCSS").innerText = "Add Style";
-		  //@ts-ignore
+          //@ts-ignore
           chrome.runtime.sendMessage({ message: "removeCSS" }); // sends message to background.js
         } else {
           document.getElementById("buttonCollapse").style.display = "inline";
@@ -524,36 +527,47 @@ function javaDOM() {
         toggleCSSButton.classList.toggle("cssOn");
       });
     }
-    document.body.appendChild(fixedDiv);
+    document.body.appendChild(fixedDiv); 
+  }
+}
+
+function expandSingle(buttonElement) {
+  if (buttonElement) {
+    if (buttonElement.classList.contains("collapsible")) {
+      const sectionDiv = buttonElement.parentElement;
+      buttonElement.classList.add("active");
+      sectionDiv.style.maxHeight = `${sectionDiv.scrollHeight}px`;
+    } else {
+      console.log ("Target " + buttonElement.innerHTML + " was not an active section")
+    }
+  } else {
+    console.log("")
   }
 }
 
 function StyleSheetRefresh() {
-  // sends message to background.js to apply right style sheet
   // @ts-ignore
   chrome.runtime.sendMessage({ message: "updateCSS" }, () => {
-    getTabURL();
+    getTabURL();  //send message to background.js to see if there is an initial pincite in URL & navigates.
   });
 }
 
 function getTabURL() {
-  //send message to background.js to see if there is an initial pincite in URL & navigates.
   //@ts-ignore
-  let backgroundPort = chrome.runtime.connect({ name: "OrLawsSource" }); //open port to background.cs
+  let backgroundPort = chrome.runtime.connect({ name: "OrLawsSource" }); //open port to background.js
   backgroundPort.postMessage({ message: "RequestTagURL" });
   backgroundPort.onMessage.addListener((msg) => {
-    //listen to its response
     const tabUrl = msg.response;
     if (tabUrl) {
       const idFinder = /(?<=\.html\#)[^\/]*/;
-      const orsPinCite = tabUrl.match(idFinder)[0];
-      if (orsPinCite) {
-        //window.location.href(`#${orsPinCite}`)
-        const buttonElement = document.getElementById(orsPinCite);
-        const sectionDiv = buttonElement.parentNode;
-        sectionDiv.style.maxHeight = `${sectionDiv.scrollHeight}px`;
-        buttonElement.classList.add("active");
-        buttonElement.scrollIntoView();
+      if (idFinder.test(tabUrl)) {
+        const orsPinCite = 0;
+        pinCiteButton = document.getElementById(ifMatch(idFinder, tabUrl))
+        if (pinCiteButton && pinCiteButton!='~N/A~') {
+          // dealing with issue if pincite does not point to valid ID
+          expandSingle(pinCiteButton);
+          pinCiteButton.scrollIntoView()
+        }
       }
     }
   });

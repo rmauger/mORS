@@ -145,8 +145,8 @@ a:hover {
 .collapsible:hover, .active{
   background-color: var(--formBack);
 }
-:target > .leadline {
-  color: var(--highContrast);
+:target {
+  color: var(--highContrast) !important;
 }
 .tempSec {
   border: 2px solid var(--subheading);
@@ -154,7 +154,7 @@ a:hover {
   padding: 0 2px;
 }
 .burnt {
-  margin:0.4em;
+  margin:0.4em, 0, .4em, 2em;
   color:var(--subheading);
 }
 
