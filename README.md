@@ -21,6 +21,7 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 ## Updates:
   ### Version 1.0
   * Separates table of contents; sections; forms and notes into separetly styled divisions
+  * Collapsable sections
   * Links to internal and external ORS sections
   * Links to source notes / session laws in Oregon Laws at HeinOnline (for state employees) or from Oregon legislature.
   * Identifies & tabs different subdivision units for subsections, paragraphs, subparagraphs, etc.
@@ -30,6 +31,7 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 ## Known bugs:
   * Not identifying roman numerals if appearing with a paragraph & subparagraph (e.g. "(d)(A)(i)" or "(C)(i)(I)")
   * Heights of sections may not be correct if resizing window horizontally (can fix with "collapse all")
+  * Stylesheets don't update/sty right on non-active page when changing Oregon Law source (can fix by refreshing page or "remove stylesheet" + "add stylesheet")
   
 ## Planned features:
-  * Allowing entry of ORS section (not just chapter) in popup.
+  * 
