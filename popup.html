@@ -1,73 +1,53 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>ORS Settings</title>
+    <title>mORS</title>
+    <link href="mORS_dark.css" rel="stylesheet">
     <style>
-      body {
-        min-width: 300px;
-        width: 300px;
-        font-size: 9pt;
-        background-color: #403000;
-        color:#ffdb7a;
-      }
-      h2, h3 {
-        margin-block-end: .5em;
-        text-align: center;
-      }
-      table {
-        outline: black solid 3px;
-        margin: 2px;
-        padding: 2px;
-      }
-      td {
-        text-align: center;
-        padding: 4px;
-      }
-      input {
-        margin: 2px;
-        outline: none;
-      }
+          body {
+            min-width: 300px;
+            width: 300px;
+            font-size: 9pt;
+          }
     </style>
-  </head>
+  <head>
   <body>
-    <table>
-      <th><h2>Oregon Legal Lookup</h2></th>
-      <tr><td><h3>Oregon Revised Statutes</h3></td></tr>
-      <tr><td>
+    <div>
+      <h2>Oregon Legal Lookup</h2>
+      <h3>Oregon Revised Statutes</h3>
         <form>
-          ORS Chapter:
+          ORS chapter or section:          
           <input type='text' name="orsChapter" id="orsChapter" maxlength="4" size="3">
-          <input type='submit' value='Launch' id='chapterLaunch'></label>
+          <p>
+            <input type='submit' value='Launch' id='chapterLaunch'></label>
+          </p>
         </form>
-      </td></tr>
-      <tr><td><h3>Session Laws</h3></td></th>
-      <tr><td>
+      <h3>Oregon Session Laws</h3>
         <form>
           Chap.
           <input type='text' name="orLawsChapter" id="orLawsChapter" maxlength="4" size="3">
           , Or. Laws
           <input type='text' name="orLawsYear" id="orLawsYear" maxlength="4" size="3">
           [year]
+          <p>
           <input type='submit' value='Launch' id='orLawsLaunch'></label>
+          </p>
         </form>
-      </td></tr>
-    </table>
-    <h2>Extension Options</h2>
-    <div>
-      <p>
-        Display mode:
-        <select id="isDark">
-          <option selected value="Dark">Dark</option>
-          <option value="Light">Light</option>
-        </select>
-      </p>
-      <p>Oregon Session Law Lookup Source:<p>
-      <select id="OrLaws" onchange="StoreOrLaws()">
-        <option selected value="OrLeg">Ore. Legislature (1999-present)</option>
-        <option value="Hein">HeinOnline (1859-present; account required)</option>
-        <option value="None">None</option>
-      </select>
     </div>
+    <div>
+      <h2>Extension Options</h2>
+        Display mode:
+          <select id="isDark">
+            <option selected value="Dark">Dark</option>
+            <option value="Light">Light</option>
+          </select>
+      Oregon Session Law Lookup Source:
+          <select id="OrLaws" onchange="StoreOrLaws()">
+            <option selected value="OrLeg">Ore. Legislature (1999-)</option>
+            <option value="Hein">HeinOnline (1859-; account required)</option>
+            <option value="None">None</option>
+          </select>
+        </div>
   </body>
   <script src="popup.js"></script>
 </html>

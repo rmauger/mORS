@@ -12,7 +12,10 @@
   --linkExt: #cdf;
   --linkInt: #fdc;
   --linkVisited: #dcf;
-  --highContrast: #f46;
+  --highContrast: #f8b;
+}
+html {
+  scroll-behavior:smooth;
 }
 body  {
   background-color: var(--background);
@@ -214,4 +217,21 @@ a:hover {
   text-indent:-1em;
   margin-block-end:0;
   margin-block-start: .2em;
+}
+
+/* Popup.html */
+table {
+  outline: black solid 3px;
+  margin: auto;
+  padding: 2px;
+  width: 95%
+  /* width: fit-content; */
+}
+td {
+  text-align: center;
+  padding: 4px;
+}
+input {
+  margin: 2px;
+  outline: none;
 }

@@ -2,7 +2,7 @@
 //@ts-nocheck
 "use strict";
 
-//set global variables from popup.html form
+//set global variables for popup.html form
 let darkSelector=document.getElementById("isDark");
 let orLawSelector=document.getElementById("OrLaws");
 let chpLaunchButton=document.getElementById("chapterLaunch");

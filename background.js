@@ -2,7 +2,7 @@
 // @ts-nocheck - only "errors" found were in chrome
 
 "use strict";
-chrome.runtime.onMessage.addListener((received)=>{
+chrome.runtime.onMessage.addListener((received)=>{ //listening for mORS.js to reqeust removal or update of CSS
   switch (received.message) {
     case 'updateCSS':
       updateCSS();
@@ -15,7 +15,7 @@ chrome.runtime.onMessage.addListener((received)=>{
   }
 });
 
-chrome.runtime.onConnect.addListener((port) => {
+chrome.runtime.onConnect.addListener((port) => { // responding to mORS.js request for stored OrLaws source or current tab's URL
   port.onMessage.addListener((msg) => {
     switch (msg.message) {
       case "RequestOrLawsSource":
@@ -31,7 +31,7 @@ chrome.runtime.onConnect.addListener((port) => {
         promiseGetOrLaw.then((resolve)=>{
           if (resolve) { //TODO:can I just get rid of if(resolve)?
             port.postMessage({response:resolve})
-          } 
+          };
         }).catch(()=> {
           alert("Error broke from orLawsSource Function in background.js")
         });
@@ -49,7 +49,6 @@ chrome.runtime.onConnect.addListener((port) => {
         promiseGetURL.then((resolve)=>{
           if (resolve) {
             port.postMessage({response:resolve})
-            alert("Sending: " +resolve)
           };
         }).catch(()=> {
           alert("Error. Broke attempting to retrieve tab URL.")
