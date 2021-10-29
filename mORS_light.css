@@ -1,3 +1,5 @@
+/*mORS_light.css*/
+
 /* Page background */
 :root {
 /* light / background*/
@@ -20,6 +22,7 @@ html {
 body  {
   background-color: var(--background);
   color:var(--maintext);
+  margin-top: 60px;
 }
 p {
   padding: 2px;
@@ -29,7 +32,7 @@ p {
 .fixed {
   position:fixed;
   top: 3px;
-  right: 3px;
+  right: 10px;
   width: max-content;
   text-align: center;
   border: 3px solid var(--maintext);
@@ -49,12 +52,12 @@ h1 {
 h2 {
   color: var(--heading);
   font:18pt Garamond, serif;
+  font-weight: bold;
   text-align: center;
 }
 h3 {
   color: var(--heading);
   font:16pt Garamond, serif;
-  font-weight: bold;
   text-align: center;
 }
 .headingDiv {
@@ -134,7 +137,7 @@ a:hover {
   font-weight: bold;
   text-align: left;
   color: var(--subheading);
-  margin-block: 0.6em;
+  margin: 0.6em 0;
 }
 .collapsible {
   cursor:pointer;
@@ -153,10 +156,6 @@ a:hover {
   margin: 0 2px;
   padding: 0 2px;
 }
-.burnt {
-  margin:0.4em, 0, .4em, 2em;
-  color:var(--subheading);
-}
 
 /* Forms */
 .orsForm {
@@ -170,11 +169,16 @@ a:hover {
   font-weight: bold;
   color: var(--subheading);
 }
-.sourceNote {
+
+/* Source notes & notes */
+.sourceNote, .burnt {
+  margin: 0;
   color:var(--sourceNote);
   font: 11pt "Times New Roman", Times, serif;
-  margin-block-start:.3em;
-  margin-block-end:.3em;
+  padding: 0.4em 0 .4em 10%;
+}
+.burnt {
+  text-indent: -1em;
 }
 .note {
   font: 10pt, "Times New Roman", Times, serif;
@@ -188,33 +192,22 @@ a:hover {
 }
 
 /* Section Subunits */
-.subsec{
+.subsec, .para, .subpara, .subsubpara, .subsubsubpara {
   text-indent:-1em;
+  margin: .2em auto 0 auto;
+}
+.subsec{
   padding-left:3%;
-  margin-block-end:0;
-  margin-block-start: .2em;
 }
 .para{
-  text-indent:-1em;
   padding-left:4.5%;
-  margin-block-end:0;
-  margin-block-start: .2em;
 }
 .subpara{
-  text-indent:-1em;
   padding-left:6%;
-  margin-block-end:0;
-  margin-block-start: .2em;
 }
 .subsubpara{
   padding-left:7.5%;
-  text-indent:-1em;
-  margin-block-end:0;
-  margin-block-start: .2em;
 }
 .subsubsubpara{
   padding-left:9%;
-  text-indent:-1em;
-  margin-block-end:0;
-  margin-block-start: .2em;
 }
