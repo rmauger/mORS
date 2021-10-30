@@ -24,6 +24,7 @@
     "permissions": [
         "*://www.oregonlegislature.gov/bills_laws/ors/*",
 	    "storage",
-		"activeTab"
+		"activeTab",
+        "tabs"
 	]
 }

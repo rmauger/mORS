@@ -7,8 +7,8 @@ let darkSelector=document.getElementById("isDark");
 let orLawSelector=document.getElementById("OrLaws");
 let chpLaunchButton=document.getElementById("chapterLaunch");
 let orLawsLaunchButton=document.getElementById("orLawsLaunch")
-let darkTempValue="";
-let orLawTempValue="";
+let darkFormInitial="";
+let orLawFormInitial="";
 let orLawOrLegLookup={
   "OL2021":"2021orlaw~.pdf",
   "OL2020":"2020orlaw~.pdf",
@@ -32,21 +32,29 @@ let orLawOrLegLookup={
   "OL1999":"1999orLaw~.html"
 }
 
+// update displayed info at page launch & after dropdown changes:
+displayUserOptions();
+
 //setup event listeners for form dropdowns & buttons
 darkSelector.addEventListener("change", ()=>{
   darkSelector=document.getElementById("isDark");
-  if (darkTempValue!=darkSelector.value) {   // if new value selected...
-    chrome.storage.sync.set({'isDarkStored': (darkSelector.value == 'Dark')}, refreshPage(darkTempValue, darkSelector.value))
+  console.log (`Dark form initial value = ${darkFormInitial}; Dark form current value = ${darkSelector.value}`)
+  if (darkFormInitial!=darkSelector.value) {   // if new value selected...
+    chrome.storage.sync.set({'isDarkStored': (darkSelector.value == 'Dark')}, refreshPage(darkFormInitial, darkSelector.value))
     displayUserOptions();
+  } else {
+    
   }
 });
 orLawSelector.addEventListener("change", ()=>{
+  console.log (`Dark form initial value = ${orLawFormInitial}; Dark form current value = ${orLawSelector.value}`)
   orLawSelector=document.getElementById("OrLaws");
-  if (orLawTempValue!=orLawSelector.value) {  // if new value selected...
+  if (orLawFormInitial!=orLawSelector.value) {  // if new value selected...
     chrome.storage.sync.set({'lawsReaderStored': orLawSelector.value}, reloadORS());
     displayUserOptions();
-    {}
-  };
+    } else {
+
+    }
 });
 chpLaunchButton.addEventListener("click", () => {
   let orsSection = document.getElementById("orsChapter").value
@@ -84,11 +92,10 @@ orLawsLaunchButton.addEventListener("click", ()=>{
   };
 });
 
-// update displayed info at page launch & after dropdown changes:
-displayUserOptions();
+
 function displayUserOptions() {
-  darkTempValue=darkSelector.value;
-  orLawTempValue=orLawSelector.value;
+  darkFormInitial=darkSelector.value;
+  orLawFormInitial=orLawSelector.value;
   let promiseGetDark = new Promise((resolve, reject) => {
     chrome.storage.sync.get('isDarkStored', (object) => {
       if (object) {
@@ -110,7 +117,7 @@ function displayUserOptions() {
         break;
       }
     }
-    darkTempValue=darkSelector.value;
+    darkFormInitial=darkSelector.value;
   }).catch((reject) => {
     if (reject) {alert("Error: user's stored dark/light status not found!")};
   });
