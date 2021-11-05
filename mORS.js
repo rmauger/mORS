@@ -505,7 +505,7 @@ function ReplaceText() {
     // @ts-ignore
     let backgroundPort = chrome.runtime.connect() // open port to background.cs
     backgroundPort.postMessage({ message: "RequestOrLawsSource" })
-    backgroundPort.onMessage.addListener((msg) => {
+    backgroundPort.onMessage.addListener((/** @type {{ response: string; }} */ msg) => {
       if (msg.response == "Hein") {
         HeinLinks() // replace with URL to HeinOnline search link through SOLL
       } else if (msg.response == "OrLeg") {

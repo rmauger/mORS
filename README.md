@@ -13,13 +13,18 @@ Chrome Extension that alters appearance of Oregon Revised Statutes on Oregon Sta
 * Enter chapter into extension popup
 
 ## Disclaimers:
-* Chrome Manifest version 2
+* Chrome Manifest version 3
 * [MIT License](https://github.com/rmauger/mORS/blob/master/LICENSE). Provided "AS IS".
 * The official text of the Oregon Revised Statutes is the [printed published copy](https://apps.oregon.gov/ecommerce/lcc?AspxAutoDetectCookieSupport=1). 
 See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx)
 
 ## Updates:
-  ### Version 1.0 - 10/28/2021
+
+  ### Version 1.10 - 11/04/2021
+  * Migrated to updated Chrome Manifest version 3
+  * Managed to break the "Collapse all" 
+
+  ### Version 1.00 - 10/28/2021
   * Separates table of contents; sections; forms and notes into separetly styled divisions
   * Collapsable sections
   * Links to internal and external ORS sections
@@ -34,4 +39,5 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
   * Stylesheets don't update/stay right on non-active page when changing Oregon Law source (can fix by refreshing page or "remove stylesheet" + "add stylesheet")
   
 ## Planned features:
-  * 
+  * TODO: #10 Fix Collapse All - height is not being dynamically reset. But expand all and collapsing single section seems to work.
+  

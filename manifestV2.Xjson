@@ -1,8 +1,8 @@
 {
-    "manifest_version": 3,
+    "manifest_version": 2,
     "name": "ORS Extension",
-    "version": "1.10",
-    "action": {
+    "version": "1.00",
+    "browser_action": {
         "default_icon": {
             "16": "/images/icon16.png",
             "24": "/images/icon24.png",
@@ -20,7 +20,8 @@
         }
     ],
     "background": {
-        "service_worker": "background.js"
+        "scripts": ["background.js"],
+        "persistent": false
     },
     "icons": {
         "16": "/images/icon16.png",
@@ -30,12 +31,9 @@
         "128": "/images/icon128.png" 
     },
     "permissions": [
+        "*://www.oregonlegislature.gov/bills_laws/ors/*",
 	    "storage",
 		"activeTab",
-        "tabs",
-        "notifications",
-        "scripting"        
-	], 
-    "host_permissions":
-        ["*://www.oregonlegislature.gov/bills_laws/ors/ors*.html*"]
+        "tabs"
+	]
 }
