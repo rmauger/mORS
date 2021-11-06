@@ -20,6 +20,10 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 
 ## Updates:
 
+  ### Version 1.15 - 11/05/2021
+   * Fixed collapse all
+   * Converted promise resolutions to async/await syntex
+
   ### Version 1.10 - 11/04/2021
   * Migrated to updated Chrome Manifest version 3
   * Managed to break the "Collapse all" 
@@ -39,5 +43,10 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
   * Stylesheets don't update/stay right on non-active page when changing Oregon Law source (can fix by refreshing page or "remove stylesheet" + "add stylesheet")
   
 ## Planned features:
-  * TODO: #10 Fix Collapse All - height is not being dynamically reset. But expand all and collapsing single section seems to work.
+  * TODO: #11 Redo how collapse works to avoid resizing issues.
+  * TODO: #12 set up toggle for source notes
+  * TODO: #13 set up toggle for repealed/renumbered sections
+  * TODO: #15 reorganize code in background & popup.js
+  * TODO: #14 run promises in background.js from popup.js (or use messages to simplify)
+
   

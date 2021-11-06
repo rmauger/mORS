@@ -3,6 +3,44 @@
 
 "use strict";
 
+//setting out promises
+function promiseGetActiveTab() {
+  return new Promise((activeTab, reject) => {
+    // @ts-ignore
+    chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
+      if (tabs) {
+        activeTab(tabs[0]);
+      } else {
+        reject("Unable to determine active tab");
+      }
+    });
+  });
+}
+function promiseGetOrLaw() {
+  return new Promise((resolve, reject) => {
+    // @ts-ignore
+    chrome.storage.sync.get("lawsReaderStored", (retrievedLawReader) => {
+      if (retrievedLawReader) {
+        resolve(retrievedLawReader.lawsReaderStored);
+      } else {
+        reject("Unable to retrieve stored user preference for Oregon Laws");
+      }
+    });
+  });
+}
+function promiseGetDark() {
+  return new Promise((resolve, reject) => {
+    // @ts-ignore
+    chrome.storage.sync.get("isDarkStored", (darkStoredObj) => {
+      if (darkStoredObj) {
+        resolve(darkStoredObj.isDarkStored); // isDarkStored is index of key of stored object
+      } else {
+        reject("Unable to retrieve stored user preference for css Template");
+      }
+    });
+  });
+}
+
 //Creating Listeners
 //listening for mORS.js to reqeust removal or update of CSS
 //@ts-ignore
@@ -19,56 +57,32 @@ chrome.runtime.onMessage.addListener((received) => {
   }
 });
 
-// @ts-ignore
+// responding to mORS.js request for stored OrLaws source or current tab's URL
+//@ts-ignore
 chrome.runtime.onConnect.addListener((port) => {
-  // responding to mORS.js request for stored OrLaws source or current tab's URL
   port.onMessage.addListener((msg) => {
     switch (msg.message) {
       case "RequestOrLawsSource":
-        let promiseGetOrLaw = new Promise((resolve, reject) => {
-          // @ts-ignore
-          chrome.storage.sync.get("lawsReaderStored", (retrievedLawReader) => {
-            if (retrievedLawReader) {
-              resolve(retrievedLawReader.lawsReaderStored);
-            } else {
-              reject(true);
-            }
-          });
-        });
-        promiseGetOrLaw
-          .then((resolve) => {
+        try {
+          orLawReply();
+          async function orLawReply() {
+            const resolve = await promiseGetOrLaw();
             port.postMessage({ response: resolve });
-          })
-          .catch(() => {
-            logOrWarn(
-              "Error broke from orLawsSource Function in background.js",
-              "orLawsSource Error"
-            );
-          });
+          }
+        } catch (e) {
+          logOrWarn(e, "orLawsSource Error");
+        }
         break;
       case "RequestTagURL":
-        let promiseGetActiveTab = new Promise((activeTab, reject) => {
-          // @ts-ignore
-          chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
-            if (tabs) {
-              activeTab(tabs[0]);
-            } else {
-              reject(true);
-            }
-          });
-        });
-        promiseGetActiveTab
-          .then((activeTab) => {
+        try {
+          urlReply();
+          async function urlReply() {
+            const activeTab = await promiseGetActiveTab();
             port.postMessage({ response: activeTab.url });
-          })
-          .catch((reject) => {
-            if (reject) {
-              logOrWarn(
-                "Broke attempting to retrieve tab URL.",
-                "promiseGetURL"
-              );
-            }
-          });
+          }
+        } catch (e) {
+          logOrWarn(e, "promiseGetURL");
+        }
         break;
       default:
         break;
@@ -77,81 +91,38 @@ chrome.runtime.onConnect.addListener((port) => {
 });
 
 //removes any existing css and adds css from stored value
-function updateCSS() {
-  let promiseGetDark = new Promise((resolve, reject) => {
-    // @ts-ignore
-    chrome.storage.sync.get("isDarkStored", (darkStoredObj) => {
-      if (darkStoredObj) {
-        resolve(darkStoredObj.isDarkStored); // isDarkStored is index of key of stored object
-      } else {
-        reject(true);
-      }
+async function updateCSS() {
+  try {
+    const resolve = await promiseGetDark();
+    let insertCssFile = "";
+    if (resolve) {
+      insertCssFile = "./mORS_dark.css";
+    } else {
+      insertCssFile = "./mORS_light.css";
+    }
+    removeCSS();
+    const activeTab = await promiseGetActiveTab();
+    //@ts-ignore
+    chrome.scripting.insertCSS({
+      target: { tabId: activeTab.id },
+      files: [insertCssFile],
     });
-  });
-  promiseGetDark
-    .then((resolve) => {
-      let insertCssFile = "";
-      if (resolve) {
-        insertCssFile = "./mORS_dark.css";
-      } else {
-        insertCssFile = "./mORS_light.css";
-      }
-      removeCSS();
-      let promiseGetActiveTab = new Promise((activeTab, reject) => {
-        // @ts-ignore
-        chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
-          if (tabs) {
-            activeTab(tabs[0]);
-          } else {
-            reject(true);
-          } 
-        });
-      });
-      promiseGetActiveTab.then((activeTab) => {
-        logOrWarn(
-          `CSS injection attempt is happening with ${insertCssFile} on tabId: ${activeTab.id}`
-        );
-        //@ts-ignore
-        chrome.scripting.insertCSS({
-          target: { tabId: activeTab.id },
-          files: [insertCssFile],
-        });
-      }).catch((reject)=> {
-        if (reject) {
-          logOrWarn ("Did not update tabs", "insertCSS")
-        }
-      });
-    })
-    .catch((reject) => {
-      if (reject) {
-        // @ts-ignore
-        logOrWarn("Error. Didn't find stored 'dark' status.", "Dark");
-      }
-    });
+  } catch (e) {
+    logOrWarn(e, "updateCSS");
+  }
 }
 
-function removeCSS() {
-  let promiseGetActiveTab = new Promise((activeTab, reject) => {
+async function removeCSS() {
+  try {
+    const activeTab = await promiseGetActiveTab();
     // @ts-ignore
-    chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
-      if (tabs) {
-        activeTab(tabs[0]);
-      } else {
-        reject(true);
-      }
+    chrome.scripting.removeCSS({
+      target: { tabId: activeTab.id },
+      files: ["./mORS_dark.css", "./mORS_light.css"],
     });
-  });
-  promiseGetActiveTab.then((activeTab) => {
-    try {
-      // @ts-ignore
-      chrome.scripting.removeCSS({
-        target: { tabId: activeTab.id },
-        files: ["./mORS_dark.css", "./mORS_light.css"],
-      });
-    } catch (error) {
-      logOrWarn("Could not remove css files.", "RemoveCSS");
-    }
-  });
+  } catch (e) {
+    logOrWarn(`Could not remove css files. Err: ${e}`, "removeCSS()");
+  }
 }
 
 /**
@@ -159,7 +130,7 @@ function removeCSS() {
  * @param {string} msgTxt
  */
 function logOrWarn(msgTxt, warningId = "") {
-  console.log(msgTxt);
+  console.log(`MESSAGE: ${msgTxt}`);
   if (warningId != "") {
     const newDate = new Date();
     const myId =

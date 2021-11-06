@@ -31,16 +31,35 @@ let orLawOrLegLookup = {
   OL2001: "2001orLaw~ses.html",
   OL1999: "1999orLaw~.html",
 };
-
+//declare promise functions:
+function promiseGetDark() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get("isDarkStored", (object) => {
+      if (object) {
+        resolve((object.isDarkStored && "Dark") || "Light");
+      } else {
+        reject("Failed to retrieve stored user value for Oregon Laws Reader");
+      }
+    });
+  });
+}
+function promiseGetOrLaw() {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get("lawsReaderStored", (object) => {
+      if (object) {
+        resolve(object.lawsReaderStored);
+      } else {
+        reject("Failed to retrieve stored user value for Oregon Laws Reader");
+      }
+    });
+  });
+}
 // update displayed info at page launch & after dropdown changes:
 displayUserOptions();
 
 //setup event listeners for form dropdowns & buttons
 darkSelector.addEventListener("change", () => {
   darkSelector = document.getElementById("isDark");
-  console.log(
-    `Dark form initial value = ${darkFormInitial} Dark form current value = ${darkSelector.value}`
-  );
   if (darkFormInitial != darkSelector.value) {
     // if new value selected...
     chrome.storage.sync.set(
@@ -52,9 +71,6 @@ darkSelector.addEventListener("change", () => {
   }
 });
 orLawSelector.addEventListener("change", () => {
-  console.log(
-    `Dark form initial value = ${orLawFormInitial} Dark form current value = ${orLawSelector.value}`
-  );
   orLawSelector = document.getElementById("OrLaws");
   if (orLawFormInitial != orLawSelector.value) {
     // if new value selected...
@@ -116,53 +132,25 @@ orLawsLaunchButton.addEventListener("click", () => {
 function displayUserOptions() {
   darkFormInitial = darkSelector.value;
   orLawFormInitial = orLawSelector.value;
-  let promiseGetDark = new Promise((resolve, reject) => {
-    chrome.storage.sync.get("isDarkStored", (object) => {
-      if (object) {
-        resolve((object.isDarkStored && "Dark") || "Light");
-      } else {
-        reject(false);
-      }
-    });
-  });
-  let promiseGetOrLaw = new Promise((resolve) => {
-    chrome.storage.sync.get("lawsReaderStored", (object) => {
-      if (object) {
-        resolve(object.lawsReaderStored);
-      } else {
-        reject(false);
-      }
-    });
-  });
-  promiseGetDark
-    .then((resolve) => {
+  try {
+    async () => {
+      storedData = await Promise.all([promiseGetDark(), promiseGetOrLaw()]);
       for (let i = 0; i < darkSelector.options.length; i++) {
-        if (darkSelector.options[i].value == resolve) {
+        if (darkSelector.options[i].value == storedData[0]) {
           darkSelector.selectedIndex = i;
           break;
         }
       }
-      darkFormInitial = darkSelector.value;
-    })
-    .catch((reject) => {
-      if (reject) {
-        alert("Error: user's stored dark/light status not found!");
-      }
-    });
-  promiseGetOrLaw
-    .then((resolve) => {
       for (let i = 0; i < orLawSelector.options.length; i++) {
-        if (orLawSelector.options[i].value == resolve) {
+        if (orLawSelector.options[i].value == storedData[1]) {
           orLawSelector.selectedIndex = i;
           break;
         }
       }
-    })
-    .catch((reject) => {
-      if (reject) {
-        alert("Error: Ore Laws source not found!");
-      }
-    });
+    };
+  } catch (e) {
+    alert(e);
+  }
 }
 
 function reloadORS() {
