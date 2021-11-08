@@ -41,6 +41,7 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
   * Not identifying roman numerals if appearing with a paragraph & subparagraph (e.g. "(d)(A)(i)" or "(C)(i)(I)")
   * Heights of sections may not be correct if resizing window horizontally (can fix with "collapse all")
   * Stylesheets don't update/stay right on non-active page when changing Oregon Law source (can fix by refreshing page or "remove stylesheet" + "add stylesheet")
+  * Issues with generating table of contents where title heading isn't the same as the title itself. Can take 1.5 min+ to run search & generate page.
   
 ## Planned features:
   * TODO: #11 Redo how collapse works to avoid resizing issues.
@@ -48,5 +49,6 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
   * TODO: #13 set up toggle for repealed/renumbered sections
   * TODO: #15 reorganize code in background & popup.js
   * TODO: #14 run promises in background.js from popup.js (or use messages to simplify)
+  * TODO: #16 fix search for TOC heading (or at least speed it up so it breaks quicker)
 
   
