@@ -1,38 +1,42 @@
 //@ts-check
 //mORS.js
 
-StyleSheetRefresh(); // sends message to background.js to apply user selected style sheet
+StyleSheetRefresh(); 
+// sends message to background.js to apply user selected style sheet
 window.addEventListener("load", ReplaceText); //main function adjusting HTML of Oregon Legislature ORS pages
 
-function ifMatch(testExp, searchString, index = 0) {
-  // returns match if one is available
-  let aRegExp = /temp/;
-  if (typeof testExp == "string") {
-    aRegExp = new RegExp(testExp, "g");
+// returns match if one is available (defaults to first match)
+function ifMatch(searchFor, initialText, index = 0) {
+  let aRegExp = new RegExp('');
+  if (typeof searchFor == "string") {
+    aRegExp = new RegExp(searchFor, "g");
   } else {
-    aRegExp = testExp;
+    aRegExp = searchFor;
   }
-  if (aRegExp.test(searchString)) {
-    const resultsList = searchString.match(aRegExp);
+  if (aRegExp.test(initialText)) {
+    const resultsList = initialText.match(aRegExp);
     if (resultsList.length > index) {
-      return searchString.match(aRegExp)[index];
+      return initialText.match(aRegExp)[index];
     }
   }
   return "";
 }
 
-//returns object with HTML elements & new heights
+//returns object containing HTML elements & heights (Currently just one element, but may edit later)
 function findCollapseHeight(buttonElement) {
   const thisElement = buttonElement.parentElement;
   const thisHeight = `${buttonElement.scrollHeight}px`;
   buttonElement.classList.remove("active");
   return { anElement: thisElement, height: thisHeight };
 }
+
+//collapses single ORS section
 function collapseSingle(collapseObj) {
   if (!collapseObj) throw "No button!?";
   collapseObj.anElement.style.maxHeight = collapseObj.height;
 }
 
+//expands single ORS section
 function expandSingle(buttonElement) {
   if (buttonElement) {
     if (buttonElement.classList.contains("collapsible")) {
@@ -47,9 +51,9 @@ function expandSingle(buttonElement) {
   }
 }
 
+// adds buttons & default collapse state to page
 function javaDOM() {
   const collapsibles = document.getElementsByClassName("collapsible");
-
   function collapseAllSections(doAddButton) {
     let collapseObj = [];
     for (let i = 0; i < collapsibles.length; i++) {
@@ -97,7 +101,7 @@ function javaDOM() {
       }
     }
   }
-  buildFixedDiv(); // add floating div with version info & buttons
+  buildFixedDiv();  // add floating div with version info & buttons
   function buildFixedDiv() {
     let fixedDiv = document.createElement("div");
     fixedDiv.classList.add("fixed");
@@ -196,7 +200,8 @@ function ReplaceText() {
   const orsChapter = "[1-9]\\d{0,2}[A-C]?\\b";
   const emptyTags = new RegExp(`<(\\w)[^>]*?>${tabs}<\\/\\1>`, "g"); // is deleted (in first HTMLCleanUp & FinalClean)
   const orsSection = `(?:${orsChapter}\\.\\d{3}\\b|\\b7\\dA?\\.\\d{4}\\b)`;
-  HTMLCleanUp(); // delete stylesheet & references to it and confusing span syntex from HTML
+  HTMLCleanUp(); 
+  // delete span syntex & msoClasses & existing divs & empty tags from HTML
   function HTMLCleanUp() {
     chpHTML = document.body.innerHTML;
     const styleGarb = /<span style=[^]+?>([^]+?)<\/span>/g; // is deleted
@@ -210,7 +215,8 @@ function ReplaceText() {
     chpHTML = chpHTML.replace(divGarb, "");
     chpHTML = chpHTML.replace(emptyTags, "");
   }
-  chapterHeading(); // build replacement heading for top of page. Delete html.head
+  chapterHeading(); 
+  // build replacement heading for top of page. Delete html.head
   function chapterHeading() {
     const headHTML = document.head.innerHTML;
     const msoVolumeTag = /(?<=\<mso:Volume[^>]*\>0?)([^<]*)(?=\<)/;
@@ -235,13 +241,15 @@ function ReplaceText() {
       <h1>Chapter ${thisChapterNum} - ${thisChapterTitle}</h1><h3>${thisEdYear} EDITION</h3></div>`;
     chpHTML = chpHTML.replace(existingTitle, ""); //deleting existing heading
   }
-  TableOfContents(); //create & label new division for table of contents
+  TableOfContents(); 
+  //create & label new division for table of contents
   function TableOfContents() {
     const tocFind = /(<p[^>]*?>[^]*?<\/p>)([^]*?)(?=\1|<p class=default><b>)/; // is replaced by:
     const tocRepl = `<div id=toc><h1>Table of Contents</h1><div class=tocItems>\$1\$2</div></div>${tocBreak}`;
     chpHTML = chpHTML.replace(tocFind, tocRepl);
   }
-  ORSHighlight(); //highlight all cross references to ORS sections (xx.xxx) (to be replaced later by relevant links)
+  ORSHighlight(); 
+  //highlight all cross references to ORS sections (xx.xxx) (to be replaced later by relevant links)
   function ORSHighlight() {
     const orsFind = new RegExp(
       `(${orsSection}((?:\s?(?:\(\w{1,4}\))){0,5})(\sto\s(?:(?:\(\w{1,4}\))))?)`,
@@ -250,7 +258,8 @@ function ReplaceText() {
     const orsRepl = "<span class=ors>$1</span>";
     chpHTML = chpHTML.replace(orsFind, orsRepl);
   }
-  Leadlines(); //highlight & create new div for each new section
+  Leadlines(); 
+  //highlight & create new div for each new section
   function Leadlines() {
     const orsSecLead = `(?:<span class=ors>)(${thisChapterNum}\\.\\d{3,4}\\b)\\s?</span>([^\\.][^\\]]+?\\.\\s?)`;
     const leadFind = new RegExp(
@@ -261,7 +270,8 @@ function ReplaceText() {
       '</div><div class=section break="~"><button id="$1" class="collapsible"><p class=leadline>$1$2</p></button><p class=default>';
     chpHTML = chpHTML.replace(leadFind, leadRepl);
   }
-  Forms(); // create new div for forms
+  Forms();
+  // create new div for forms
   function Forms() {
     const startForm = new RegExp(
       `(form[^]*?:)<\\/p>${tabs}(<p[^>]*>)_{78}`,
