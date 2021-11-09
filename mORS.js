@@ -6,6 +6,10 @@ StyleSheetRefresh();
 window.addEventListener("load", ReplaceText); //main function adjusting HTML of Oregon Legislature ORS pages
 
 // returns match if one is available (defaults to first match)
+/**
+ * @param {string | RegExp} searchFor
+ * @param {string} initialText
+ */
 function ifMatch(searchFor, initialText, index = 0) {
   let aRegExp = new RegExp('');
   if (typeof searchFor == "string") {
@@ -22,7 +26,21 @@ function ifMatch(searchFor, initialText, index = 0) {
   return "";
 }
 
+//collapses single ORS section
+/**
+ * @param {{ anElement: HTMLElement; height: any; }} collapseObj
+ */
+ function collapseSingle(collapseObj) {
+  if (!collapseObj) {
+    console.log("No button found in object!?");
+  }
+  collapseObj.anElement.style.maxHeight = collapseObj.height;
+}
+
 //returns object containing HTML elements & heights (Currently just one element, but may edit later)
+/**
+ * @param {Element} buttonElement
+ */
 function findCollapseHeight(buttonElement) {
   const thisElement = buttonElement.parentElement;
   const thisHeight = `${buttonElement.scrollHeight}px`;
@@ -30,13 +48,10 @@ function findCollapseHeight(buttonElement) {
   return { anElement: thisElement, height: thisHeight };
 }
 
-//collapses single ORS section
-function collapseSingle(collapseObj) {
-  if (!collapseObj) throw "No button!?";
-  collapseObj.anElement.style.maxHeight = collapseObj.height;
-}
-
 //expands single ORS section
+/**
+ * @param {Element} buttonElement
+ */
 function expandSingle(buttonElement) {
   if (buttonElement) {
     if (buttonElement.classList.contains("collapsible")) {
@@ -54,6 +69,9 @@ function expandSingle(buttonElement) {
 // adds buttons & default collapse state to page
 function javaDOM() {
   const collapsibles = document.getElementsByClassName("collapsible");
+  /**
+   * @param {boolean} doAddButton
+   */
   function collapseAllSections(doAddButton) {
     let collapseObj = [];
     for (let i = 0; i < collapsibles.length; i++) {
@@ -170,12 +188,11 @@ function getTabURL() {
   //@ts-ignore
   let backgroundPort = chrome.runtime.connect({ name: "OrLawsSource" }); //open port to background.js
   backgroundPort.postMessage({ message: "RequestTagURL" });
-  backgroundPort.onMessage.addListener((msg) => {
+  backgroundPort.onMessage.addListener((/** @type {{ response: String; }} */ msg) => {
     const tabUrl = msg.response;
     if (tabUrl) {
       const idFinder = /(?<=\.html\#)[^\/]*/;
       if (idFinder.test(tabUrl)) {
-        const orsPinCite = 0;
         const pinCiteButton = document.getElementById(
           ifMatch(idFinder, tabUrl)
         );
@@ -221,17 +238,19 @@ function ReplaceText() {
     const headHTML = document.head.innerHTML;
     const msoVolumeTag = /(?<=\<mso:Volume[^>]*\>0?)([^<]*)(?=\<)/;
     const msoChaperTag = /(?<=\<mso:[^>]*Chapter[^>]*\>0?)([^<]*)(?=\<)/g;
-    const titleTitle = /(?<=\.\s)([^]*?)(?=\s-)/;
-    const edYearMatch = /20\d{2}(?=\sEDITION)/;
+//  kill:    const titleTitle = /(?<=\.\s)([^]*?)(?=\s-)/;
+    const edYearMatch = "20\\d{2}(?=\\sEDITION)"
     const chapterMatch = new RegExp(`(?<=Chapter\\s0{0,2})${orsChapter}`);
     const thisVolume = ifMatch(msoVolumeTag, headHTML);
     const thisTitle = ifMatch(msoChaperTag, headHTML);
     const thisChapterTitle = ifMatch(msoChaperTag, headHTML, 1);
-    const thisEdYear = ifMatch(edYearMatch, chpHTML);
+    const thisEdYear = ifMatch(new RegExp(edYearMatch), chpHTML);
     thisChapterNum = ifMatch(chapterMatch, headHTML);
-    const existingTitle = new RegExp(
-      `[^]*${ifMatch(titleTitle, thisTitle).toUpperCase()}`
-    );
+// kill    //const existingTitle = new RegExp(
+    //  `[^]*${ifMatch(titleTitle, thisTitle).toUpperCase()}`
+    //);
+    
+    const endOfHead = new RegExp(`[^]*?${edYearMatch}[^.]*?<p[^.]*?<p[^.]*?<p`)  // three paragraphs past edition 
     const preTitleMatch = new RegExp(`[^]*?Chapter\\s${thisChapterNum}`);
     const preTitle = ifMatch(
       new RegExp(`[^]*?(?=Chapter\\s${thisChapterNum})`),
@@ -239,7 +258,7 @@ function ReplaceText() {
     );
     mainHead = `<div class=mainHead>${preTitle}<h3>Volume ${thisVolume}</h3><h2>Title ${thisTitle}</h2>
       <h1>Chapter ${thisChapterNum} - ${thisChapterTitle}</h1><h3>${thisEdYear} EDITION</h3></div>`;
-    chpHTML = chpHTML.replace(existingTitle, ""); //deleting existing heading
+      chpHTML = chpHTML.replace(endOfHead, "<p"); //deleting existing heading
   }
   TableOfContents(); 
   //create & label new division for table of contents
