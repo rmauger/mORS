@@ -150,8 +150,17 @@ function javaDOM() {
           document.getElementById("buttonExpand").style.display = "none";
           document.getElementById("buttonToggleCSS").innerText = "Add Style";
           //@ts-ignore
-          chrome.runtime.sendMessage({ message: "removeCSS" }); // sends message to background.js
-          expandAllSections() // TODO: #17 Make expanding all sections occur after resolution of promise from sending message & removing CSS
+          // sends message to background.js to remove CSS & expandsAllSections once completed
+          chrome.runtime.sendMessage({ message: "removeCSS" }, (response)=>{
+            console.log('awaiting response')
+            console.log(`Received: ${response}`)
+            console.log(`Received: ${response.response}`)
+            if (response.response=="Success") {
+              expandAllSections()
+              console.log("Success???!")
+            }
+          }); 
+          
         } else {
           document.getElementById("buttonCollapse").style.display = "inline";
           document.getElementById("buttonExpand").style.display = "inline";
@@ -162,7 +171,6 @@ function javaDOM() {
         toggleCSSButton.classList.toggle("cssOn");
       });
     }
-    
     function addToggleSourceNoteButton() {
       var toggleSourceNoteButton = document.createElement("button");
       toggleSourceNoteButton.innerText = "Hide Source Notes";
@@ -542,8 +550,6 @@ function ReplaceText() {
     chpHTML = chpHTML.replace(noteFind, noteRepl);
     chpHTML = chpHTML.replace(noteSec, noteSecRepl);
     chpHTML = chpHTML.replace(noteSesLaw, noteSesLawRepl);
-    console.log (SesLawSec)
-    console.log (chpHTML)
     chpHTML = chpHTML.replace(SesLawSec, SesLawSecRepl);
     chpHTML = chpHTML.replace(prefaceFind, prefaceRepl);
     chpHTML = chpHTML.replace(v22Find, v22Repl);
@@ -648,6 +654,19 @@ function ReplaceText() {
   }
 }
 // MAIN
-let initialIDNavigation
-StyleSheetRefresh(); 
+ let initialIDNavigation
+/*StyleSheetRefresh(); 
 window.addEventListener("load", ReplaceText); 
+ */
+//@ts-ignore
+chrome.runtime.sendMessage({ message: "Please Respond" }, (response)=>{
+  console.log(`Received: ${response}`)  // returns "Received: undefined"
+  try {
+    if (response.response=="Success") {  // 
+      console.log("Success")  // Nope
+    }      
+  } catch (error) {
+    console.log(error)   // Returns "TypeError: Cannot read properties of undefined (reading 'response') at mORS.js:665
+    // Also throws maybe related error: Unchecked runtime.lastError: The message port closed before a response was received.
+  }
+})
