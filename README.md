@@ -20,6 +20,9 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 
 ## Updates:
 
+  ### Version 1.20 - 11/11/2021
+   * Added toggle button to show/hide source notes & repealed/renumbered sections
+
   ### Version 1.18 - 11/08/2021
    * Minor bug fix (identifying start of table of contents)
 
@@ -43,11 +46,10 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
   * Not identifying roman numerals if appearing with a paragraph & subparagraph (e.g. "(d)(A)(i)" or "(C)(i)(I)")
   * Heights of sections may not be correct if resizing window horizontally (can fix with "collapse all")
   * Stylesheets don't update/stay right on non-active page when changing Oregon Law source (can fix by refreshing page or "remove stylesheet" + "add stylesheet")
+  * Formatting of division heights doesn't work when stylesheet is removed
   
 ## Planned features:
   * TODO: #11 Redo how collapse works to avoid resizing issues.
-  * TODO: #12 set up toggle for source notes
-  * TODO: #13 set up toggle for repealed/renumbered sections
   * TODO: #15 reorganize code in background & popup.js
   * TODO: #14 run promises in background.js from popup.js (or use messages to simplify)
 
