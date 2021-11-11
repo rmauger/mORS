@@ -34,12 +34,15 @@ p {
   top: 3px;
   right: 10px;
   width: max-content;
-  text-align: center;
+  text-align: right;
   border: 3px solid var(--maintext);
   background-color: var(--background);
+  padding: 3%;
 }
 .version {
-  font: 10pt "Times New Roman", Times, serif;
+  font: 9pt "Times New Roman", Times, serif;
+  margin: 0;
+  padding: 0;
 }
 
 /* Headings */
@@ -189,6 +192,10 @@ a:hover {
   border: 2px solid var(--subheading);
   padding: 6px;
   background-color: var(--lightBack);
+}
+.hideMe {
+  position:absolute;
+  left:-999px
 }
 
 /* Section Subunits */

@@ -1,12 +1,7 @@
 //@ts-check
 //mORS.js
 
-StyleSheetRefresh(); 
-// sends message to background.js to apply user selected style sheet
-window.addEventListener("load", ReplaceText); //main function adjusting HTML of Oregon Legislature ORS pages
-
-// returns match if one is available (defaults to first match)
-/**
+/** returns match if one is available (defaults to first match)
  * @param {string | RegExp} searchFor
  * @param {string} initialText
  */
@@ -26,61 +21,65 @@ function ifMatch(searchFor, initialText, index = 0) {
   return "";
 }
 
-//collapses single ORS section
-/**
- * @param {{ anElement: HTMLElement; height: any; }} collapseObj
- */
- function collapseSingle(collapseObj) {
-  if (!collapseObj) {
-    console.log("No button found in object!?");
-  }
-  collapseObj.anElement.style.maxHeight = collapseObj.height;
-}
-
-//returns object containing HTML elements & heights (Currently just one element, but may edit later)
-/**
- * @param {Element} buttonElement
- */
-function findCollapseHeight(buttonElement) {
-  const thisElement = buttonElement.parentElement;
-  const thisHeight = `${buttonElement.scrollHeight}px`;
-  buttonElement.classList.remove("active");
-  return { anElement: thisElement, height: thisHeight };
-}
-
-//expands single ORS section
-/**
- * @param {Element} buttonElement
- */
-function expandSingle(buttonElement) {
-  if (buttonElement) {
-    if (buttonElement.classList.contains("collapsible")) {
-      const sectionDiv = buttonElement.parentElement;
-      buttonElement.classList.add("active");
-      sectionDiv.style.maxHeight = `${sectionDiv.scrollHeight}px`;
-    } else {
-      console.log(`Target ${buttonElement.innerHTML} is not an active section`);
-    }
-  } else {
-    console.log("No button element found...");
-  }
-}
-
-// adds buttons & default collapse state to page
 function javaDOM() {
-  const collapsibles = document.getElementsByClassName("collapsible");
-  /**
+  /** collapses single ORS section
+   * @param {{ anElement: HTMLElement; height: any; }} collapseObj
+   */
+  function collapseSingle(collapseObj) {
+    if (!collapseObj) {
+      console.log("No button found in object!?");
+    }
+    collapseObj.anElement.style.maxHeight = collapseObj.height;
+  }
+
+  /** returns object containing HTML elements & heights (Currently just one element, but may edit later)
+   * @param {Element} buttonElement
+   */
+  function findCollapseHeight(buttonElement) {
+    const thisElement = buttonElement.parentElement;
+    const thisHeight = `${buttonElement.scrollHeight}px`;
+    buttonElement.classList.remove("active");
+    return { anElement: thisElement, height: thisHeight };
+  }
+
+  /** expands single ORS section
+   * @param {Element} buttonElement
+   */
+  function expandSingle(buttonElement) {
+    if (buttonElement) {
+      if (buttonElement.classList.contains("collapsible")) {
+        const sectionDiv = buttonElement.parentElement;
+        buttonElement.classList.add("active");
+        sectionDiv.style.maxHeight = `${sectionDiv.scrollHeight}px`;
+      } else {
+        console.log(`Target ${buttonElement.innerHTML} is not an active section`);
+      }
+    } else {
+      console.log("No button element found...");
+    }
+  }
+
+  // Expands all ORS sections to full height
+  function expandAllSections() {
+    const collapsibles = document.getElementsByClassName("collapsible");
+    for (let i = collapsibles.length - 1; i >= 0; i--) {
+      expandSingle(collapsibles[i]);
+    }
+  }
+
+  /** Collapses all ORS sections to button height (and adds collapsible buttons to leadlines on request)
    * @param {boolean} doAddButton
    */
   function collapseAllSections(doAddButton) {
-    let collapseObj = [];
+    const collapsibles = document.getElementsByClassName("collapsible");
+    let collapseObjHeightList = [];
     for (let i = 0; i < collapsibles.length; i++) {
       const buttonElement = collapsibles[i];
-      collapseObj.push(findCollapseHeight(buttonElement));
+      collapseObjHeightList.push(findCollapseHeight(buttonElement));
       if (doAddButton) {
         buttonElement.addEventListener("click", () => {
           if (
-            collapseObj[i].anElement.style.maxHeight == collapseObj[i].height
+            collapseObjHeightList[i].anElement.style.maxHeight == collapseObjHeightList[i].height
           ) {
             expandSingle(buttonElement);
           } else {
@@ -90,23 +89,15 @@ function javaDOM() {
       }
     }
     for (let i = collapsibles.length - 1; i >= 0; i--) {
-      collapseSingle(collapseObj[i]);
+      collapseSingle(collapseObjHeightList[i]);
     }
   }
-  function expandAllSections() {
-    for (let i = collapsibles.length - 1; i >= 0; i--) {
-      expandSingle(collapsibles[i]);
-    }
-  }
-  buildCollapseToggeButtons(); // build button by which leadlines collapse & expand section below
-  function buildCollapseToggeButtons() {
-    collapseAllSections(true);
-  }
-  buildOrsLinkButton(); //adds button element to internal link ORS to expand target upon selection
+
+  //adds button element to internal link ORS to expand target upon selection
   function buildOrsLinkButton() {
-    let aLinkOrs = document.getElementsByClassName("ors");
-    for (let i = 0; i < aLinkOrs.length; i++) {
-      const aLink = aLinkOrs[i];
+    let orsLinkList = document.getElementsByClassName("ors");
+    for (let i = 0; i < orsLinkList.length; i++) {
+      const aLink = orsLinkList[i];
       const buttonElement = document.getElementById(aLink.innerHTML);
       if (buttonElement) {
         // dealing with issues caused if there is a reference to ORS section that does not exist
@@ -119,27 +110,27 @@ function javaDOM() {
       }
     }
   }
-  buildFixedDiv();  // add floating div with version info & buttons
-  function buildFixedDiv() {
-    let fixedDiv = document.createElement("div");
-    fixedDiv.classList.add("fixed");
-    let versionPar = document.createElement("p");
-    //@ts-ignore
-    let manifest = chrome.runtime.getManifest();
-    let thisVersion = manifest.version;
-    versionPar.classList.add("version");
-    versionPar.innerHTML = `style markup by <a href="https://github.com/rmauger/mORS/#readme">mORS<\/a> v.${thisVersion}`;
-    fixedDiv.appendChild(versionPar);
-    addExpandButton(); // "Expand all" button
-    function addExpandButton() {
+    
+  // add floating div with version info & buttons
+  function buildFloatingMenuDiv() {
+    function addMenuBody() {
+      fixedDiv.classList.add("fixed");
+      let versionPar = document.createElement("p");
+      //@ts-ignore
+      let manifest = chrome.runtime.getManifest();
+      let thisVersion = manifest.version;
+      versionPar.classList.add("version");
+      versionPar.innerHTML = `style markup by <a href="https://github.com/rmauger/mORS/#readme">mORS<\/a> v.${thisVersion}`;
+      fixedDiv.appendChild(versionPar);
+    }
+    function addExpandAllButton() {
       var expandAllButton = document.createElement("button");
       expandAllButton.innerText = "Expand all";
       expandAllButton.id = "buttonExpand";
       fixedDiv.appendChild(expandAllButton);
       expandAllButton.addEventListener("click", () => expandAllSections());
     }
-    AddCollapseButton(); // "Collapse all" button
-    function AddCollapseButton() {
+    function addCollapseAllButton() {
       var collapseAllButton = document.createElement("button");
       collapseAllButton.innerText = "Collapse all";
       collapseAllButton.id = "buttonCollapse";
@@ -148,8 +139,7 @@ function javaDOM() {
         collapseAllSections(false)
       );
     }
-    cssToggleButton(); // "Remove Style" or "Add Style" button
-    function cssToggleButton() {
+    function addToggleCssButton() {
       var toggleCSSButton = document.createElement("button");
       toggleCSSButton.innerHTML = "Remove Style";
       toggleCSSButton.classList.add("cssOn");
@@ -173,8 +163,65 @@ function javaDOM() {
         toggleCSSButton.classList.toggle("cssOn");
       });
     }
+    
+    function addToggleSourceNoteButton() {
+      var toggleSourceNoteButton = document.createElement("button");
+      toggleSourceNoteButton.innerText = "Hide Source Notes";
+      toggleSourceNoteButton.id = "buttonToggleSourcenote"
+      toggleSourceNoteButton.className="sourceNoteOn"
+      fixedDiv.appendChild(toggleSourceNoteButton);
+      toggleSourceNoteButton.addEventListener("click", ()=> {
+        const sourceNoteList = document.getElementsByClassName("sourceNote")        
+        for (let i = 0; i < sourceNoteList.length; i++) {
+          const note = sourceNoteList[i]
+          note.classList.toggle('hideMe')
+        }
+        if (toggleSourceNoteButton.className=="sourceNoteOn") {
+          toggleSourceNoteButton.innerText="Show Source Notes";
+        } else {
+          toggleSourceNoteButton.innerText="Hide Source Notes";
+        } 
+        toggleSourceNoteButton.classList.toggle("sourceNoteOn")
+      })
+    }
+    function addToggleBurntSecButton() {
+      var toggleBurntSecButton = document.createElement("button");
+      toggleBurntSecButton.innerText = "Hide Repealed/Renumbered ORS";
+      toggleBurntSecButton.id = "buttonToggleBurntSecs"
+      toggleBurntSecButton.className="BurntSecsOn"
+      fixedDiv.appendChild(toggleBurntSecButton);
+      toggleBurntSecButton.addEventListener("click", ()=> {
+        const sourceNoteList = document.getElementsByClassName("burnt")        
+        for (let i = 0; i < sourceNoteList.length; i++) {
+          const note = sourceNoteList[i]
+          note.classList.toggle('hideMe')
+        }
+        if (toggleBurntSecButton.className=="BurntOn") {
+          toggleBurntSecButton.innerText="Show Repealed/Renumbered ORS";
+        } else {
+          toggleBurntSecButton.innerText="Hide Repealed/Renumbered ORS";
+        } 
+        toggleBurntSecButton.classList.toggle("BurntOn")
+      })
+    }
+    // BuildFloatingMenuDiv MAIN
+    let fixedDiv = document.createElement("div");
+    addMenuBody();
+    addExpandAllButton();
+    addCollapseAllButton();
+    addToggleCssButton();
+    addToggleSourceNoteButton();
+    addToggleBurntSecButton();
     document.body.appendChild(fixedDiv);
   }
+    // JavaDOM MAIN:
+    collapseAllSections(true); // addButtons = true
+    buildOrsLinkButton();
+    buildFloatingMenuDiv();
+    if (initialIDNavigation) {
+      expandSingle(initialIDNavigation)
+      initialIDNavigation.scrollIntoView()
+    }  
 }
 
 function StyleSheetRefresh() {
@@ -197,9 +244,7 @@ function getTabURL() {
           ifMatch(idFinder, tabUrl)
         );
         if (pinCiteButton) {
-          // dealing with issue if pincite does not point to valid ID
-          expandSingle(pinCiteButton);
-          pinCiteButton.scrollIntoView();
+          initialIDNavigation = pinCiteButton;
         }
       }
     }
@@ -246,9 +291,6 @@ function ReplaceText() {
     const thisChapterTitle = ifMatch(msoChaperTag, headHTML, 1);
     const thisEdYear = ifMatch(new RegExp(edYearMatch), chpHTML);
     thisChapterNum = ifMatch(chapterMatch, headHTML);
-// kill    //const existingTitle = new RegExp(
-    //  `[^]*${ifMatch(titleTitle, thisTitle).toUpperCase()}`
-    //);
     
     const endOfHead = new RegExp(`[^]*?${edYearMatch}[^.]*?<p[^.]*?<p[^.]*?<p`)  // three paragraphs past edition 
     const preTitleMatch = new RegExp(`[^]*?Chapter\\s${thisChapterNum}`);
@@ -605,3 +647,8 @@ function ReplaceText() {
     }
   }
 }
+
+// MAIN
+let initialIDNavigation
+StyleSheetRefresh(); 
+window.addEventListener("load", ReplaceText); 
