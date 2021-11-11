@@ -33,7 +33,7 @@ function promiseGetCss() {
     // @ts-ignore
     chrome.storage.sync.get("cssSelectorStored", (CssStoredObj) => {
       if (CssStoredObj) {
-        resolve(CssStoredObj.cssValue); // get index of key of stored object
+        resolve(CssStoredObj.cssSelectorStored); // get index of key of stored object
       } else {
         reject("Unable to retrieve stored user preference for css Template");
       }
