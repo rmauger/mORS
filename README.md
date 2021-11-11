@@ -20,6 +20,10 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 
 ## Updates:
 
+  ### Version 1.21 - 11/11/2021
+   * Bug fixes (option menu updates correctly)
+   * Reorganized css files & css selection
+
   ### Version 1.20 - 11/11/2021
    * Added toggle button to show/hide source notes & repealed/renumbered sections
 
