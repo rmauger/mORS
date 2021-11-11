@@ -542,8 +542,6 @@ function ReplaceText() {
     chpHTML = chpHTML.replace(noteFind, noteRepl);
     chpHTML = chpHTML.replace(noteSec, noteSecRepl);
     chpHTML = chpHTML.replace(noteSesLaw, noteSesLawRepl);
-    console.log (SesLawSec)
-    console.log (chpHTML)
     chpHTML = chpHTML.replace(SesLawSec, SesLawSecRepl);
     chpHTML = chpHTML.replace(prefaceFind, prefaceRepl);
     chpHTML = chpHTML.replace(v22Find, v22Repl);
@@ -581,7 +579,7 @@ function ReplaceText() {
   function OrLawLinking() {
     try {
       // @ts-ignore
-      let backgroundPort = chrome.runtime.connect(); // open port to background.cs
+      let backgroundPort = chrome.runtime.connect(); // open port to background.js
       backgroundPort.postMessage({ message: "RequestOrLawsSource" });
       backgroundPort.onMessage.addListener((msg) => {
         if (msg.response == "Hein") {
