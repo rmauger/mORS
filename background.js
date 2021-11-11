@@ -44,17 +44,22 @@ function promiseGetCss() {
 //Creating Listeners
 //listening for mORS.js to reqeust removal or update of CSS
 //@ts-ignore
-chrome.runtime.onMessage.addListener((received) => {
-  switch (received.message) {
+chrome.runtime.onMessage.addListener((msg, sender, response) => {
+  switch (msg.message) {
     case "updateCSS":
-      updateCSS();
+      async ()=> {   
+        response({response:await promiseUpdateCSS()})
+      };
       break;
     case "removeCSS":
-      removeCSS();
+      async ()=> {  
+        response({response:await promiseRemoveCSS()});
+      };
       break;
     default:
       break;
   }
+  return true;
 });
 
 // responding to mORS.js request for stored OrLaws source or current tab's URL
@@ -91,50 +96,57 @@ chrome.runtime.onConnect.addListener((port) => {
 });
 
 //removes any existing css and adds css from stored value
-async function updateCSS() {
-  try {
-    const resolve = await promiseGetCss();
-    let insertCssFile = "";
-    switch (resolve) {
-      case 'Dark':
-        insertCssFile = "/css/dark.css";        
-        break;
-      case 'Light':
-        insertCssFile = "/css/light.css";
-        break;
-      case 'DarkGrey':
-        insertCssFile = "/css/darkgrey.css";
-        break;
-      default:
-        insertCssFile = "/css/light.css";
-        break;
-    }
-    removeCSS();
+async function promiseUpdateCSS() {
+  return new Promise(async (UpdateCSS, reject)=>  {
+    try {
+      const resolve = await promiseGetCss();
+      let insertCssFile = "";
+      switch (resolve) {
+        case 'Dark':
+          insertCssFile = "/css/dark.css";        
+          break;
+        case 'Light':
+          insertCssFile = "/css/light.css";
+          break;
+        case 'DarkGrey':
+          insertCssFile = "/css/darkgrey.css";
+          break;
+        default:
+          insertCssFile = "/css/light.css";
+          break;
+      }
+    await promiseRemoveCSS();
     const activeTab = await promiseGetActiveTab();
     //@ts-ignore
     chrome.scripting.insertCSS({
       target: { tabId: activeTab.id },
       files: [insertCssFile],
     });
+    UpdateCSS("Success")
   } catch (e) {
-    logOrWarn(e, "updateCSS");
+    logOrWarn(e, "updateCSS")
+    reject(e)
   }
+})
 }
 
-async function removeCSS() {
-  try {
-    const cssFileList = ["/css/dark.css", "/css/light.css", "/css/darkgrey.css"]
-    const activeTab = await promiseGetActiveTab();
-    // @ts-ignore
-    chrome.scripting.removeCSS({
-      target: { tabId: activeTab.id },
-      files: cssFileList,
-    });
-  } catch (e) {
-    logOrWarn(`Could not remove css files. Err: ${e}`, "removeCSS()");
-  }
+async function promiseRemoveCSS() {
+  return new Promise(async (removeCSS, reject)=> {
+    try {
+      const cssFileList = ["/css/dark.css", "/css/light.css", "/css/darkgrey.css"]
+      const activeTab = await promiseGetActiveTab();
+      // @ts-ignore
+      chrome.scripting.removeCSS({
+        target: { tabId: activeTab.id },
+        files: cssFileList,
+      });
+      removeCSS("Success")
+    } catch (e) {
+      logOrWarn(`Could not remove css files. Err: ${e}`, "removeCSS()");
+      reject(e)
+    }
+  })
 }
-
 /**
  * @param {string} warningId
  * @param {string} msgTxt

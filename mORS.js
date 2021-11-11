@@ -150,8 +150,16 @@ async function javaDOM() {
           document.getElementById("buttonExpand").style.display = "none";
           document.getElementById("buttonToggleCSS").innerText = "Add Style";
           //@ts-ignore
-          chrome.runtime.sendMessage({ message: "removeCSS" }); // sends message to background.js
-          expandAllSections() // TODO: #17 Make expanding all sections occur after resolution of promise from sending message & removing CSS
+          // sends message to background.js to remove CSS & expandsAllSections once completed
+          chrome.runtime.sendMessage({ message: "removeCSS" }, (response)=>{
+            console.log('awaiting response')
+            console.log(`Received: ${response}`)
+            console.log(`Received: ${response.response}`)
+            if (response.response=="Success") {
+              expandAllSections()
+              console.log("Success???!")
+            }
+          });
         } else {
           document.getElementById("buttonCollapse").style.display = "inline";
           document.getElementById("buttonExpand").style.display = "inline";
