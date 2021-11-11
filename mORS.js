@@ -20,7 +20,6 @@ function ifMatch(searchFor, initialText, index = 0) {
   }
   return "";
 }
-
 function javaDOM() {
   /** collapses single ORS section
    * @param {{ anElement: HTMLElement; height: any; }} collapseObj
@@ -92,7 +91,6 @@ function javaDOM() {
       collapseSingle(collapseObjHeightList[i]);
     }
   }
-
   //adds button element to internal link ORS to expand target upon selection
   function buildOrsLinkButton() {
     let orsLinkList = document.getElementsByClassName("ors");
@@ -110,7 +108,7 @@ function javaDOM() {
       }
     }
   }
-    
+  
   // add floating div with version info & buttons
   function buildFloatingMenuDiv() {
     function addMenuBody() {
@@ -153,6 +151,7 @@ function javaDOM() {
           document.getElementById("buttonToggleCSS").innerText = "Add Style";
           //@ts-ignore
           chrome.runtime.sendMessage({ message: "removeCSS" }); // sends message to background.js
+          expandAllSections() // TODO: #17 Make expanding all sections occur after resolution of promise from sending message & removing CSS
         } else {
           document.getElementById("buttonCollapse").style.display = "inline";
           document.getElementById("buttonExpand").style.display = "inline";
@@ -223,14 +222,12 @@ function javaDOM() {
       initialIDNavigation.scrollIntoView()
     }  
 }
-
 function StyleSheetRefresh() {
   // @ts-ignore
   chrome.runtime.sendMessage({ message: "updateCSS" }, () => {
     getTabURL(); //send message to background.js to see if there is an initial pincite in URL & navigates.
   });
 }
-
 function getTabURL() {
   //@ts-ignore
   let backgroundPort = chrome.runtime.connect({ name: "OrLawsSource" }); //open port to background.js
@@ -250,7 +247,6 @@ function getTabURL() {
     }
   });
 }
-
 function ReplaceText() {
   //declaring global variables:
   let chpHTML = "";
@@ -368,7 +364,6 @@ function ReplaceText() {
     chpHTML = chpHTML.replace(remainingORS, replRemainingORS);
     chpHTML = chpHTML.replace(trimZeros, "$1$2");
   }
-
   SeparateTOC(); //separate TOC & chapter heading from rest of body to facilitate editing body
   function SeparateTOC() {
     if (new RegExp(tocBreak).test(chpHTML)) {
@@ -533,8 +528,10 @@ function ReplaceText() {
     const noteSecRepl =
       "<p class=default><b>Note section for ORS $1:</b></p><p class=default>$2</div><div";
     const noteSesLaw =
-      /(class=note>[^~]*?Section[^~]*?provides?:)[^~]*?<\/div>([^~]*?)<div/g;
-    const noteSesLawRepl = "$1$2</div><div";
+      /<div\sclass=note>([^~]*?Section[^~]+?provides?:)[^~]*?<\/div>([^~]*?)<div/g;
+    const noteSesLawRepl = "</div><div class='note notesec'>$1$2</div><div";
+    const SesLawSec = new RegExp(`<b>${tabs}(Sec\\.\\s\\d{1,3}\\.)\\s?<\\/b>`, 'g')
+    const SesLawSecRepl = '<p class=leadline>$1</p><p class=default>'
     const prefaceFind = /(Preface\sto\sOregon\sRevised\sStatutes)/g; // "preface" is replaced by link:
     const prefaceRepl =
       '<a href="https://www.oregonlegislature.gov/bills_laws/BillsLawsEDL/ORS_Preface.pdf">$1</a>';
@@ -545,6 +542,9 @@ function ReplaceText() {
     chpHTML = chpHTML.replace(noteFind, noteRepl);
     chpHTML = chpHTML.replace(noteSec, noteSecRepl);
     chpHTML = chpHTML.replace(noteSesLaw, noteSesLawRepl);
+    console.log (SesLawSec)
+    console.log (chpHTML)
+    chpHTML = chpHTML.replace(SesLawSec, SesLawSecRepl);
     chpHTML = chpHTML.replace(prefaceFind, prefaceRepl);
     chpHTML = chpHTML.replace(v22Find, v22Repl);
     const subsecOne = /<p[^>]*?>\s?(\(1\)[^]+?)<\/p>/g;
@@ -647,7 +647,6 @@ function ReplaceText() {
     }
   }
 }
-
 // MAIN
 let initialIDNavigation
 StyleSheetRefresh(); 

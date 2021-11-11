@@ -37,7 +37,7 @@ p {
   text-align: right;
   border: 3px solid var(--maintext);
   background-color: var(--background);
-  padding: 3%;
+  padding: 2px;
 }
 .version {
   font: 9pt "Times New Roman", Times, serif;
@@ -195,7 +195,7 @@ a:hover {
 }
 .hideMe {
   position:absolute;
-  left:-999px
+  left:-9999px
 }
 
 /* Section Subunits */
