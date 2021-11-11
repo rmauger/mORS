@@ -28,12 +28,12 @@ function promiseGetOrLaw() {
     });
   });
 }
-function promiseGetDark() {
+function promiseGetCss() {
   return new Promise((resolve, reject) => {
     // @ts-ignore
-    chrome.storage.sync.get("isDarkStored", (darkStoredObj) => {
-      if (darkStoredObj) {
-        resolve(darkStoredObj.isDarkStored); // isDarkStored is index of key of stored object
+    chrome.storage.sync.get("cssSelectorStored", (CssStoredObj) => {
+      if (CssStoredObj) {
+        resolve(CssStoredObj.cssSelectorStored); // get index of key of stored object
       } else {
         reject("Unable to retrieve stored user preference for css Template");
       }
@@ -93,12 +93,21 @@ chrome.runtime.onConnect.addListener((port) => {
 //removes any existing css and adds css from stored value
 async function updateCSS() {
   try {
-    const resolve = await promiseGetDark();
+    const resolve = await promiseGetCss();
     let insertCssFile = "";
-    if (resolve) {
-      insertCssFile = "./mORS_dark.css";
-    } else {
-      insertCssFile = "./mORS_light.css";
+    switch (resolve) {
+      case 'Dark':
+        insertCssFile = "/css/dark.css";        
+        break;
+      case 'Light':
+        insertCssFile = "/css/light.css";
+        break;
+      case 'DarkGrey':
+        insertCssFile = "/css/darkgrey.css";
+        break;
+      default:
+        insertCssFile = "/css/light.css";
+        break;
     }
     removeCSS();
     const activeTab = await promiseGetActiveTab();
@@ -114,11 +123,12 @@ async function updateCSS() {
 
 async function removeCSS() {
   try {
+    const cssFileList = ["/css/dark.css", "/css/light.css", "/css/darkgrey.css"]
     const activeTab = await promiseGetActiveTab();
     // @ts-ignore
     chrome.scripting.removeCSS({
       target: { tabId: activeTab.id },
-      files: ["./mORS_dark.css", "./mORS_light.css"],
+      files: cssFileList,
     });
   } catch (e) {
     logOrWarn(`Could not remove css files. Err: ${e}`, "removeCSS()");

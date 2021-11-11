@@ -20,7 +20,7 @@ function ifMatch(searchFor, initialText, index = 0) {
   }
   return "";
 }
-function javaDOM() {
+async function javaDOM() {
   /** collapses single ORS section
    * @param {{ anElement: HTMLElement; height: any; }} collapseObj
    */
@@ -213,39 +213,45 @@ function javaDOM() {
     addToggleBurntSecButton();
     document.body.appendChild(fixedDiv);
   }
+  function promiseGetTabURL() { 
+    return new Promise((resolve, reject) => {
+      //@ts-ignore
+      let backgroundPort = chrome.runtime.connect({ name: "OrLawsSource" }); //open port to background.js
+      backgroundPort.postMessage({ message: "RequestTagURL" });
+      backgroundPort.onMessage.addListener((/** @type {{ response: String; }} */ msg) => {
+        const tabUrl = msg.response;
+        if (tabUrl) {
+          const idFinder = /(?<=\.html\#)[^\/]*/;
+          if (idFinder.test(tabUrl)) {
+            const pinCiteButton = document.getElementById(
+              ifMatch(idFinder, tabUrl)
+            );
+            if (pinCiteButton) {
+              resolve(pinCiteButton);
+            }
+          }
+        } else {
+          reject()
+        }
+      });
+    })
+  }
+  
     // JavaDOM MAIN:
     collapseAllSections(true); // addButtons = true
     buildOrsLinkButton();
     buildFloatingMenuDiv();
+    initialIDNavigation = await promiseGetTabURL();
     if (initialIDNavigation) {
       expandSingle(initialIDNavigation)
       initialIDNavigation.scrollIntoView()
-    }  
+    } else {
+      console.log("No ORS section found in URL")
+    }
 }
 function StyleSheetRefresh() {
-  // @ts-ignore
-  chrome.runtime.sendMessage({ message: "updateCSS" }, () => {
-    getTabURL(); //send message to background.js to see if there is an initial pincite in URL & navigates.
-  });
-}
-function getTabURL() {
   //@ts-ignore
-  let backgroundPort = chrome.runtime.connect({ name: "OrLawsSource" }); //open port to background.js
-  backgroundPort.postMessage({ message: "RequestTagURL" });
-  backgroundPort.onMessage.addListener((/** @type {{ response: String; }} */ msg) => {
-    const tabUrl = msg.response;
-    if (tabUrl) {
-      const idFinder = /(?<=\.html\#)[^\/]*/;
-      if (idFinder.test(tabUrl)) {
-        const pinCiteButton = document.getElementById(
-          ifMatch(idFinder, tabUrl)
-        );
-        if (pinCiteButton) {
-          initialIDNavigation = pinCiteButton;
-        }
-      }
-    }
-  });
+  chrome.runtime.sendMessage({ message: "updateCSS" }, () => {});
 }
 function ReplaceText() {
   //declaring global variables:
@@ -542,8 +548,6 @@ function ReplaceText() {
     chpHTML = chpHTML.replace(noteFind, noteRepl);
     chpHTML = chpHTML.replace(noteSec, noteSecRepl);
     chpHTML = chpHTML.replace(noteSesLaw, noteSesLawRepl);
-    console.log (SesLawSec)
-    console.log (chpHTML)
     chpHTML = chpHTML.replace(SesLawSec, SesLawSecRepl);
     chpHTML = chpHTML.replace(prefaceFind, prefaceRepl);
     chpHTML = chpHTML.replace(v22Find, v22Repl);
@@ -581,7 +585,7 @@ function ReplaceText() {
   function OrLawLinking() {
     try {
       // @ts-ignore
-      let backgroundPort = chrome.runtime.connect(); // open port to background.cs
+      let backgroundPort = chrome.runtime.connect(); // open port to background.js
       backgroundPort.postMessage({ message: "RequestOrLawsSource" });
       backgroundPort.onMessage.addListener((msg) => {
         if (msg.response == "Hein") {
@@ -649,5 +653,5 @@ function ReplaceText() {
 }
 // MAIN
 let initialIDNavigation
-StyleSheetRefresh(); 
-window.addEventListener("load", ReplaceText); 
+StyleSheetRefresh();
+window.addEventListener("load", ReplaceText);

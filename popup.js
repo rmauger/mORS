@@ -2,14 +2,180 @@
 //@ts-nocheck
 "use strict";
 
-//set global variables for popup.html form
-let darkSelector = document.getElementById("isDark");
-let orLawSelector = document.getElementById("OrLaws");
-let chpLaunchButton = document.getElementById("chapterLaunch");
-let orLawsLaunchButton = document.getElementById("orLawsLaunch");
-let darkFormInitial = "";
-let orLawFormInitial = "";
-let orLawOrLegLookup = {
+//promise functions:
+function promiseGetCss() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get("cssSelectorStored", (object) => {
+      if (object) {
+        resolve(object.cssSelectorStored);
+      } else {
+        reject("Failed to retrieve stored user value for CSS Style");
+      }
+    });
+  });
+  // TODO: Still to implement, retrieve this from identical background.js function
+}
+function promiseGetOrLaw() {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get("lawsReaderStored", (object) => {
+      if (object) {
+        console.log(object)
+        resolve(object.lawsReaderStored);
+      } else {
+        reject("Failed to retrieve stored user value for Oregon Laws Reader");
+      }
+    });
+  });
+  // TODO: Still to implement, retrieve this from identical background.js function
+}
+
+//setup event listeners for form dropdowns & buttons
+function addAllListeners() {
+  formCssNew.addEventListener("change", async () => {
+    const getOldCss = await promiseGetCss()
+    setAfterGet(getOldCss)
+    function setAfterGet(formOldCss) {  //TODO Huh?
+        chrome.storage.sync.set(
+        {cssSelectorStored: formCssNew.value}
+        , ()=> {
+          refreshPage(formOldCss, formCssNew.value)
+          displayUserOptions();
+        }
+      );
+    };
+  })
+  orLawSelector.addEventListener("change", () => {
+    chrome.storage.sync.set(
+      {lawsReaderStored: orLawSelector.value}
+      , ()=> {
+        reloadORS()
+        displayUserOptions();
+      }
+    );
+  });
+  chpLaunchButton.addEventListener("click", () => {
+    let orsSection = document.getElementById("orsChapter").value;
+    let orsChapter = `00${orsSection}`;
+    orsChapter = orsChapter.match(/\d{3}[A-C]?\b/)[0]; // pad to exactly 3 digits
+    let orsURL = `https://www.oregonlegislature.gov/bills_laws/ors/ors${orsChapter}.html#${orsSection}`;
+    chrome.tabs.create({ url: orsURL });
+  });
+  orLawsLaunchButton.addEventListener("click", () => {
+    let orLawsYear = document.getElementById("orLawsYear").value;
+    let orLawsChp = document.getElementById("orLawsChapter").value;
+    orLawSelector = document.getElementById("OrLaws");
+    let errMsg = "";
+    let orLawURL = "";
+    if ((orLawsYear > 1859 && orLawsYear < 2030) == false) {
+      errMsg += "Oregon Laws volume must be a year after 1859.\n";
+    } else if (orLawsYear > 1999 == false && orLawSelector.value == "OrLeg") {
+      errMsg +=
+        "Oregon Laws are not available on the Oregon Legislature's website for years before 1999.\n";
+    }
+    if ((orLawsChp < 2001 && orLawsChp > 0) == false) {
+      errMsg += "Chapter must be a number between 1 and 2000.\n";
+    }
+    if (orLawSelector.value == "None") {
+      errMsg += "A session law lookup source (below) is required.";
+    }
+    if (errMsg.length > 1) {
+      alert(errMsg);
+      // TODO: #18 Create better display for error messages within popup.html
+    } else {
+      if (orLawSelector.value == "Hein") {
+        orLawURL = `https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=${orLawsYear}&chapter=${orLawsChp}&sgo=Search&collection=ssl&search=go`;
+      } else {
+        let orLawFileName = orLawOrLegLookup["OL" + orLawsYear].replace(
+          /~/,
+          "000" + orLawsChp
+        );
+        orLawFileName = orLawFileName.replace(
+          /([^]*?\w)\d*(\d{4}(?:\.|\w)*)/,
+          "$1$2"
+        );
+        orLawURL =
+          "https://www.oregonlegislature.gov/bills_laws/lawsstatutes/" +
+          orLawFileName;
+      }
+      chrome.tabs.create({ url: orLawURL });
+    }
+  });
+}
+async function displayUserOptions() {
+  function storedDataFinder() {
+    return Promise.all([promiseGetCss(), promiseGetOrLaw()]);
+  };
+  try {
+    const storedData = await storedDataFinder()
+    console.log(`Stored data retrieved=${storedData[0]} & ${storedData[1]}`)
+    for (let i = 0; i < formCssNew.options.length; i++) {
+      if (formCssNew.options[i].value == storedData[0]) {
+        formCssNew.selectedIndex = i;
+        console.log(storedData[0])
+        break;
+      }
+    }
+    for (let i = 0; i < orLawSelector.options.length; i++) {
+      if (orLawSelector.options[i].value == storedData[1]) {
+        orLawSelector.selectedIndex = i;
+        console.log(storedData[1])
+        break;
+      }
+    }
+  } catch (e) {
+    alert(e);
+  }
+}
+
+function reloadORS() {
+  chrome.tabs.query(
+    { url: "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html" },
+    (tabs) => {
+      for (const aTab of tabs) {
+        chrome.tabs.reload(aTab.id);
+      }
+    }
+  );
+}
+
+function refreshPage(oldCSS, newCSS) {
+  const oldCssFile = `/css/${cssSourceLookup[oldCSS]}`
+  const newCssFile = `/css/${cssSourceLookup[newCSS]}`
+  console.log(newCssFile)
+  console.log(oldCssFile)
+  chrome.tabs.query(
+    { url: "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html" },
+    (tabs) => {
+      for (const aTab of tabs) {
+        try {
+          chrome.scripting.removeCSS(
+            {
+              target: { tabId: aTab.id },
+              files: [oldCssFile],
+            },
+            () => {}
+          );
+        } catch (error) {
+          console.log(error);
+        }
+        chrome.scripting.insertCSS(
+          {
+            target: { tabId: aTab.id },
+            files: [newCssFile],
+          },
+          () => {}
+        );
+      }
+    }
+  );
+}
+
+// MAIN
+const formCssNew = document.getElementById("cssSelector");
+const orLawSelector = document.getElementById("OrLaws");
+const chpLaunchButton = document.getElementById("chapterLaunch");
+const orLawsLaunchButton = document.getElementById("orLawsLaunch");
+const orLawOrLegLookup = {
   OL2021: "2021orlaw~.pdf",
   OL2020: "2020orlaw~.pdf",
   OL2019: "2019orlaw~.pdf",
@@ -31,163 +197,10 @@ let orLawOrLegLookup = {
   OL2001: "2001orLaw~ses.html",
   OL1999: "1999orLaw~.html",
 };
-//declare promise functions:
-function promiseGetDark() {
-  return new Promise((resolve, reject) => {
-    chrome.storage.sync.get("isDarkStored", (object) => {
-      if (object) {
-        resolve((object.isDarkStored && "Dark") || "Light");
-      } else {
-        reject("Failed to retrieve stored user value for Oregon Laws Reader");
-      }
-    });
-  });
-}
-function promiseGetOrLaw() {
-  return new Promise((resolve) => {
-    chrome.storage.sync.get("lawsReaderStored", (object) => {
-      if (object) {
-        resolve(object.lawsReaderStored);
-      } else {
-        reject("Failed to retrieve stored user value for Oregon Laws Reader");
-      }
-    });
-  });
-}
-// update displayed info at page launch & after dropdown changes:
+const cssSourceLookup = {
+  Dark: "dark.css",
+  Light: "light.css",
+  DarkGrey: "darkgrey.css"
+} 
 displayUserOptions();
-
-//setup event listeners for form dropdowns & buttons
-darkSelector.addEventListener("change", () => {
-  darkSelector = document.getElementById("isDark");
-  if (darkFormInitial != darkSelector.value) {
-    // if new value selected...
-    chrome.storage.sync.set(
-      { isDarkStored: darkSelector.value == "Dark" },
-      refreshPage(darkFormInitial, darkSelector.value)
-    );
-    displayUserOptions();
-  } else {
-  }
-});
-orLawSelector.addEventListener("change", () => {
-  orLawSelector = document.getElementById("OrLaws");
-  if (orLawFormInitial != orLawSelector.value) {
-    // if new value selected...
-    chrome.storage.sync.set(
-      { lawsReaderStored: orLawSelector.value },
-      reloadORS()
-    );
-    displayUserOptions();
-  } else {
-  }
-});
-chpLaunchButton.addEventListener("click", () => {
-  let orsSection = document.getElementById("orsChapter").value;
-  let orsChapter = "00" + orsSection;
-  orsChapter = orsChapter.match(/\d{3}[A-C]?\b/)[0];
-  let orsURL = `https://www.oregonlegislature.gov/bills_laws/ors/ors${orsChapter}.html#${orsSection}`;
-  chrome.tabs.create({ url: orsURL });
-});
-orLawsLaunchButton.addEventListener("click", () => {
-  let orLawsYear = document.getElementById("orLawsYear").value;
-  let orLawsChp = document.getElementById("orLawsChapter").value;
-  orLawSelector = document.getElementById("OrLaws");
-  let errMsg = "";
-  let orLawURL = "";
-  if ((orLawsYear > 1859 && orLawsYear < 2030) == false) {
-    errMsg += "Oregon Laws volume must be a year after 1859.\n";
-  } else if (orLawsYear > 1999 == false && orLawSelector.value == "OrLeg") {
-    errMsg +=
-      "Oregon Laws are not available on the Oregon Legislature's website for years before 1999.\n";
-  }
-  if ((orLawsChp < 2001 && orLawsChp > 0) == false) {
-    errMsg += "Chapter must be a number between 1 and 2000.\n";
-  }
-  if (orLawSelector.value == "None") {
-    errMsg += "A session law lookup source (below) is required.";
-  }
-  if (errMsg.length > 1) {
-    alert(errMsg);
-  } else {
-    if (orLawSelector.value == "Hein") {
-      orLawURL = `https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=${orLawsYear}&chapter=${orLawsChp}&sgo=Search&collection=ssl&search=go`;
-    } else {
-      let orLawFileName = orLawOrLegLookup["OL" + orLawsYear].replace(
-        /~/,
-        "000" + orLawsChp
-      );
-      orLawFileName = orLawFileName.replace(
-        /([^]*?\w)\d*(\d{4}(?:\.|\w)*)/,
-        "$1$2"
-      );
-      orLawURL =
-        "https://www.oregonlegislature.gov/bills_laws/lawsstatutes/" +
-        orLawFileName;
-    }
-    chrome.tabs.create({ url: orLawURL });
-  }
-});
-
-function displayUserOptions() {
-  darkFormInitial = darkSelector.value;
-  orLawFormInitial = orLawSelector.value;
-  try {
-    async () => {
-      storedData = await Promise.all([promiseGetDark(), promiseGetOrLaw()]);
-      for (let i = 0; i < darkSelector.options.length; i++) {
-        if (darkSelector.options[i].value == storedData[0]) {
-          darkSelector.selectedIndex = i;
-          break;
-        }
-      }
-      for (let i = 0; i < orLawSelector.options.length; i++) {
-        if (orLawSelector.options[i].value == storedData[1]) {
-          orLawSelector.selectedIndex = i;
-          break;
-        }
-      }
-    };
-  } catch (e) {
-    alert(e);
-  }
-}
-
-function reloadORS() {
-  chrome.tabs.query(
-    { url: "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html" },
-    (tabs) => {
-      for (const aTab of tabs) {
-        chrome.tabs.reload(aTab.id);
-      }
-    }
-  );
-}
-
-function refreshPage(oldCSS, newCSS) {
-  chrome.tabs.query(
-    { url: "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html" },
-    (tabs) => {
-      for (const aTab of tabs) {
-        try {
-          chrome.scripting.removeCSS(
-            {
-              target: { tabId: aTab.id },
-              files: [`mORS_${oldCSS.toLowerCase()}.css`],
-            },
-            () => {}
-          );
-        } catch (error) {
-          console.log(error);
-        }
-        chrome.scripting.insertCSS(
-          {
-            target: { tabId: aTab.id },
-            files: [`mORS_${newCSS.toLowerCase()}.css`],
-          },
-          () => {}
-        );
-      }
-    }
-  );
-}
+addAllListeners();
