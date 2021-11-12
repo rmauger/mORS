@@ -5,16 +5,24 @@
 //promise functions:
 function promiseGetCss() {
   return new Promise((resolve, reject)=> {
+    try {
     chrome.runtime.sendMessage({message: "getCssFile"}, (response)=> {
       resolve(response.response)
     })
+    } catch (e) {
+      reject(e)
+    }
   })
 }
 function promiseGetOrLaw() {
   return new Promise((resolve, reject)=> {
-    chrome.runtime.sendMessage({ message: "getOrLaw" }, (response)=>{
-      resolve(response.response)
-    })
+    try {
+      chrome.runtime.sendMessage({ message: "getOrLaw" }, (response)=>{
+        resolve(response.response)
+      })
+    } catch(e) {
+      reject(e)
+    }
   })
 }
 
@@ -42,6 +50,31 @@ function addAllListeners() {
       }
     );
   });
+  
+  function sendMsgTabs(message){
+    
+  }
+
+
+  rsecShownCheck.addEventListener("change", ()=> {
+    chrome.storage.sync.set(
+      {showRSec: rsecShownCheck.value}
+      , ()=> {
+        sendMsgTabs({rsec: rsecShownCheck.value})
+        displayUserOptions()
+      }
+    )
+  })
+  burntShownCheck.addEventListener("change", ()=> {
+    chrome.storage.sync.set(
+      {showBurnt: burntShownCheck.value}
+      , ()=> {
+        sendMsgTabs({burnt: burntShownCheck.value})
+        displayUserOptions()
+      }
+    )
+  })
+
   chpLaunchButton.addEventListener("click", () => {
     let orsSection = document.getElementById("orsChapter").value;
     let orsChapter = `00${orsSection}`;
@@ -163,6 +196,8 @@ const formCssNew = document.getElementById("cssSelector");
 const orLawSelector = document.getElementById("OrLaws");
 const chpLaunchButton = document.getElementById("chapterLaunch");
 const orLawsLaunchButton = document.getElementById("orLawsLaunch");
+const rsecShownCheck = document.getElementById("showRSec");
+const burntShownCheck = document.getElementById("showSNpte")
 const orLawOrLegLookup = { OL2021: "2021orlaw~.pdf",
   OL2020: "2020orlaw~.pdf", OL2019: "2019orlaw~.pdf",
   OL2018: "2018orlaw~.pdf", OL2017: "2017orlaw~.pdf",
