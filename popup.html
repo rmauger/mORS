@@ -5,56 +5,72 @@
     <link href="/css/dark.css" rel="stylesheet">
     <style>
           body {
+            margin-top: 10px;
+            text-align: center;
             min-width: 315px;
             width: 315px;
-            font-size: 9pt;
+          }
+          p {
+            font-size: 11pt;
           }
           div {
             border-bottom: 3px double #654;
+          }
+          h3 {
+            margin-bottom: 5px;
           }
     </style>
   <head>
   <body>
     <div>
-      <h2>Oregon Laws Lookup</h2>
+      <h2>mORS Oregon State Laws</h2>
       <h3>Oregon Revised Statutes</h3>
         <form>
-          ORS chapter or section:          
-          <input type='text' name="orsChapter" id="orsChapter" maxlength="8" size="4">
-          <p style="text-align: center;">
-            <input type='submit' value='Launch' id='chapterLaunch'></label>
+          <p>Chapter/section:         
+            <input type='text' name="orsChapter" id="orsChapter" maxlength="8" size="4">
+          </p>
+          <p>
+              <input type='submit' value='Launch' id='chapterLaunch'></label>
           </p>
         </form>
       <h3>Oregon Session Laws</h3>
         <form>
-          Chap.
+          <p>Chap.
           <input type='text' name="orLawsChapter" id="orLawsChapter" maxlength="4" size="3">
           , Or. Laws
           <input type='text' name="orLawsYear" id="orLawsYear" maxlength="4" size="3">
           [year]
-          <p style="text-align: center;">
+          </p><p>
           <input type='submit' value='Launch' id='orLawsLaunch'></label>
           </p>
         </form>
     </div>
     <div>
       <h2>Extension Options</h2>
-      <p style="text-align: center;">
+      <p>
         Display mode:&nbsp;&nbsp;
         <select id="cssSelector">
           <option selected value="Dark">Dark</option>
           <option value="Light">Light</option>
           <option value="DarkGrey">Dark Grey</option>
         </select>
-      <p style="text-align: center;">
+      <p>
         Oregon Session Law Lookup Source:
       </p>
-      <p style="text-align: center;">
+      <p>
         <select id="OrLaws" onchange="StoreOrLaws()">
           <option selected value="OrLeg">Ore. Legislature (1999-)</option>
           <option value="Hein">HeinOnline (1859-; account required)</option>
           <option value="None">None</option>
         </select>
+      </p>
+      <p>
+        <input type="checkbox" id="rsec">
+        <label for="rsec">Show repealed/renumbered sections</label>
+      </p>
+      <p>
+        <input type="checkbox" id="showSN">
+        <label for="sn">Show section source notes</label>
       </p>
     </div>
   </body>

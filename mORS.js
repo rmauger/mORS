@@ -199,7 +199,7 @@ async function javaDOM() {
       var toggleBurntSecButton = document.createElement("button");
       toggleBurntSecButton.innerText = "Hide Repealed/Renumbered ORS";
       toggleBurntSecButton.id = "buttonToggleBurntSecs"
-      toggleBurntSecButton.className="BurntSecsOn"
+      toggleBurntSecButton.className="BurntSecOn"
       fixedDiv.appendChild(toggleBurntSecButton);
       toggleBurntSecButton.addEventListener("click", ()=> {
         const sourceNoteList = document.getElementsByClassName("burnt")        
@@ -207,12 +207,12 @@ async function javaDOM() {
           const note = sourceNoteList[i]
           note.classList.toggle('hideMe')
         }
-        if (toggleBurntSecButton.className=="BurntOn") {
+        if (toggleBurntSecButton.className=="BurntSecOn") {
           toggleBurntSecButton.innerText="Show Repealed/Renumbered ORS";
         } else {
           toggleBurntSecButton.innerText="Hide Repealed/Renumbered ORS";
         } 
-        toggleBurntSecButton.classList.toggle("BurntOn")
+        toggleBurntSecButton.classList.toggle("BurntSecOn")
       })
     }
     // BuildFloatingMenuDiv MAIN

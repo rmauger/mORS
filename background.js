@@ -1,4 +1,4 @@
-//background.js
+// background.js
 // @ts-check
 
 "use strict";
@@ -59,6 +59,19 @@ chrome.runtime.onMessage.addListener((msg, sender, response) => {
       async function runRemoveCss() {
         response({response:await promiseRemoveCSS()});
       };
+      break;
+    case "getOrLaw":
+      console.log("Received get OrLaw Request")
+      getOrLaw()
+      async function getOrLaw() {
+        response({response:await promiseGetOrLaw()});
+      }
+    case "getCssFile":
+      console.log("Received get CSS Request")
+      getCssFile()
+      async function getCssFile() {
+        response({response:await promiseGetCss()})
+      }
       break;
     default:
       break;

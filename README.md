@@ -21,7 +21,9 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 ## Updates:
 
   ### Version 1.24 - 11/11/2021
-   * Bug fixes ()
+   * Bug fixes (runs all popup promises in background script)
+   * Fixed collapsing section layout issues & remove css issues
+   * cleaned up background script
 
   ### Version 1.21 - 11/11/2021
    * Bug fixes (option menu updates correctly)

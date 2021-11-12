@@ -4,29 +4,18 @@
 
 //promise functions:
 function promiseGetCss() {
-  return new Promise((resolve, reject) => {
-    chrome.storage.sync.get("cssSelectorStored", (object) => {
-      if (object) {
-        resolve(object.cssSelectorStored);
-      } else {
-        reject("Failed to retrieve stored user value for CSS Style");
-      }
-    });
-  });
-  // TODO: Still to implement, retrieve this from identical background.js function
+  return new Promise((resolve, reject)=> {
+    chrome.runtime.sendMessage({message: "getCssFile"}, (response)=> {
+      resolve(response.response)
+    })
+  })
 }
 function promiseGetOrLaw() {
-  return new Promise((resolve) => {
-    chrome.storage.sync.get("lawsReaderStored", (object) => {
-      if (object) {
-        console.log(object)
-        resolve(object.lawsReaderStored);
-      } else {
-        reject("Failed to retrieve stored user value for Oregon Laws Reader");
-      }
-    });
-  });
-  // TODO: Still to implement, retrieve this from identical background.js function
+  return new Promise((resolve, reject)=> {
+    chrome.runtime.sendMessage({ message: "getOrLaw" }, (response)=>{
+      resolve(response.response)
+    })
+  })
 }
 
 //setup event listeners for form dropdowns & buttons
@@ -63,7 +52,6 @@ function addAllListeners() {
   orLawsLaunchButton.addEventListener("click", () => {
     let orLawsYear = document.getElementById("orLawsYear").value;
     let orLawsChp = document.getElementById("orLawsChapter").value;
-    orLawSelector = document.getElementById("OrLaws");
     let errMsg = "";
     let orLawURL = "";
     if ((orLawsYear > 1859 && orLawsYear < 2030) == false) {
@@ -175,32 +163,19 @@ const formCssNew = document.getElementById("cssSelector");
 const orLawSelector = document.getElementById("OrLaws");
 const chpLaunchButton = document.getElementById("chapterLaunch");
 const orLawsLaunchButton = document.getElementById("orLawsLaunch");
-const orLawOrLegLookup = {
-  OL2021: "2021orlaw~.pdf",
-  OL2020: "2020orlaw~.pdf",
-  OL2019: "2019orlaw~.pdf",
-  OL2018: "2018orlaw~.pdf",
-  OL2017: "2017orlaw~.pdf",
-  OL2016: "2016orlaw~.pdf",
-  OL2015: "2015orlaw~.pdf",
-  OL2014: "2014R1orLaw~ss.pdf",
-  OL2013: "2013orlaw~.pdf",
-  OL2012: "2012adv~ss.pdf",
-  OL2011: "2011orLaw~.html",
-  OL2010: "2010orLaw~.html",
-  OL2009: "2009orLaw~.html",
-  OL2008: "2008orLaw~.html",
-  OL2007: "2007orLaw~.html",
-  OL2006: "2006orLaw~ss1.pdf",
-  OL2005: "2005orLaw~ses.html",
-  OL2003: "2003orLaw~ses.html",
-  OL2001: "2001orLaw~ses.html",
-  OL1999: "1999orLaw~.html",
-};
+const orLawOrLegLookup = { OL2021: "2021orlaw~.pdf",
+  OL2020: "2020orlaw~.pdf", OL2019: "2019orlaw~.pdf",
+  OL2018: "2018orlaw~.pdf", OL2017: "2017orlaw~.pdf",
+  OL2016: "2016orlaw~.pdf", OL2015: "2015orlaw~.pdf",
+  OL2014: "2014R1orLaw~ss.pdf", OL2013: "2013orlaw~.pdf",
+  OL2012: "2012adv~ss.pdf", OL2011: "2011orLaw~.html",
+  OL2010: "2010orLaw~.html", OL2009: "2009orLaw~.html",
+  OL2008: "2008orLaw~.html", OL2007: "2007orLaw~.html",
+  OL2006: "2006orLaw~ss1.pdf", OL2005: "2005orLaw~ses.html",
+  OL2003: "2003orLaw~ses.html", OL2001: "2001orLaw~ses.html",
+  OL1999: "1999orLaw~.html"};
 const cssSourceLookup = {
-  Dark: "dark.css",
-  Light: "light.css",
-  DarkGrey: "darkgrey.css"
+  Dark: "dark.css", Light: "light.css", DarkGrey: "darkgrey.css"
 } 
 displayUserOptions();
 addAllListeners();
