@@ -20,6 +20,9 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 
 ## Updates:
 
+  ### Version 1.24 - 11/11/2021
+   * Bug fixes ()
+
   ### Version 1.21 - 11/11/2021
    * Bug fixes (option menu updates correctly)
    * Reorganized css files & css selection
@@ -49,12 +52,9 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 ## Known bugs:
   * Not identifying roman numerals if appearing with a paragraph & subparagraph (e.g. "(d)(A)(i)" or "(C)(i)(I)")
   * Heights of sections may not be correct if resizing window horizontally (can fix with "collapse all")
-  * Stylesheets don't update/stay right on non-active page when changing Oregon Law source (can fix by refreshing page or "remove stylesheet" + "add stylesheet")
-  * Formatting of division heights doesn't work when stylesheet is removed
+  * Stylesheets don't update/stay right on non-active page when changing Oregon Law source (can fix by refreshing page or "remove stylesheet" + "add stylesheet") 
   
 ## Planned features:
-  * TODO: #11 Redo how collapse works to avoid resizing issues.
-  * TODO: #15 reorganize code in background & popup.js
-  * TODO: #14 run promises in background.js from popup.js (or use messages to simplify)
-
-  
+  * Bug Fix TODO: #14 run promises in background.js from popup.js (or use messages to simplify)
+  * TODO: #18 create more useful display for error messages within popup.html
+  * TODO: #22 Add options for default on expand all/collapse all & show burnt secs

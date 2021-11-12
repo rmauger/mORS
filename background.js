@@ -47,12 +47,16 @@ function promiseGetCss() {
 chrome.runtime.onMessage.addListener((msg, sender, response) => {
   switch (msg.message) {
     case "updateCSS":
-      async ()=> {   
+      console.log("Received update CSS Request")
+      runUpdateCss()
+      async function runUpdateCss() {  
         response({response:await promiseUpdateCSS()})
       };
       break;
     case "removeCSS":
-      async ()=> {  
+      console.log("Received Remove CSS Request")
+      runRemoveCss()
+      async function runRemoveCss() {
         response({response:await promiseRemoveCSS()});
       };
       break;

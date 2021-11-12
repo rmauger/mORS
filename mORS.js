@@ -49,7 +49,7 @@ async function javaDOM() {
       if (buttonElement.classList.contains("collapsible")) {
         const sectionDiv = buttonElement.parentElement;
         buttonElement.classList.add("active");
-        sectionDiv.style.maxHeight = `${sectionDiv.scrollHeight}px`;
+        sectionDiv.style.maxHeight = "none" //`${sectionDiv.scrollHeight}px`;
       } else {
         console.log(`Target ${buttonElement.innerHTML} is not an active section`);
       }
@@ -152,12 +152,16 @@ async function javaDOM() {
           //@ts-ignore
           // sends message to background.js to remove CSS & expandsAllSections once completed
           chrome.runtime.sendMessage({ message: "removeCSS" }, (response)=>{
-            console.log('awaiting response')
-            console.log(`Received: ${response}`)
-            console.log(`Received: ${response.response}`)
-            if (response.response=="Success") {
-              expandAllSections()
-              console.log("Success???!")
+            console.log('awaiting response from remove.css')
+            console.log(`"RemoveCSS" response: ${response}`)
+            try {
+              console.log(`Received: ${response.response}`)
+              if (response.response=="Success") {
+                expandAllSections()
+                console.log("Success???!")
+              }
+            } catch (e) {
+              console.log(e)
             }
           });
         } else {
@@ -251,6 +255,7 @@ async function javaDOM() {
     buildFloatingMenuDiv();
     initialIDNavigation = await promiseGetTabURL();
     if (initialIDNavigation) {
+      console.log("navigating to "+initialIDNavigation.innerText)
       expandSingle(initialIDNavigation)
       initialIDNavigation.scrollIntoView()
     } else {
@@ -258,8 +263,11 @@ async function javaDOM() {
     }
 }
 function StyleSheetRefresh() {
+  console.log("Sending request, update CSS:")
   //@ts-ignore
-  chrome.runtime.sendMessage({ message: "updateCSS" }, () => {});
+  chrome.runtime.sendMessage({ message: "updateCSS" }, (response) => {
+    console.log("Update CSS Response: " + response.response)
+  });
 }
 function ReplaceText() {
   //declaring global variables:
@@ -479,12 +487,12 @@ function ReplaceText() {
   function headingReformat() {
     const headingFind = /<p class=default>([A-Z][^a-z]{3,}?)<\/p>/g; //Replaces 3+ initial capital letters with:
     const headingRepl =
-      "#hclose#</div><div class=headingDiv><p class=headingLabel><b>$1</b></p><div>";
+      "#hclose#</div><div class=heading><p class=headingLabel><b>$1</b></p><div>";
     const tempSec = /p class=default>(\(Temporary\sprovisions[^~]*?<\/)p/g; //Replaces "(Temporary provisions ..." with:
     const tempSecRepl = 'div class=TempHead style="text-align:center">$1div';
     const subheadFind = /<p class=default>(\([^]{5,}?\))<\/p>/g; //Replaces leading parens with at least 5 letters with:
     const subheadRepl =
-      "#sclose#</div><div class=subheadDiv><p class=subheadLabel>$1</p><div>";
+      "#sclose#</div><div class=subhead><p class=subheadLabel>$1</p><div>";
     const headInTOCRepl = "<p class=tocHeading>$1</p>";
     const headInForm =
       /(=orsForm break=\'\`\'[^`~]*)#hclose#[^`~]*?<p[^`~>]*>([^`~]*?)<div>/g; //Used to count headings to get "<div> breaks to line up"
@@ -543,7 +551,7 @@ function ReplaceText() {
       "<p class=default><b>Note section for ORS $1:</b></p><p class=default>$2</div><div";
     const noteSesLaw =
       /<div\sclass=note>([^~]*?Section[^~]+?provides?:)[^~]*?<\/div>([^~]*?)<div/g;
-    const noteSesLawRepl = "</div><div class='note notesec'>$1$2</div><div";
+    const noteSesLawRepl = "</div><div class='note notesec'>$1$2<div"  //"</div><div class='note notesec'>$1$2</div><div";;
     const SesLawSec = new RegExp(`<b>${tabs}(Sec\\.\\s\\d{1,3}\\.)\\s?<\\/b>`, 'g')
     const SesLawSecRepl = '<p class=leadline>$1</p><p class=default>'
     const prefaceFind = /(Preface\sto\sOregon\sRevised\sStatutes)/g; // "preface" is replaced by link:
@@ -587,6 +595,12 @@ function ReplaceText() {
       for (let aP of allTocPs) {
         aP.className += " toc";
       }
+    }
+    let cleanUpBreaks = document.querySelectorAll('[break]')
+    console.log("cleaning?")
+    for (let elem of cleanUpBreaks) {
+      console.log(elem.classList.item[0])
+      elem.removeAttribute("break")
     }
   }
   OrLawLinking(); // get user data for OrLaws for link for 'year c.###' & 'chapter ###, Oregon Laws [year]'
