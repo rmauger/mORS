@@ -16,6 +16,18 @@ function promiseGetActiveTab() {
     });
   });
 }
+function chromeStorageRetrieval (retrievalKey) {
+  return new Promise((resolve, reject) => {
+    //@ts-ignore
+    chrome.storage.sync.get(retrievalKey, (key) => {
+      if (key) {
+        resolve(key.value);
+      } else {
+        reject("Unable to retrieve stored user preference");
+      }
+    })
+  })
+}
 function promiseGetOrLaw() {
   return new Promise((resolve, reject) => {
     // @ts-ignore
@@ -44,37 +56,39 @@ function promiseGetCss() {
 //Creating Listeners
 //listening for mORS.js to reqeust removal or update of CSS
 //@ts-ignore
-chrome.runtime.onMessage.addListener((msg, sender, response) => {
-  switch (msg.message) {
+/**
+ * @param {Promise<any>} retrievalFunction
+ * @param {(arg0: {response: any;}) => void} response
+ * @param {string} command
+ */
+async function messageHandler(retrievalFunction, response, command){
+  console.log(`Executing : ${command}`)
+  response({response:await retrievalFunction})
+}
+
+//@ts-ignore
+chrome.runtime.onMessage.addListener((msg, _, response) => {
+  const command = msg.message
+  switch (command) {
     case "updateCSS":
-      console.log("Received update CSS Request")
-      runUpdateCss()
-      async function runUpdateCss() {  
-        response({response:await promiseUpdateCSS()})
-      };
+      messageHandler(promiseDoUpdateCSS(), response, command)
       break;
     case "removeCSS":
-      console.log("Received Remove CSS Request")
-      runRemoveCss()
-      async function runRemoveCss() {
-        response({response:await promiseRemoveCSS()});
-      };
+      messageHandler(promiseDoRemoveCSS(), response, command);
       break;
     case "getOrLaw":
-      console.log("Received get OrLaw Request")
-      getOrLaw()
-      async function getOrLaw() {
-        response({response:await promiseGetOrLaw()});
-      }
+      messageHandler(chromeStorageRetrieval("lawsReaderStored"), response, command);
     case "getCssFile":
-      console.log("Received get CSS Request")
-      getCssFile()
-      async function getCssFile() {
-        response({response:await promiseGetCss()})
-      }
+      messageHandler(chromeStorageRetrieval("cssSelectorStored"), response, command)
+      break;
+    case "getShowRNs":
+      messageHandler(chromeStorageRetrieval("showRNsStored"), response, command)
+      break;
+    case "getShowBurnt":
+      messageHandler(chromeStorageRetrieval("showBurntStored"), response, command)
       break;
     default:
-      break;
+      break;  
   }
   return true;
 });
@@ -113,7 +127,7 @@ chrome.runtime.onConnect.addListener((port) => {
 });
 
 //removes any existing css and adds css from stored value
-async function promiseUpdateCSS() {
+async function promiseDoUpdateCSS() {
   return new Promise(async (UpdateCSS, reject)=>  {
     try {
       const resolve = await promiseGetCss();
@@ -132,7 +146,7 @@ async function promiseUpdateCSS() {
           insertCssFile = "/css/light.css";
           break;
       }
-    await promiseRemoveCSS();
+    await promiseDoRemoveCSS();
     const activeTab = await promiseGetActiveTab();
     //@ts-ignore
     chrome.scripting.insertCSS({
@@ -147,7 +161,7 @@ async function promiseUpdateCSS() {
 })
 }
 
-async function promiseRemoveCSS() {
+async function promiseDoRemoveCSS() {
   return new Promise(async (removeCSS, reject)=> {
     try {
       const cssFileList = ["/css/dark.css", "/css/light.css", "/css/darkgrey.css"]

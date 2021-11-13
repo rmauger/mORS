@@ -74,15 +74,17 @@ async function javaDOM() {
     let collapseObjHeightList = [];
     for (let i = 0; i < collapsibles.length; i++) {
       const buttonElement = collapsibles[i];
+      //@ts-ignore
+      chrome.runtime.sendMesssage({message:""})
       collapseObjHeightList.push(findCollapseHeight(buttonElement));
       if (doAddButton) {
         buttonElement.addEventListener("click", () => {
           if (
-            collapseObjHeightList[i].anElement.style.maxHeight == collapseObjHeightList[i].height
+            collapseObjHeightList[i].anElement.style.maxHeight == "none"
           ) {
-            expandSingle(buttonElement);
-          } else {
             collapseSingle(findCollapseHeight(buttonElement));
+          } else {            
+            expandSingle(buttonElement);
           }
         });
       }
@@ -152,13 +154,12 @@ async function javaDOM() {
           //@ts-ignore
           // sends message to background.js to remove CSS & expandsAllSections once completed
           chrome.runtime.sendMessage({ message: "removeCSS" }, (response)=>{
-            console.log('awaiting response from remove.css')
-            console.log(`"RemoveCSS" response: ${response}`)
+            console.log('Sending to background.js request to remove css')
             try {
-              console.log(`Received: ${response.response}`)
+              console.log(`"RemoveCSS" response: ${response}`)
               if (response.response=="Success") {
                 expandAllSections()
-                console.log("Success???!")
+                console.log("Success")
               }
             } catch (e) {
               console.log(e)
@@ -263,11 +264,15 @@ async function javaDOM() {
     }
 }
 function StyleSheetRefresh() {
-  console.log("Sending request, update CSS:")
-  //@ts-ignore
-  chrome.runtime.sendMessage({ message: "updateCSS" }, (response) => {
+  console.log("Sending request to background JS to update CSS:")
+  try {
+    //@ts-ignore
+    chrome.runtime.sendMessage({ message: "updateCSS" }, (response) => {
     console.log("Update CSS Response: " + response.response)
   });
+  } catch (e) {
+    console.log(e)
+  }
 }
 function ReplaceText() {
   //declaring global variables:

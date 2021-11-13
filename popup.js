@@ -3,7 +3,15 @@
 "use strict";
 
 //promise functions:
-function promiseGetCss() {
+
+function promiseGetFromBackground() {
+  return new Promise((resolve, reject)=>{
+  //TODO: create generic "Get" Handler that will just send request to background.js
+
+  })
+}
+
+/* function promiseGetCss() {
   return new Promise((resolve, reject)=> {
     try {
     chrome.runtime.sendMessage({message: "getCssFile"}, (response)=> {
@@ -24,7 +32,7 @@ function promiseGetOrLaw() {
       reject(e)
     }
   })
-}
+} */
 
 //setup event listeners for form dropdowns & buttons
 function addAllListeners() {
@@ -54,22 +62,20 @@ function addAllListeners() {
   function sendMsgTabs(message){
     
   }
-
-
   rsecShownCheck.addEventListener("change", ()=> {
     chrome.storage.sync.set(
-      {showRSec: rsecShownCheck.value}
+      {showBurntStored: rsecShownCheck.value}
       , ()=> {
         sendMsgTabs({rsec: rsecShownCheck.value})
         displayUserOptions()
       }
     )
   })
-  burntShownCheck.addEventListener("change", ()=> {
+  showSNsCheck.addEventListener("change", ()=> {
     chrome.storage.sync.set(
-      {showBurnt: burntShownCheck.value}
+      {showRNsStored: showSNsCheck.value}
       , ()=> {
-        sendMsgTabs({burnt: burntShownCheck.value})
+        sendMsgTabs({burnt: showSNsCheck.value})
         displayUserOptions()
       }
     )
@@ -197,7 +203,7 @@ const orLawSelector = document.getElementById("OrLaws");
 const chpLaunchButton = document.getElementById("chapterLaunch");
 const orLawsLaunchButton = document.getElementById("orLawsLaunch");
 const rsecShownCheck = document.getElementById("showRSec");
-const burntShownCheck = document.getElementById("showSNpte")
+const showSNsCheck = document.getElementById("showSNote")
 const orLawOrLegLookup = { OL2021: "2021orlaw~.pdf",
   OL2020: "2020orlaw~.pdf", OL2019: "2019orlaw~.pdf",
   OL2018: "2018orlaw~.pdf", OL2017: "2017orlaw~.pdf",
