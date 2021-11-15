@@ -67,9 +67,10 @@ function addAllListeners() {
       errMsg += "A session law lookup source (below) is required.";
     }
     if (errMsg.length > 1) {
-      alert(errMsg);
+      errorMsg.innerHTML=errMsg
       // TODO: #18 Create better display for error messages within popup.html
     } else {
+      //errorMsg.innerHTML=""
       if (orLawSelector.value == "Hein") {
         orLawURL = `https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=${orLawsYear}&chapter=${orLawsChp}&sgo=Search&collection=ssl&search=go`;
       } else {
@@ -159,6 +160,7 @@ function refreshPage(oldCSS, newCSS) {
 }
 
 // MAIN
+const errorMsg = document.getElementById("errorMsg");
 const formCssNew = document.getElementById("cssSelector");
 const orLawSelector = document.getElementById("OrLaws");
 const chpLaunchButton = document.getElementById("chapterLaunch");
