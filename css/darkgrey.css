@@ -4,8 +4,8 @@
 :root {
 /* dark / background*/
   --background: #222;
-  --lightBack: #666;
-  --formBack: #777;
+  --lightBack: #444;
+  --formBack: #555;
 /* light / foreground */
   --maintext: #eee;
   --heading: #bbb;
