@@ -20,13 +20,17 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 
 ## Updates:
 
+  ### Version 1.30 - 11/15/2021
+   * Updates to menu defaults:
+      ** hiding repealed sections
+      ** hide source notes 
+      ** set default collapse all
+   
   ### Version 1.24 - 11/11/2021
    * Bug fixes (runs all popup promises in background script)
    * Fixed collapsing section layout issues & remove css issues
-   * cleaned up background script
 
   ### Version 1.21 - 11/11/2021
-   * Bug fixes (option menu updates correctly)
    * Reorganized css files & css selection
 
   ### Version 1.20 - 11/11/2021
@@ -57,6 +61,5 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
   * Stylesheets don't update/stay right on non-active page when changing Oregon Law source (can fix by refreshing page or "remove stylesheet" + "add stylesheet") 
   
 ## Planned features:
-  * Bug Fix TODO: #14 run promises in background.js from popup.js (or use messages to simplify)
   * TODO: #18 create more useful display for error messages within popup.html
-  * TODO: #22 Add options for default on expand all/collapse all & show burnt secs
+  * TODO: #26 Allow for navigation from chrome omnibox
