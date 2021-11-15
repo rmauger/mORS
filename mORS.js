@@ -6,7 +6,7 @@
  * @param {string} initialText
  */
 function ifMatch(searchFor, initialText, index = 0) {
-  let aRegExp = new RegExp('');
+  let aRegExp = new RegExp("");
   if (typeof searchFor == "string") {
     aRegExp = new RegExp(searchFor, "g");
   } else {
@@ -19,6 +19,28 @@ function ifMatch(searchFor, initialText, index = 0) {
     }
   }
   return "";
+}
+/**
+ * @param {boolean} show
+ */
+function doShowSourceNotes(show) {
+  const sourceNoteList = document.getElementsByClassName("sourceNote");
+  for (let i = 0; i < sourceNoteList.length; i++) {
+    const note = sourceNoteList[i];
+    note.classList.remove("hideMe");
+    note.classList.add(!show && "hideMe");
+  }
+}
+/**
+ * @param {boolean} show
+ */
+function doShowRSecs(show) {
+  const rSecList = document.getElementsByClassName("burnt");
+  for (let i = 0; i < rSecList.length; i++) {
+    const note = rSecList[i];
+    note.classList.remove("hideMe");
+    note.classList.add(!show && "hideMe");
+  }
 }
 async function javaDOM() {
   /** collapses single ORS section
@@ -40,7 +62,6 @@ async function javaDOM() {
     buttonElement.classList.remove("active");
     return { anElement: thisElement, height: thisHeight };
   }
-
   /** expands single ORS section
    * @param {Element} buttonElement
    */
@@ -49,15 +70,16 @@ async function javaDOM() {
       if (buttonElement.classList.contains("collapsible")) {
         const sectionDiv = buttonElement.parentElement;
         buttonElement.classList.add("active");
-        sectionDiv.style.maxHeight = "none" //`${sectionDiv.scrollHeight}px`;
+        sectionDiv.style.maxHeight = "none"; //`${sectionDiv.scrollHeight}px`;
       } else {
-        console.log(`Target ${buttonElement.innerHTML} is not an active section`);
+        console.log(
+          `Target ${buttonElement.innerHTML} is not an active section`
+        );
       }
     } else {
       console.log("No button element found...");
     }
   }
-
   // Expands all ORS sections to full height
   function expandAllSections() {
     const collapsibles = document.getElementsByClassName("collapsible");
@@ -65,27 +87,28 @@ async function javaDOM() {
       expandSingle(collapsibles[i]);
     }
   }
-
-  /** Collapses all ORS sections to button height (and adds collapsible buttons to leadlines on request)
-   * @param {boolean} doAddButton
-   */
-  function collapseAllSections(doAddButton) {
+  function addCollapseButtons() {
     const collapsibles = document.getElementsByClassName("collapsible");
     let collapseObjHeightList = [];
     for (let i = 0; i < collapsibles.length; i++) {
       const buttonElement = collapsibles[i];
       collapseObjHeightList.push(findCollapseHeight(buttonElement));
-      if (doAddButton) {
-        buttonElement.addEventListener("click", () => {
-          if (
-            collapseObjHeightList[i].anElement.style.maxHeight == collapseObjHeightList[i].height
-          ) {
-            expandSingle(buttonElement);
-          } else {
-            collapseSingle(findCollapseHeight(buttonElement));
-          }
-        });
-      }
+      buttonElement.addEventListener("click", () => {
+        if (collapseObjHeightList[i].anElement.style.maxHeight == "none") {
+          collapseSingle(findCollapseHeight(buttonElement));
+        } else {
+          expandSingle(buttonElement);
+        }
+      });
+    }
+  }
+  // Collapses all ORS sections to button height
+  function collapseAllSections() {
+    const collapsibles = document.getElementsByClassName("collapsible");
+    let collapseObjHeightList = [];
+    for (let i = 0; i < collapsibles.length; i++) {
+      const buttonElement = collapsibles[i];
+      collapseObjHeightList.push(findCollapseHeight(buttonElement));
     }
     for (let i = collapsibles.length - 1; i >= 0; i--) {
       collapseSingle(collapseObjHeightList[i]);
@@ -108,7 +131,6 @@ async function javaDOM() {
       }
     }
   }
-  
   // add floating div with version info & buttons
   function buildFloatingMenuDiv() {
     function addMenuBody() {
@@ -133,9 +155,7 @@ async function javaDOM() {
       collapseAllButton.innerText = "Collapse all";
       collapseAllButton.id = "buttonCollapse";
       fixedDiv.appendChild(collapseAllButton);
-      collapseAllButton.addEventListener("click", () =>
-        collapseAllSections(false)
-      );
+      collapseAllButton.addEventListener("click", () => collapseAllSections());
     }
     function addToggleCssButton() {
       var toggleCSSButton = document.createElement("button");
@@ -149,71 +169,26 @@ async function javaDOM() {
           document.getElementById("buttonCollapse").style.display = "none";
           document.getElementById("buttonExpand").style.display = "none";
           document.getElementById("buttonToggleCSS").innerText = "Add Style";
-          //@ts-ignore
           // sends message to background.js to remove CSS & expandsAllSections once completed
-          chrome.runtime.sendMessage({ message: "removeCSS" }, (response)=>{
-            console.log('awaiting response from remove.css')
-            console.log(`"RemoveCSS" response: ${response}`)
-            try {
-              console.log(`Received: ${response.response}`)
-              if (response.response=="Success") {
-                expandAllSections()
-                console.log("Success???!")
+          try {
+            //@ts-ignore
+            chrome.runtime.sendMessage({ message: "removeCSS" }, (response) => {
+              if (response.response == "Success") {
+                expandAllSections();
               }
-            } catch (e) {
-              console.log(e)
-            }
-          });
+            });
+          } catch (e) {
+            console.log(`Error in line 163: ${e}`);
+          }
         } else {
           document.getElementById("buttonCollapse").style.display = "inline";
           document.getElementById("buttonExpand").style.display = "inline";
           document.getElementById("buttonToggleCSS").innerText = "Remove Style";
           StyleSheetRefresh();
-          collapseAllSections(false);
+          collapseAllSections();
         }
         toggleCSSButton.classList.toggle("cssOn");
       });
-    }
-    
-    function addToggleSourceNoteButton() {
-      var toggleSourceNoteButton = document.createElement("button");
-      toggleSourceNoteButton.innerText = "Hide Source Notes";
-      toggleSourceNoteButton.id = "buttonToggleSourcenote"
-      toggleSourceNoteButton.className="sourceNoteOn"
-      fixedDiv.appendChild(toggleSourceNoteButton);
-      toggleSourceNoteButton.addEventListener("click", ()=> {
-        const sourceNoteList = document.getElementsByClassName("sourceNote")        
-        for (let i = 0; i < sourceNoteList.length; i++) {
-          const note = sourceNoteList[i]
-          note.classList.toggle('hideMe')
-        }
-        if (toggleSourceNoteButton.className=="sourceNoteOn") {
-          toggleSourceNoteButton.innerText="Show Source Notes";
-        } else {
-          toggleSourceNoteButton.innerText="Hide Source Notes";
-        } 
-        toggleSourceNoteButton.classList.toggle("sourceNoteOn")
-      })
-    }
-    function addToggleBurntSecButton() {
-      var toggleBurntSecButton = document.createElement("button");
-      toggleBurntSecButton.innerText = "Hide Repealed/Renumbered ORS";
-      toggleBurntSecButton.id = "buttonToggleBurntSecs"
-      toggleBurntSecButton.className="BurntSecOn"
-      fixedDiv.appendChild(toggleBurntSecButton);
-      toggleBurntSecButton.addEventListener("click", ()=> {
-        const sourceNoteList = document.getElementsByClassName("burnt")        
-        for (let i = 0; i < sourceNoteList.length; i++) {
-          const note = sourceNoteList[i]
-          note.classList.toggle('hideMe')
-        }
-        if (toggleBurntSecButton.className=="BurntSecOn") {
-          toggleBurntSecButton.innerText="Show Repealed/Renumbered ORS";
-        } else {
-          toggleBurntSecButton.innerText="Hide Repealed/Renumbered ORS";
-        } 
-        toggleBurntSecButton.classList.toggle("BurntSecOn")
-      })
     }
     // BuildFloatingMenuDiv MAIN
     let fixedDiv = document.createElement("div");
@@ -221,53 +196,95 @@ async function javaDOM() {
     addExpandAllButton();
     addCollapseAllButton();
     addToggleCssButton();
-    addToggleSourceNoteButton();
-    addToggleBurntSecButton();
+    /*     addToggleSourceNoteButton();
+    addToggleBurntSecButton(); */
     document.body.appendChild(fixedDiv);
   }
-  function promiseGetTabURL() { 
+
+  function promiseGetTabURL() {
     return new Promise((resolve, reject) => {
       //@ts-ignore
-      let backgroundPort = chrome.runtime.connect({ name: "OrLawsSource" }); //open port to background.js
-      backgroundPort.postMessage({ message: "RequestTagURL" });
-      backgroundPort.onMessage.addListener((/** @type {{ response: String; }} */ msg) => {
-        const tabUrl = msg.response;
-        if (tabUrl) {
-          const idFinder = /(?<=\.html\#)[^\/]*/;
-          if (idFinder.test(tabUrl)) {
-            const pinCiteButton = document.getElementById(
-              ifMatch(idFinder, tabUrl)
-            );
-            if (pinCiteButton) {
-              resolve(pinCiteButton);
-            }
-          }
-        } else {
-          reject()
+      chrome.runtime.sendMessage({ message: "getCurrentTab" }, (msg) => {
+        let tabUrl = "";
+        try {
+          const tab = msg.response;
+          tabUrl = tab.url;
+        } catch (e) {
+          console.log(`Error retrieving URL: ${e}`);
+        }
+        const idFinder = /(?<=\.html\#)[^\/]*/;
+        if (idFinder.test(tabUrl)) {
+          const pinCiteButton = document.getElementById(
+            ifMatch(idFinder, tabUrl)
+          );
+          if (pinCiteButton) {
+            resolve(pinCiteButton);
+          } else resolve("");
         }
       });
-    })
+    });
   }
-  
-    // JavaDOM MAIN:
-    collapseAllSections(true); // addButtons = true
-    buildOrsLinkButton();
-    buildFloatingMenuDiv();
-    initialIDNavigation = await promiseGetTabURL();
-    if (initialIDNavigation) {
-      console.log("navigating to "+initialIDNavigation.innerText)
-      expandSingle(initialIDNavigation)
-      initialIDNavigation.scrollIntoView()
-    } else {
-      console.log("No ORS section found in URL")
+  function implementParameters() {
+    async function getCollapsed() {
+      try {
+        //@ts-ignore
+        chrome.runtime.sendMessage({ message: "getCollapsed" }, (response) => {
+          if (response.response) {
+            collapseAllSections();
+          }
+        });
+      } catch (error) {
+        console.log(`Error get collapsed: ${error}`);
+      }
+      try {
+        initialIDNavigation = await promiseGetTabURL();
+        if (initialIDNavigation) {
+          console.log("navigating to " + initialIDNavigation.innerText);
+          expandSingle(initialIDNavigation);
+          initialIDNavigation.scrollIntoView();
+        } else {
+          console.log("No ORS section found in URL");
+        }
+      } catch (error) {
+        console.log(`Error getting tabURL: ${error}`);
+      }
     }
+    function getShowRSec() {
+      //@ts-ignore
+      chrome.runtime.sendMessage({ message: "getShowBurnt" }, (response) => {
+        const doShow = response.response;
+        console.log(`Show burnt ${doShow}`);
+        doShowRSecs(doShow);
+      });
+    }
+    function getShowSNs() {
+      //@ts-ignore
+      chrome.runtime.sendMessage({ message: "getShowSNs" }, (response) => {
+        const doShow = response.response;
+        console.log(`Show sourcenotes ${doShow}`);
+        doShowSourceNotes(doShow);
+      });
+    }
+    // Main Implement Parameters
+    getCollapsed();
+    getShowRSec();
+    getShowSNs();
+  }
+
+  // JavaDOM MAIN:
+  addCollapseButtons();
+  buildOrsLinkButton();
+  buildFloatingMenuDiv();
+  implementParameters();
 }
+
 function StyleSheetRefresh() {
-  console.log("Sending request, update CSS:")
-  //@ts-ignore
-  chrome.runtime.sendMessage({ message: "updateCSS" }, (response) => {
-    console.log("Update CSS Response: " + response.response)
-  });
+  try {
+    //@ts-ignore
+    chrome.runtime.sendMessage({ message: "updateCSS" }, (response) => {});
+  } catch (e) {
+    console.log(`Error applying stylesheet ${e}`);
+  }
 }
 function ReplaceText() {
   //declaring global variables:
@@ -280,7 +297,7 @@ function ReplaceText() {
   const orsChapter = "[1-9]\\d{0,2}[A-C]?\\b";
   const emptyTags = new RegExp(`<(\\w)[^>]*?>${tabs}<\\/\\1>`, "g"); // is deleted (in first HTMLCleanUp & FinalClean)
   const orsSection = `(?:${orsChapter}\\.\\d{3}\\b|\\b7\\dA?\\.\\d{4}\\b)`;
-  HTMLCleanUp(); 
+  HTMLCleanUp();
   // delete span syntex & msoClasses & existing divs & empty tags from HTML
   function HTMLCleanUp() {
     chpHTML = document.body.innerHTML;
@@ -295,22 +312,22 @@ function ReplaceText() {
     chpHTML = chpHTML.replace(divGarb, "");
     chpHTML = chpHTML.replace(emptyTags, "");
   }
-  chapterHeading(); 
+  chapterHeading();
   // build replacement heading for top of page. Delete html.head
   function chapterHeading() {
     const headHTML = document.head.innerHTML;
     const msoVolumeTag = /(?<=\<mso:Volume[^>]*\>0?)([^<]*)(?=\<)/;
     const msoChaperTag = /(?<=\<mso:[^>]*Chapter[^>]*\>0?)([^<]*)(?=\<)/g;
-//  kill:    const titleTitle = /(?<=\.\s)([^]*?)(?=\s-)/;
-    const edYearMatch = "20\\d{2}(?=\\sEDITION)"
+    //  kill:    const titleTitle = /(?<=\.\s)([^]*?)(?=\s-)/;
+    const edYearMatch = "20\\d{2}(?=\\sEDITION)";
     const chapterMatch = new RegExp(`(?<=Chapter\\s0{0,2})${orsChapter}`);
     const thisVolume = ifMatch(msoVolumeTag, headHTML);
     const thisTitle = ifMatch(msoChaperTag, headHTML);
     const thisChapterTitle = ifMatch(msoChaperTag, headHTML, 1);
     const thisEdYear = ifMatch(new RegExp(edYearMatch), chpHTML);
     thisChapterNum = ifMatch(chapterMatch, headHTML);
-    
-    const endOfHead = new RegExp(`[^]*?${edYearMatch}[^.]*?<p[^.]*?<p[^.]*?<p`)  // three paragraphs past edition 
+
+    const endOfHead = new RegExp(`[^]*?${edYearMatch}[^.]*?<p[^.]*?<p[^.]*?<p`); // three paragraphs past edition
     const preTitleMatch = new RegExp(`[^]*?Chapter\\s${thisChapterNum}`);
     const preTitle = ifMatch(
       new RegExp(`[^]*?(?=Chapter\\s${thisChapterNum})`),
@@ -318,16 +335,16 @@ function ReplaceText() {
     );
     mainHead = `<div class=mainHead>${preTitle}<h3>Volume ${thisVolume}</h3><h2>Title ${thisTitle}</h2>
       <h1>Chapter ${thisChapterNum} - ${thisChapterTitle}</h1><h3>${thisEdYear} EDITION</h3></div>`;
-      chpHTML = chpHTML.replace(endOfHead, "<p"); //deleting existing heading
+    chpHTML = chpHTML.replace(endOfHead, "<p"); //deleting existing heading
   }
-  TableOfContents(); 
+  TableOfContents();
   //create & label new division for table of contents
   function TableOfContents() {
     const tocFind = /(<p[^>]*?>[^]*?<\/p>)([^]*?)(?=\1|<p class=default><b>)/; // is replaced by:
     const tocRepl = `<div id=toc><h1>Table of Contents</h1><div class=tocItems>\$1\$2</div></div>${tocBreak}`;
     chpHTML = chpHTML.replace(tocFind, tocRepl);
   }
-  ORSHighlight(); 
+  ORSHighlight();
   //highlight all cross references to ORS sections (xx.xxx) (to be replaced later by relevant links)
   function ORSHighlight() {
     const orsFind = new RegExp(
@@ -337,7 +354,7 @@ function ReplaceText() {
     const orsRepl = "<span class=ors>$1</span>";
     chpHTML = chpHTML.replace(orsFind, orsRepl);
   }
-  Leadlines(); 
+  Leadlines();
   //highlight & create new div for each new section
   function Leadlines() {
     const orsSecLead = `(?:<span class=ors>)(${thisChapterNum}\\.\\d{3,4}\\b)\\s?</span>([^\\.][^\\]]+?\\.\\s?)`;
@@ -551,9 +568,12 @@ function ReplaceText() {
       "<p class=default><b>Note section for ORS $1:</b></p><p class=default>$2</div><div";
     const noteSesLaw =
       /<div\sclass=note>([^~]*?Section[^~]+?provides?:)[^~]*?<\/div>([^~]*?)<div/g;
-    const noteSesLawRepl = "</div><div class='note notesec'>$1$2<div"  //"</div><div class='note notesec'>$1$2</div><div";;
-    const SesLawSec = new RegExp(`<b>${tabs}(Sec\\.\\s\\d{1,3}\\.)\\s?<\\/b>`, 'g')
-    const SesLawSecRepl = '<p class=leadline>$1</p><p class=default>'
+    const noteSesLawRepl = "</div><div class='note notesec'>$1$2<div"; //"</div><div class='note notesec'>$1$2</div><div";;
+    const SesLawSec = new RegExp(
+      `<b>${tabs}(Sec\\.\\s\\d{1,3}\\.)\\s?<\\/b>`,
+      "g"
+    );
+    const SesLawSecRepl = "<p class=leadline>$1</p><p class=default>";
     const prefaceFind = /(Preface\sto\sOregon\sRevised\sStatutes)/g; // "preface" is replaced by link:
     const prefaceRepl =
       '<a href="https://www.oregonlegislature.gov/bills_laws/BillsLawsEDL/ORS_Preface.pdf">$1</a>';
@@ -596,23 +616,20 @@ function ReplaceText() {
         aP.className += " toc";
       }
     }
-    let cleanUpBreaks = document.querySelectorAll('[break]')
-    console.log("cleaning?")
+    let cleanUpBreaks = document.querySelectorAll("[break]");
     for (let elem of cleanUpBreaks) {
-      console.log(elem.classList.item[0])
-      elem.removeAttribute("break")
+      elem.removeAttribute("break");
     }
   }
   OrLawLinking(); // get user data for OrLaws for link for 'year c.###' & 'chapter ###, Oregon Laws [year]'
   function OrLawLinking() {
     try {
       // @ts-ignore
-      let backgroundPort = chrome.runtime.connect(); // open port to background.js
-      backgroundPort.postMessage({ message: "RequestOrLawsSource" });
-      backgroundPort.onMessage.addListener((msg) => {
-        if (msg.response == "Hein") {
+      chrome.runtime.sendMessage({ message: "getOrLaw" }, (msg) => {
+        const orLaw = msg.response;
+        if (orLaw == "Hein") {
           HeinLinks(); // replace with URL to HeinOnline search link through SOLL
-        } else if (msg.response == "OrLeg") {
+        } else if (orLaw == "OrLeg") {
           OrLeg(); // replace with URL to Or.Leg.
         }
         javaDOM(); // Add buttons & javascript elements
@@ -673,7 +690,23 @@ function ReplaceText() {
     }
   }
 }
+
 // MAIN
-let initialIDNavigation
+// let backgroundPort = chrome.runtime.connect(); // open port to background.js
+// backgroundPort.postMessage({ message: "RequestOrLawsSource" });
+// backgroundPort.onMessage.addListener((msg)
+//@ts-ignore
+chrome.runtime.onMessage.addListener((msg, _sender, _reponse) => {
+  const msgText = msg.toMORS;
+  try {
+    console.log(`Received message`);
+    console.log(`Received: ${msgText.rsec}`);
+    doShowSourceNotes(msgText.sN);
+    doShowRSecs(msgText.rsec);
+  } catch (e) {
+    console.log(`Error w/ display rSecs or sourceNotes: ${e}`);
+  }
+});
+let initialIDNavigation;
 StyleSheetRefresh();
 window.addEventListener("load", ReplaceText);

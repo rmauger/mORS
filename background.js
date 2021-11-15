@@ -2,13 +2,13 @@
 // @ts-check
 
 "use strict";
-
 //setting out promises
 function promiseGetActiveTab() {
   return new Promise((activeTab, reject) => {
     // @ts-ignore
     chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
       if (tabs) {
+        //console.log(`Found tab id ${tabs[0].id} url: ${tabs[0].url}`)
         activeTab(tabs[0]);
       } else {
         reject("Unable to determine active tab");
@@ -16,64 +16,77 @@ function promiseGetActiveTab() {
     });
   });
 }
-function promiseGetOrLaw() {
+function promiseGetChromeStorage (objKey) {
   return new Promise((resolve, reject) => {
-    // @ts-ignore
-    chrome.storage.sync.get("lawsReaderStored", (retrievedLawReader) => {
-      if (retrievedLawReader) {
-        resolve(retrievedLawReader.lawsReaderStored);
-      } else {
-        reject("Unable to retrieve stored user preference for Oregon Laws");
-      }
-    });
-  });
-}
-function promiseGetCss() {
-  return new Promise((resolve, reject) => {
-    // @ts-ignore
-    chrome.storage.sync.get("cssSelectorStored", (CssStoredObj) => {
-      if (CssStoredObj) {
-        resolve(CssStoredObj.cssSelectorStored); // get index of key of stored object
-      } else {
-        reject("Unable to retrieve stored user preference for css Template");
-      }
-    });
-  });
+    try {
+      //@ts-ignore
+      chrome.storage.sync.get(objKey, (storedObj) => {
+        if (storedObj) {
+          console.log(`Retrieved from ${objKey} : ${storedObj[objKey]}.`)
+          resolve(storedObj[objKey]);
+        } else {
+          reject("Unable to retrieve stored user preference");
+        }
+      })
+    } catch (e) {
+      logOrWarn(`Error: ${e}`, 'ChromeStorage')
+      reject(`chrome storage retrieval error. Error: ${e}`)
+    }
+  })
 }
 
-//Creating Listeners
-//listening for mORS.js to reqeust removal or update of CSS
+/**
+ * @param {Promise<any>} retrievalFunction
+ * @param {(arg0: {response: any;}) => void} response
+ */
+ async function messageHandler(retrievalFunction, response){
+  response({response:await retrievalFunction})
+}
+
+// ADDING LISTENERS
 //@ts-ignore
-chrome.runtime.onMessage.addListener((msg, sender, response) => {
-  switch (msg.message) {
+// chrome.runtime.onMessage.addListner((msg, _, _response) => {
+//   const command = msg.SecondChannel
+//   console.log(command)
+// })
+
+
+//@ts-ignore
+chrome.runtime.onMessage.addListener((msg, _, response) => {
+  const command = msg.message
+  switch (command) {
     case "updateCSS":
-      console.log("Received update CSS Request")
-      runUpdateCss()
-      async function runUpdateCss() {  
-        response({response:await promiseUpdateCSS()})
-      };
+      messageHandler(promiseDoUpdateCSS(), response)
       break;
     case "removeCSS":
-      console.log("Received Remove CSS Request")
-      runRemoveCss()
-      async function runRemoveCss() {
-        response({response:await promiseRemoveCSS()});
-      };
+      messageHandler(promiseDoRemoveCSS(), response);
       break;
     case "getOrLaw":
-      console.log("Received get OrLaw Request")
-      getOrLaw()
-      async function getOrLaw() {
-        response({response:await promiseGetOrLaw()});
-      }
+      messageHandler(promiseGetChromeStorage("lawsReaderStored"), response);
+      break;
     case "getCssFile":
-      console.log("Received get CSS Request")
-      getCssFile()
-      async function getCssFile() {
-        response({response:await promiseGetCss()})
-      }
+      messageHandler(promiseGetChromeStorage("cssSelectorStored"), response)
+      break;
+    case "getShowSNs":
+      messageHandler(promiseGetChromeStorage("showSNsStored"), response)
+      break;
+    case "getShowBurnt":
+      console.log('retrieving show Burn storage')
+      messageHandler(promiseGetChromeStorage("showBurntStored"), response)
+      break;
+    case "getCollapsed":
+      messageHandler(promiseGetChromeStorage("collapseDefaultStored"), response)
+      break;
+    case "getCurrentTab":
+      console.log("retrieving active tab")
+      messageHandler(promiseGetActiveTab(), response);
+      break;
+    case "Hello":
+      console.log("Hello yourself.")
       break;
     default:
+      console.log("message made no sense.")
+      response("No response")
       break;
   }
   return true;
@@ -88,7 +101,7 @@ chrome.runtime.onConnect.addListener((port) => {
         try {
           orLawReply();
           async function orLawReply() {
-            const resolve = await promiseGetOrLaw();
+            const resolve = await promiseGetChromeStorage("lawsReaderStored");
             port.postMessage({ response: resolve });
           }
         } catch (e) {
@@ -96,15 +109,6 @@ chrome.runtime.onConnect.addListener((port) => {
         }
         break;
       case "RequestTagURL":
-        try {
-          urlReply();
-          async function urlReply() {
-            const activeTab = await promiseGetActiveTab();
-            port.postMessage({ response: activeTab.url });
-          }
-        } catch (e) {
-          logOrWarn(e, "promiseGetURL");
-        }
         break;
       default:
         break;
@@ -113,10 +117,10 @@ chrome.runtime.onConnect.addListener((port) => {
 });
 
 //removes any existing css and adds css from stored value
-async function promiseUpdateCSS() {
+async function promiseDoUpdateCSS() {
   return new Promise(async (UpdateCSS, reject)=>  {
     try {
-      const resolve = await promiseGetCss();
+      const resolve = await promiseGetChromeStorage("cssSelectorStored");
       let insertCssFile = "";
       switch (resolve) {
         case 'Dark':
@@ -132,7 +136,7 @@ async function promiseUpdateCSS() {
           insertCssFile = "/css/light.css";
           break;
       }
-    await promiseRemoveCSS();
+    await promiseDoRemoveCSS();
     const activeTab = await promiseGetActiveTab();
     //@ts-ignore
     chrome.scripting.insertCSS({
@@ -142,12 +146,12 @@ async function promiseUpdateCSS() {
     UpdateCSS("Success")
   } catch (e) {
     logOrWarn(e, "updateCSS")
-    reject(e)
+    reject(`updateCSS error: ${e}`)
   }
 })
 }
 
-async function promiseRemoveCSS() {
+async function promiseDoRemoveCSS() {
   return new Promise(async (removeCSS, reject)=> {
     try {
       const cssFileList = ["/css/dark.css", "/css/light.css", "/css/darkgrey.css"]
@@ -160,7 +164,7 @@ async function promiseRemoveCSS() {
       removeCSS("Success")
     } catch (e) {
       logOrWarn(`Could not remove css files. Err: ${e}`, "removeCSS()");
-      reject(e)
+      reject(`RemoveCSS error: ${e}`)
     }
   })
 }
