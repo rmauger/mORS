@@ -20,6 +20,28 @@ function ifMatch(searchFor, initialText, index = 0) {
   }
   return "";
 }
+/**
+ * @param {boolean} show
+ */
+ function doShowSourceNotes(show){
+  const sourceNoteList = document.getElementsByClassName("sourceNote")        
+  for (let i = 0; i < sourceNoteList.length; i++) {
+    const note = sourceNoteList[i]
+    note.classList.remove('hideMe')
+    note.classList.add(!show && 'hideMe')
+  }
+}
+/**
+ * @param {boolean} show
+ */
+function doShowRSecs(show) {
+  const rSecList = document.getElementsByClassName("burnt")
+  for (let i = 0; i < rSecList.length; i++) {
+  const note = rSecList[i]
+  note.classList.remove('hideMe')
+  note.classList.add(!show && 'hideMe')
+  }
+}
 async function javaDOM() {
   /** collapses single ORS section
    * @param {{ anElement: HTMLElement; height: any; }} collapseObj
@@ -40,7 +62,6 @@ async function javaDOM() {
     buttonElement.classList.remove("active");
     return { anElement: thisElement, height: thisHeight };
   }
-
   /** expands single ORS section
    * @param {Element} buttonElement
    */
@@ -57,7 +78,6 @@ async function javaDOM() {
       console.log("No button element found...");
     }
   }
-
   // Expands all ORS sections to full height
   function expandAllSections() {
     const collapsibles = document.getElementsByClassName("collapsible");
@@ -65,29 +85,30 @@ async function javaDOM() {
       expandSingle(collapsibles[i]);
     }
   }
-
-  /** Collapses all ORS sections to button height (and adds collapsible buttons to leadlines on request)
-   * @param {boolean} doAddButton
-   */
-  function collapseAllSections(doAddButton) {
+  function addCollapseButtons(){
     const collapsibles = document.getElementsByClassName("collapsible");
     let collapseObjHeightList = [];
     for (let i = 0; i < collapsibles.length; i++) {
       const buttonElement = collapsibles[i];
-      //@ts-ignore
-      chrome.runtime.sendMesssage({message:""})
       collapseObjHeightList.push(findCollapseHeight(buttonElement));
-      if (doAddButton) {
-        buttonElement.addEventListener("click", () => {
-          if (
-            collapseObjHeightList[i].anElement.style.maxHeight == "none"
-          ) {
-            collapseSingle(findCollapseHeight(buttonElement));
-          } else {            
-            expandSingle(buttonElement);
-          }
-        });
-      }
+      buttonElement.addEventListener("click", () => {
+        if (
+          collapseObjHeightList[i].anElement.style.maxHeight == "none"
+        ) {
+          collapseSingle(findCollapseHeight(buttonElement));
+        } else {            
+          expandSingle(buttonElement);
+        }
+      });
+    }
+  }
+  // Collapses all ORS sections to button height
+  function collapseAllSections() {
+    const collapsibles = document.getElementsByClassName("collapsible");
+    let collapseObjHeightList = [];
+    for (let i = 0; i < collapsibles.length; i++) {
+      const buttonElement = collapsibles[i];
+      collapseObjHeightList.push(findCollapseHeight(buttonElement));
     }
     for (let i = collapsibles.length - 1; i >= 0; i--) {
       collapseSingle(collapseObjHeightList[i]);
@@ -110,7 +131,6 @@ async function javaDOM() {
       }
     }
   }
-  
   // add floating div with version info & buttons
   function buildFloatingMenuDiv() {
     function addMenuBody() {
@@ -136,7 +156,7 @@ async function javaDOM() {
       collapseAllButton.id = "buttonCollapse";
       fixedDiv.appendChild(collapseAllButton);
       collapseAllButton.addEventListener("click", () =>
-        collapseAllSections(false)
+        collapseAllSections()
       );
     }
     function addToggleCssButton() {
@@ -151,31 +171,27 @@ async function javaDOM() {
           document.getElementById("buttonCollapse").style.display = "none";
           document.getElementById("buttonExpand").style.display = "none";
           document.getElementById("buttonToggleCSS").innerText = "Add Style";
-          //@ts-ignore
           // sends message to background.js to remove CSS & expandsAllSections once completed
-          chrome.runtime.sendMessage({ message: "removeCSS" }, (response)=>{
-            console.log('Sending to background.js request to remove css')
-            try {
-              console.log(`"RemoveCSS" response: ${response}`)
+          try {
+            //@ts-ignore
+            chrome.runtime.sendMessage({message: "removeCSS" }, (response)=>{
               if (response.response=="Success") {
                 expandAllSections()
-                console.log("Success")
               }
-            } catch (e) {
-              console.log(e)
-            }
-          });
+            })
+          } catch (e) {
+            console.log(`Error in line 163: ${e}`)
+          };
         } else {
           document.getElementById("buttonCollapse").style.display = "inline";
           document.getElementById("buttonExpand").style.display = "inline";
           document.getElementById("buttonToggleCSS").innerText = "Remove Style";
           StyleSheetRefresh();
-          collapseAllSections(false);
+          collapseAllSections();
         }
         toggleCSSButton.classList.toggle("cssOn");
       });
-    }
-    
+    } 
     function addToggleSourceNoteButton() {
       var toggleSourceNoteButton = document.createElement("button");
       toggleSourceNoteButton.innerText = "Hide Source Notes";
@@ -192,7 +208,7 @@ async function javaDOM() {
           toggleSourceNoteButton.innerText="Show Source Notes";
         } else {
           toggleSourceNoteButton.innerText="Hide Source Notes";
-        } 
+        }
         toggleSourceNoteButton.classList.toggle("sourceNoteOn")
       })
     }
@@ -226,52 +242,89 @@ async function javaDOM() {
     addToggleBurntSecButton();
     document.body.appendChild(fixedDiv);
   }
+  
   function promiseGetTabURL() { 
     return new Promise((resolve, reject) => {
       //@ts-ignore
-      let backgroundPort = chrome.runtime.connect({ name: "OrLawsSource" }); //open port to background.js
-      backgroundPort.postMessage({ message: "RequestTagURL" });
-      backgroundPort.onMessage.addListener((/** @type {{ response: String; }} */ msg) => {
-        const tabUrl = msg.response;
-        if (tabUrl) {
-          const idFinder = /(?<=\.html\#)[^\/]*/;
-          if (idFinder.test(tabUrl)) {
-            const pinCiteButton = document.getElementById(
-              ifMatch(idFinder, tabUrl)
-            );
-            if (pinCiteButton) {
-              resolve(pinCiteButton);
-            }
-          }
-        } else {
-          reject()
+      chrome.runtime.sendMessage({message: "getCurrentTab"}, (msg)=>{
+        let tabUrl = ""
+        try{
+          const tab = msg.response;
+          tabUrl=tab.url
+        } catch (e) {
+          console.log(`Error retrieving URL: ${e}`)
         }
-      });
+        const idFinder = /(?<=\.html\#)[^\/]*/;
+        if (idFinder.test(tabUrl)) {
+          const pinCiteButton = document.getElementById(
+            ifMatch(idFinder, tabUrl)
+          );
+          if (pinCiteButton) {
+            resolve(pinCiteButton);
+          } else resolve("")
+        }
+      })
     })
   }
-  
-    // JavaDOM MAIN:
-    collapseAllSections(true); // addButtons = true
-    buildOrsLinkButton();
-    buildFloatingMenuDiv();
-    initialIDNavigation = await promiseGetTabURL();
-    if (initialIDNavigation) {
-      console.log("navigating to "+initialIDNavigation.innerText)
-      expandSingle(initialIDNavigation)
-      initialIDNavigation.scrollIntoView()
-    } else {
-      console.log("No ORS section found in URL")
+  function implementParameters() {
+    async function getCollapsed() {
+      try {
+        //@ts-ignore
+        chrome.runtime.sendMessage({message: "getCollapsed"}, (response)=> {
+          if (response.response) {collapseAllSections()} 
+        })
+      } catch (error) {
+        console.log(`Error get collapsed: ${error}`)
+      }
+      try {
+        initialIDNavigation = await promiseGetTabURL();
+        if (initialIDNavigation) {
+          console.log("navigating to " + initialIDNavigation.innerText)
+          expandSingle(initialIDNavigation)
+          initialIDNavigation.scrollIntoView()
+        } else {
+          console.log("No ORS section found in URL")
+        }    
+      } catch (error) {
+        console.log(`Error getting tabURL: ${error}`)
+      }
     }
+    function getShowRSec(){
+      //@ts-ignore
+      chrome.runtime.sendMessage({message:"getShowBurnt"}, (response)=>{
+        const doShow = response.response
+        console.log(`Show burnt ${doShow}`)
+        doShowRSecs(doShow)
+      })
+    }
+    function getShowSNs(){
+      //@ts-ignore
+      chrome.runtime.sendMessage({message:"getShowSNs"}, (response)=>{
+        const doShow = response.response
+        console.log(`Show sourcenotes ${doShow}`)
+        doShowSourceNotes(doShow)
+     })
+    }
+    // Main Implement Parameters
+    getCollapsed();
+    getShowRSec();
+    getShowSNs();
+  }
+
+  // JavaDOM MAIN:
+  addCollapseButtons();
+  buildOrsLinkButton();
+  buildFloatingMenuDiv();
+  implementParameters();
 }
+
 function StyleSheetRefresh() {
-  console.log("Sending request to background JS to update CSS:")
   try {
     //@ts-ignore
-    chrome.runtime.sendMessage({ message: "updateCSS" }, (response) => {
-    console.log("Update CSS Response: " + response.response)
+    chrome.runtime.sendMessage({message: "updateCSS" }, (response) => {
   });
   } catch (e) {
-    console.log(e)
+    console.log(`Error applying stylesheet ${e}`)
   }
 }
 function ReplaceText() {
@@ -602,9 +655,7 @@ function ReplaceText() {
       }
     }
     let cleanUpBreaks = document.querySelectorAll('[break]')
-    console.log("cleaning?")
     for (let elem of cleanUpBreaks) {
-      console.log(elem.classList.item[0])
       elem.removeAttribute("break")
     }
   }
@@ -612,12 +663,11 @@ function ReplaceText() {
   function OrLawLinking() {
     try {
       // @ts-ignore
-      let backgroundPort = chrome.runtime.connect(); // open port to background.js
-      backgroundPort.postMessage({ message: "RequestOrLawsSource" });
-      backgroundPort.onMessage.addListener((msg) => {
-        if (msg.response == "Hein") {
+      chrome.runtime.sendMessage({message: "getOrLaw"}, (msg)=> {
+        const orLaw = msg.response
+        if (orLaw == "Hein") {
           HeinLinks(); // replace with URL to HeinOnline search link through SOLL
-        } else if (msg.response == "OrLeg") {
+        } else if (orLaw == "OrLeg") {
           OrLeg(); // replace with URL to Or.Leg.
         }
         javaDOM(); // Add buttons & javascript elements
@@ -678,7 +728,23 @@ function ReplaceText() {
     }
   }
 }
+
 // MAIN
-let initialIDNavigation
+      // let backgroundPort = chrome.runtime.connect(); // open port to background.js
+      // backgroundPort.postMessage({ message: "RequestOrLawsSource" });
+      // backgroundPort.onMessage.addListener((msg) 
+//@ts-ignore
+chrome.runtime.onMessage.addListener((msg, _sender, _reponse) => {
+  const msgText=msg.toMORS
+  try {
+    console.log(`Received message`)
+    console.log(`Received: ${msgText.rsec}`)
+    doShowSourceNotes(msgText.sN)
+    doShowRSecs(msgText.rsec)
+  } catch (e) {
+    console.log(`Error w/ display rSecs or sourceNotes: ${e}`)
+  }
+})
+  let initialIDNavigation
 StyleSheetRefresh();
 window.addEventListener("load", ReplaceText);
