@@ -76,8 +76,7 @@ function addAllListeners() {
   chpLaunchButton.addEventListener("click", () => {
     // @ts-ignore
     const orsSection = document.getElementById("orsChapter").value;
-    let orsChapter = `00${orsSection}`;
-    orsChapter = orsChapter.match(/\d{3}[A-C]?\b/)[0]; // pad to exactly 3 digits
+    let orsChapter = `00${orsSection}`.match(/\d{3}[A-C]?\b/)[0]; // pad to exactly 3 digits
     let orsURL = `https://www.oregonlegislature.gov/bills_laws/ors/ors${orsChapter}.html#${orsSection}`;
     //@ts-ignore
     chrome.tabs.create({ url: orsURL });
@@ -174,7 +173,7 @@ function getTabsWithOrs(){
     try{
       //@ts-ignore
       chrome.tabs.query(
-        { url: "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html" },
+        { url: "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html*" },
         (tabs) => {
           resolve(tabs)
         }

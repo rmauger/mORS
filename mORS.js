@@ -318,7 +318,6 @@ function ReplaceText() {
     const headHTML = document.head.innerHTML;
     const msoVolumeTag = /(?<=\<mso:Volume[^>]*\>0?)([^<]*)(?=\<)/;
     const msoChaperTag = /(?<=\<mso:[^>]*Chapter[^>]*\>0?)([^<]*)(?=\<)/g;
-    //  kill:    const titleTitle = /(?<=\.\s)([^]*?)(?=\s-)/;
     const edYearMatch = "20\\d{2}(?=\\sEDITION)";
     const chapterMatch = new RegExp(`(?<=Chapter\\s0{0,2})${orsChapter}`);
     const thisVolume = ifMatch(msoVolumeTag, headHTML);
@@ -326,7 +325,6 @@ function ReplaceText() {
     const thisChapterTitle = ifMatch(msoChaperTag, headHTML, 1);
     const thisEdYear = ifMatch(new RegExp(edYearMatch), chpHTML);
     thisChapterNum = ifMatch(chapterMatch, headHTML);
-
     const endOfHead = new RegExp(`[^]*?${edYearMatch}[^.]*?<p[^.]*?<p[^.]*?<p`); // three paragraphs past edition
     const preTitleMatch = new RegExp(`[^]*?Chapter\\s${thisChapterNum}`);
     const preTitle = ifMatch(
@@ -335,7 +333,8 @@ function ReplaceText() {
     );
     mainHead = `<div class=mainHead>${preTitle}<h3>Volume ${thisVolume}</h3><h2>Title ${thisTitle}</h2>
       <h1>Chapter ${thisChapterNum} - ${thisChapterTitle}</h1><h3>${thisEdYear} EDITION</h3></div>`;
-    chpHTML = chpHTML.replace(endOfHead, "<p"); //deleting existing heading
+      document.head.innerHTML=`<title>ORS ${thisChapterNum}: ${thisChapterTitle}</title>`;
+      chpHTML = chpHTML.replace(endOfHead, "<p"); //deleting existing heading
   }
   TableOfContents();
   //create & label new division for table of contents
@@ -606,7 +605,7 @@ function ReplaceText() {
   }
   finalCleanUp(); // dump HTML back into document, clean up double returns & classify TOC paragraphs
   function finalCleanUp() {
-    document.head.remove();
+
     document.body.innerHTML = mainHead + headAndTOC + chpHTML;
     document.body.innerHTML = document.body.innerHTML.replace(emptyTags, "");
     let tocID = document.getElementById("toc");
@@ -654,15 +653,13 @@ function ReplaceText() {
       document.body.innerHTML = chpHTML;
     }
     function OrLeg() {
-      const orLegURL =
-        '<a href="https://www.oregonlegislature.gov/bills_laws/lawsstatutes/';
-      const urlTail = '">$&</a>';
-      const orLawSourceNoteTail = "\\W+c\\.\\W*(\\d{1,4})";
-      const yearOrLawChpHead = "(?:C|c)hapter\\s(\\d{1,4}),\\sOregon\\sLaws\\s";
-      chpHTML = document.body.innerHTML;
-      function orLawReplacer(yearRegExp, strFormat) {
-        let orLawSourceNote = new RegExp(yearRegExp + orLawSourceNoteTail, "g");
-        let yearOrLawChp = new RegExp(yearOrLawChpHead + yearRegExp, "g");
+      /**
+       * @param {string} years
+       * @param {string} strFormat
+       */
+       function orLawReplacer(years, strFormat) {
+        let orLawSourceNote = new RegExp(years + orLawSourceNoteTail, "g");
+        let yearOrLawChp = new RegExp(yearOrLawChpHead + years, "g");
         let orLawRepl = orLegURL + strFormat + urlTail;
         chpHTML = chpHTML.replace(orLawSourceNote, orLawRepl);
         chpHTML = chpHTML.replace(
@@ -670,6 +667,18 @@ function ReplaceText() {
           orLawRepl.replace(/(\$1)([^]*?)(\$2)/, "$3$2$1")
         );
       }
+      function removeExtraZeros() {
+        const xtraZeros = /(aw|adv)\d+(\d{4})/g;
+        const xtraZerosRepl = "$1$2";
+        chpHTML = chpHTML.replace(xtraZeros, xtraZerosRepl);
+      }
+      // OrLeg MAIN:
+      const orLegURL =
+        '<a href="https://www.oregonlegislature.gov/bills_laws/lawsstatutes/';
+      const urlTail = '">$&</a>';
+      const orLawSourceNoteTail = "\\W+c\\.\\W*(\\d{1,4})";
+      const yearOrLawChpHead = "(?:C|c)hapter\\s(\\d{1,4}),\\sOregon\\sLaws\\s";
+      chpHTML = document.body.innerHTML;
       orLawReplacer(
         "(202[\\d]|2019|2018|2017|2016|2015|2013)",
         "$1orlaw000$2.pdf"
@@ -681,11 +690,6 @@ function ReplaceText() {
       orLawReplacer("(2006)", "$1orLaw000$2ss1.pdf");
       orLawReplacer("(2005)", "$1orLaw000$2ses.html");
       removeExtraZeros(); // Make sure chapter is padded to exactly 4 digits
-      function removeExtraZeros() {
-        const xtraZeros = /(aw|adv)\d+(\d{4})/g;
-        const xtraZerosRepl = "$1$2";
-        chpHTML = chpHTML.replace(xtraZeros, xtraZerosRepl);
-      }
       document.body.innerHTML = chpHTML;
     }
   }

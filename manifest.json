@@ -13,6 +13,7 @@
         "default_title": "mORS",
         "default_popup": "popup.html"
     },
+    "omnibox": {"keyword": "mors"},
     "content_scripts":[
         {
             "matches": ["*://www.oregonlegislature.gov/bills_laws/ors/ors*.html*"],

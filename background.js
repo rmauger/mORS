@@ -2,7 +2,84 @@
 // @ts-check
 
 "use strict";
-//setting out promises
+
+//@ts-ignore
+
+function navigate(aUrl) {
+  //@ts-ignore
+  chrome.tabs.create({url:aUrl})
+}
+
+//@ts-ignore
+chrome.omnibox.onInputEntered.addListener((omniText) =>{
+  const ors = /^ors:((\d{1,3}[A-C]?)(?:\.?$|.\d{3,4}$))/
+  const orlaw = /^orlaw:((?:19|20)\d{2})[ /|&](\d{1,4})/
+  if (ors.test(omniText)) {
+    let orsSearch = omniText.replace(ors, '00$2.html#$1')
+    orsSearch = orsSearch.replace(/\d{1,2}(\d{3}[A-C]?)(\.html)/, "$1$2")
+    navigate(`https://www.oregonlegislature.gov/bills_laws/ors/ors${orsSearch}`)
+  } else if (orlaw.test(omniText)) {
+    const year = omniText.match(/(19|20)\d{2}\b/)[0]
+    const chap = omniText.match(/\d{1,4}\b/)[0]
+    async ()=> {
+      const orReader = await promiseGetChromeStorage("lawsReaderStored")
+      if (orReader == 'OrLeg') {
+        let orLawFileName = orLawOrLegLookup["OL" + year].replace(
+          /~/,
+          "000" + chap
+        );
+        orLawFileName = orLawFileName.replace(
+          /([^]*?\w)\d*(\d{4}(?:\.|\w)*)/,
+          "$1$2"
+        );
+        let orLawURL =
+          "https://www.oregonlegislature.gov/bills_laws/lawsstatutes/" +
+          orLawFileName;
+        navigate(orLawURL)
+      } else if (orReader=='Hein') {
+        const heinURL =
+        `https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=${year}&chapter=${chap}&sgo=Search&collection=ssl&search=go`;    
+        navigate(heinURL)
+      }
+``  }
+    console.log('Matched in part' )
+  } else {
+    console.log("No match")
+  }  
+})
+
+//@ts-ignore
+// chrome.omnibox.onInputChanged.addListener(
+//   (_text, suggest) => {
+//     let results = []
+//     results.push({
+//       content:'content',
+//       description:'description'
+//     })
+//     suggest(results);
+//   }
+// )
+
+// //@ts-ignore
+// chrome.omnibox.setDefaultSuggestion(
+//   {description:'A default description'}
+// )
+
+/* 
+//@ts-ignore
+chrome.omnibox.onInputEntered.addListener((text) => {
+  updateDefaultSuggestion('')
+})
+
+//@ts-ignore
+chrome.omnibox.onInputCancelled.addListener(function() {
+  resetDefaultSuggestion();
+});
+ */
+
+
+///////////////////////////////////////////////
+
 function promiseGetActiveTab() {
   return new Promise((activeTab, reject) => {
     // @ts-ignore
