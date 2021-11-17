@@ -10,7 +10,8 @@ function promiseReqBackgroundJs(requestMsg) {
     try {
       //@ts-ignore
       chrome.runtime.sendMessage({message: requestMsg}, (response)=> {
-        console.log(`Response to ${requestMsg} = ${response.response}`)
+        infoLog(`Received response to ${requestMsg} : ${response.response}`,
+          `promiseReqBackgroundJs(${requestMsg})`)
         resolve(response.response)
       })
       } catch (e) {
@@ -23,15 +24,17 @@ function addAllListeners() {
   formCssNew.addEventListener("change", async () => {
     const getOldCss = await promiseReqBackgroundJs("getCssFile")
     setAfterGet(getOldCss)
-    function setAfterGet(formOldCss) {  //TODO Huh?
+    function setAfterGet(formOldCss) {
         //@ts-ignore
         chrome.storage.sync.set(
         // @ts-ignore
         {cssSelectorStored: formCssNew.value}
         , ()=> {
           // @ts-ignore
+          infoLog(`Retrieved OldCSS: ${formOldCss}, replacing with ${formCssNew.value}`,
+          'formCssNew.eventListener')
+          //@ts-ignore
           refreshPage(formOldCss, formCssNew.value)
-          //displayUserOptions();
         }
       );
     };
@@ -51,7 +54,6 @@ function addAllListeners() {
       // @ts-ignore
       {showBurntStored: showBurntCheck.checked}, ()=> {
         // @ts-ignore
-        console.log(`Setting showBurntStored as ${showBurntCheck.checked}`)
         sendMsgTabs()
       }
     )
@@ -69,10 +71,7 @@ function addAllListeners() {
     //@ts-ignore
     chrome.storage.sync.set(
       // @ts-ignore
-      {collapseDefaultStored: collapseCheck.checked}, ()=> {
-        // @ts-ignore
-        console.log(`Setting for collapseCheck stored as ${collapseCheck.checked}`)
-      }
+      {collapseDefaultStored: collapseCheck.checked}, ()=> {}
     )
   })
   chpLaunchButton.addEventListener("click", () => {
@@ -90,24 +89,28 @@ function addAllListeners() {
     const orLawsChp = document.getElementById("orLawsChapter").value;
     try {
       const orLawsReader = await promiseReqBackgroundJs("getOrLaw");
-      console.log(`Looking for OrLaws using ${orLawsReader}`)
       const orLawObj = {
-        msgType:'orLaws',
         year:orLawsYear,
         chap:orLawsChp,
         reader:orLawsReader
       } 
       const orLawUrl = await promiseReqBackgroundJs({orLawObj})
-      console.log(orLawUrl)
-      //@ts-ignore
-      chrome.tabs.create({ url: orLawUrl });
-      errorMsg.innerHTML=""
+      if (/(oregonlegislature\.gov|heinonline)/.test(orLawUrl)){
+        infoLog(`Creating new tab for ${orLawUrl}`,
+         `orLawsLaunch.EventListener`)
+        errorMsg.innerHTML=""
+        //@ts-ignore
+        chrome.tabs.create({ url: orLawUrl }), 2000
+      } else {
+        errorMsg.innerHTML=orLawUrl
+      };
     } catch (e) {
       errorMsg.innerHTML = e
     }
   });
 }
 async function displayUserOptions() {
+  
   function storedDataFinder() {
     return Promise.all([
       promiseReqBackgroundJs("getCssFile"),
@@ -117,9 +120,10 @@ async function displayUserOptions() {
       promiseReqBackgroundJs("getCollapsed")
     ]);
   };
+
   try {
+    console.groupCollapsed();
     const data = await storedDataFinder()
-    console.log(`Stored data retrieved=${data}`)
     // @ts-ignore
     for (let i = 0; i < formCssNew.options.length; i++) {
       // @ts-ignore
@@ -144,6 +148,7 @@ async function displayUserOptions() {
     showSNsCheck.checked=data[3]
     // @ts-ignore
     collapseCheck.checked=data[4]
+    console.groupEnd()
   } catch (e) {
     alert(e);
   }
@@ -174,7 +179,6 @@ async function sendMsgTabs(){
       // @ts-ignore
       sN: showSNsCheck.checked  
     }
-    console.log('sending msgs')
     //@ts-ignore
     chrome.tabs.sendMessage(aTab.id, {toMORS:message})
   }
@@ -188,6 +192,10 @@ async function reloadORS() {
   }
 }
 
+/**
+ * @param {string} oldCSS
+ * @param {string} newCSS
+ */
 async function refreshPage(oldCSS, newCSS) {
   const oldCssFile = `/css/${cssSourceLookup[oldCSS]}`
   const newCssFile = `/css/${cssSourceLookup[newCSS]}`
@@ -203,7 +211,7 @@ async function refreshPage(oldCSS, newCSS) {
         () => {}
       );
     } catch (error) {
-      console.log(error);
+      console.warn(`Error refreshing page: ${error}`);
     }
     //@ts-ignore
     chrome.scripting.insertCSS(
@@ -215,7 +223,13 @@ async function refreshPage(oldCSS, newCSS) {
     );
   }
 }
-
+/**
+ * @param {string} infoTxt
+ * @param {string} aFunction
+ */
+ function infoLog(infoTxt, aFunction) {
+  console.info(`%cpopup.js/${aFunction}: ${infoTxt}`, "color:orange")
+}
 // MAIN
 const errorMsg = document.getElementById("errorMsg")
 const formCssNew = document.getElementById("cssSelector") ;
@@ -239,5 +253,11 @@ let orLawOrLegLookup2 = { OL2021: "2021orlaw~.pdf",
 const cssSourceLookup = {
   Dark: "dark.css", Light: "light.css", DarkGrey: "darkgrey.css"
 }
-displayUserOptions();
 addAllListeners();
+window.addEventListener("focus", ()=>{
+  infoLog('Displaying user options & adding event listeners',
+   'window.addEventListener')
+  displayUserOptions();
+})
+
+

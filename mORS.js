@@ -48,7 +48,7 @@ async function javaDOM() {
    */
   function collapseSingle(collapseObj) {
     if (!collapseObj) {
-      console.log("No button found in object!?");
+      console.warn("No button found in object!?");
     }
     collapseObj.anElement.style.maxHeight = collapseObj.height;
   }
@@ -72,12 +72,12 @@ async function javaDOM() {
         buttonElement.classList.add("active");
         sectionDiv.style.maxHeight = "none"; //`${sectionDiv.scrollHeight}px`;
       } else {
-        console.log(
+        console.warn(
           `Target ${buttonElement.innerHTML} is not an active section`
         );
       }
     } else {
-      console.log("No button element found...");
+      console.warn("No button element found...");
     }
   }
   // Expands all ORS sections to full height
@@ -178,7 +178,7 @@ async function javaDOM() {
               }
             });
           } catch (e) {
-            console.log(`Error removing CSS ${e}`);
+            console.warn(`Error removing CSS ${e}`);
           }
         } else {
           document.getElementById("buttonCollapse").style.display = "inline";
@@ -211,19 +211,19 @@ async function javaDOM() {
           }
         });
       } catch (error) {
-        console.log(`Error in getCollapsed(): ${error}`);
+        console.warn(`Error in getCollapsed(): ${error}`);
       }
       try {
         const navID = await promiseGetNavID()
         if (navID) {
-          console.log("navigating to " + navID.innerText);
+          console.info(`navigating to ${navID.innerText}`);
           expandSingle(navID);
           navID.scrollIntoView();
         } else {
           console.log("No ORS section found in URL");
         }
       } catch (error) {
-        console.log(`Error getting tabURL: ${error}`);
+        console.warn(`Error getting tabURL: ${error}`);
       }
     }
     function getShowRSec() {
@@ -262,7 +262,7 @@ function promiseGetTabURL() {
         initialTabUrl = tab.url;
         resolve()
       } catch (e) {
-        console.log(`Error retrieving URL: ${e}`);
+        console.warn(`Error retrieving URL: ${e}`);
         reject(`Error retrieving URL: ${e}`);
       }
     });
@@ -273,7 +273,7 @@ function StyleSheetRefresh() {
     //@ts-ignore
     chrome.runtime.sendMessage({ message: "updateCSS" }, (response) => {});
   } catch (e) {
-    console.log(`Error applying stylesheet ${e}`);
+    console.warn(`Error applying stylesheet ${e}`);
   }
 }
 function ReplaceText() {
@@ -398,7 +398,7 @@ function ReplaceText() {
       headAndTOC = chpHTML.match(new RegExp(`[^]*?(?=${tocBreak})`))[0]; // copy TOC to own variable
       chpHTML = chpHTML.replace(new RegExp(`[^]*?${tocBreak}`), ""); // and remove it from the editing document
     } else {
-      console.log("No table of contents found");
+      console.warn("No table of contents found");
     }
   }
   SubUnits(); // finds and classifies subunits (subsections, paragraphs, subsections etc.)
@@ -624,7 +624,7 @@ function ReplaceText() {
         javaDOM(); // Do neither & go straight to adding buttons & javascript elements
       });
     } catch (e) {
-      console.log(`Error: ${e}`);
+      console.warn(`Error attempting to generate OrLaws links: ${e}`);
       javaDOM();
     }
 
@@ -688,15 +688,12 @@ function promiseGetNavID() {
   return new Promise (async (resolve, reject) => {
     try {
       setTimeout(() => {
-        console.log(`Url: ${initialTabUrl}`)
         const idFinder = /(?<=\.html\#)[^\/]*/;
         if (idFinder.test(initialTabUrl)) {
-          console.log('Found string')
           const pinCiteButton = document.getElementById(
             ifMatch(idFinder, initialTabUrl)
           );
           if (pinCiteButton) {
-            console.log(pinCiteButton.innerText)
             resolve(pinCiteButton);
           } else {
             resolve('');
@@ -706,8 +703,8 @@ function promiseGetNavID() {
         }
       }, 10);
     } catch (e) {
-      console.log("Nothing here?")
-      reject (`promiseGetNavID: ${e}`)
+      console.warn(`promiseGetNavID: ${e}`)
+      reject(`promiseGetNavID: ${e}`)
     }
   })
 }
@@ -724,6 +721,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, _reponse) => {
     doShowSourceNotes(msgText.sN);
     doShowRSecs(msgText.rsec);
   } catch (e) {
-    console.log(`Error w/ display rSecs or sourceNotes: ${e}`);
+    console.warn(`Error w/ display rSecs or sourceNotes: ${e}`);
   }
 });
