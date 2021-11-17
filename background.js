@@ -31,25 +31,22 @@ chrome.omnibox.onInputEntered.addListener((omniText) =>{
     const year = omniText.match(/\b(19|20)\d{2}\b/)[0]
     const chap = omniText.match(/\d{1,4}$/)[0]
     const reader = await promiseGetChromeStorage("lawsReaderStored")
-    console.log(year);
-    console.log(chap);
-
     const navigateToOrLaw = await promiseGetOrLegUrl(year, chap, reader)
     navigate(navigateToOrLaw)
-  }   
-  const ors = /^ors:((\d{1,3}[A-C]?)(?:\.?$|.\d{3,4}$))/
-  const orlaw = /^orlaw:\s?((?:19|20)\d{2})\s*?([/|&]|\s|c\.)\s*?(\d{1,4}$)/
-    
+  }
+  const ors = /[^]*(\b\d{1,3}[A-C]?)(?:\.?$|.\d{3,4}$)[^]*/g
+  const orlaw = /[^]*((?:19|20)\d{2})\s*?([/|&]|\s|c\.)\s*?(\d{1,4}$)[^]*/g
+
   if (ors.test(omniText)) {
-    let orsSearch = omniText.replace(ors, '00$2.html#$1')
+    let orsSearch = omniText.replace(ors, '00$1.html#$&')
     orsSearch = orsSearch.replace(/\d{1,2}(\d{3}[A-C]?)(\.html)/, "$1$2")
     navigate(`https://www.oregonlegislature.gov/bills_laws/ors/ors${orsSearch}`)
-  } else if (orlaw.test(omniText)) {  
+  } else if (orlaw.test(omniText)) {
     getOrLaw()
   } else {
-    console.log("No match")
-  }    
-  console.log('exited test function')  
+    logOrWarn(`Type 'mORS' + ORS '{chapter}' or '{section}' or '{year} c.{chapter#}\n
+      (E.g., '659A', '174.010', or '2015 c.614')`)
+  }
 })
 
 /**
@@ -75,38 +72,39 @@ function promiseGetOrLegUrl(year, chapter, reader) {
     }
     return errMsg
   }
-  return new Promise(async (resolve, reject)=>{
+  return new Promise((resolve, reject)=>{
     const errorMessage=orLawErrorCheck()
     if(errorMessage.length < 1) {
-      if (reader == 'OrLeg') {
-        let orLawFileName = orLawOrLegLookup["OL" + year].replace(
-          /~/,
-          "000" + chapter
-        );
-        orLawFileName = orLawFileName.replace(
-          /([^]*?\w)\d*(\d{4}(?:\.|\w)*)/,
-          "$1$2"
-        );
-        resolve(`https://www.oregonlegislature.gov/bills_laws/lawsstatutes/${orLawFileName}`)
-      } else if (reader=='Hein') {
-        resolve(`https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=${year}&chapter=${chapter}&sgo=Search&collection=ssl&search=go`);
+      try {
+        if (reader == 'OrLeg') {
+          let orLawFileName = orLawOrLegLookup["OL" + year].replace(
+            /~/,
+            "000" + chapter
+          );
+          orLawFileName = orLawFileName.replace(
+            /([^]*?\w)\d*(\d{4}(?:\.|\w)*)/,
+            "$1$2"
+          );
+          resolve(`https://www.oregonlegislature.gov/bills_laws/lawsstatutes/${orLawFileName}`)
+        } else if (reader=='Hein') {
+          resolve(`https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=${year}&chapter=${chapter}&sgo=Search&collection=ssl&search=go`);
+        }
+      } catch (e) {
+        reject (e)
       }
     } else {
-      console.log(errorMessage)
       reject(errorMessage)
     }
   })
 }
 
-
-
 function promiseGetActiveTab() {
-  return new Promise((activeTab, reject) => {
+  return new Promise((resolve, reject) => {
     // @ts-ignore
     chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
       if (tabs) {
-        console.log(`Found tab id ${tabs[0].id} url: ${tabs[0].url}`)
-        activeTab(tabs[0]);
+        logOrWarn(`Active tab is #${tabs[0].id}, url: ${tabs[0].url}`)
+        resolve(tabs[0]);
       } else {
         reject("Unable to determine active tab");
       } 
@@ -122,15 +120,16 @@ function promiseGetChromeStorage (objKey) {
       //@ts-ignore
       chrome.storage.sync.get(objKey, (storedObj) => {
         if (storedObj) {
-          console.log(`Retrieved from ${objKey} : ${storedObj[objKey]}.`)
+          console.info(`background.js/PromiseGetChromeStorage : Retrieved from ${objKey} : ${storedObj[objKey]}`)
           resolve(storedObj[objKey]);
         } else {
+          logOrWarn("Unable to retrieve stored user preference")
           reject("Unable to retrieve stored user preference");
         }
       })
     } catch (e) {
       logOrWarn(`Error: ${e}`, 'ChromeStorage')
-      reject(`chrome storage retrieval error. Error: ${e}`)
+      reject(`Chrome storage retrieval error. Error: ${e}`)
     }
   })
 }
@@ -140,7 +139,11 @@ function promiseGetChromeStorage (objKey) {
  * @param {(arg0: {response: any;}) => void} response
  */
  async function messageHandler(referencedPromise, response){
-  response({response:await referencedPromise})
+  try {
+    response({response:await referencedPromise})
+  } catch (e) {
+    response({response:`Error: ${e}`})
+  }
 }
 
 //@ts-ignore
@@ -164,35 +167,37 @@ chrome.runtime.onMessage.addListener((msg, _, response) => {
         messageHandler(promiseGetChromeStorage("showSNsStored"), response)
         break;
       case "getShowBurnt":
-        console.log('retrieving show Burn storage')
         messageHandler(promiseGetChromeStorage("showBurntStored"), response)
         break;
       case "getCollapsed":
         messageHandler(promiseGetChromeStorage("collapseDefaultStored"), response)
         break;
       case "getCurrentTab":
-        console.log("retrieving active tab")
         messageHandler(promiseGetActiveTab(), response);
         break;
-      case "Hello":
-        console.log("Hello yourself.")
-        break;
       default:
-        console.log("message made no sense.")
-        response("No response")
+        logOrWarn("Received message made no sense.", "Invalid message received by script")
+        response("")
         break;
     }
-  } else if (received.msgType=='orLaws') {
-    console.log('orLaws...')
-    const url=messageHandler(promiseGetOrLegUrl(received.year, received.chap, received.reader), response)
-    console.log(`url: ${url}`)
-    response(url)
+  } else if (received["orLawObj"]) {
+    try {  
+    messageHandler(promiseGetOrLegUrl(
+        received["orLawObj"].year,
+        received["orLawObj"].chap,
+        received["orLawObj"].reader
+      ), response)
+    } catch (e) {
+      response(`Error: ${e}`)
+    }
   }
   return true;
 });
 
 // responding to mORS.js request for stored OrLaws source or current tab's URL
 //@ts-ignore
+// TODO: Remove port listener (after verification)
+// ===>
 chrome.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener((msg) => {
     switch (msg.message) {
@@ -214,8 +219,9 @@ chrome.runtime.onConnect.addListener((port) => {
     }
   });
 });
+// <===== End of Port listening
 
-//removes any existing css and adds css from stored value
+//removes existing css and adds css from stored value
 async function promiseDoUpdateCSS() {
   return new Promise(async (UpdateCSS, reject)=>  {
     try {
@@ -272,7 +278,7 @@ async function promiseDoRemoveCSS() {
  * @param {string} msgTxt
  */
 function logOrWarn(msgTxt, warningId = "") {
-  console.log(`MESSAGE: ${msgTxt}`);
+  console.warn(`%cNotification: ${msgTxt}`, 'color:pink');
   if (warningId != "") {
     const newDate = new Date();
     const myId =
