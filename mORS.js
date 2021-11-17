@@ -144,21 +144,21 @@ async function javaDOM() {
       fixedDiv.appendChild(versionPar);
     }
     function addExpandAllButton() {
-      var expandAllButton = document.createElement("button");
+      let expandAllButton = document.createElement("button");
       expandAllButton.innerText = "Expand all";
       expandAllButton.id = "buttonExpand";
       fixedDiv.appendChild(expandAllButton);
       expandAllButton.addEventListener("click", () => expandAllSections());
     }
     function addCollapseAllButton() {
-      var collapseAllButton = document.createElement("button");
+      let collapseAllButton = document.createElement("button");
       collapseAllButton.innerText = "Collapse all";
       collapseAllButton.id = "buttonCollapse";
       fixedDiv.appendChild(collapseAllButton);
       collapseAllButton.addEventListener("click", () => collapseAllSections());
     }
     function addToggleCssButton() {
-      var toggleCSSButton = document.createElement("button");
+      let toggleCSSButton = document.createElement("button");
       toggleCSSButton.innerHTML = "Remove Style";
       toggleCSSButton.classList.add("cssOn");
       toggleCSSButton.id = "buttonToggleCSS";
@@ -178,7 +178,7 @@ async function javaDOM() {
               }
             });
           } catch (e) {
-            console.log(`Error in line 163: ${e}`);
+            console.log(`Error removing CSS ${e}`);
           }
         } else {
           document.getElementById("buttonCollapse").style.display = "inline";
@@ -201,30 +201,7 @@ async function javaDOM() {
     document.body.appendChild(fixedDiv);
   }
 
-  function promiseGetTabURL() {
-    return new Promise((resolve, reject) => {
-      //@ts-ignore
-      chrome.runtime.sendMessage({ message: "getCurrentTab" }, (msg) => {
-        let tabUrl = "";
-        try {
-          const tab = msg.response;
-          tabUrl = tab.url;
-        } catch (e) {
-          console.log(`Error retrieving URL: ${e}`);
-        }
-        const idFinder = /(?<=\.html\#)[^\/]*/;
-        if (idFinder.test(tabUrl)) {
-          const pinCiteButton = document.getElementById(
-            ifMatch(idFinder, tabUrl)
-          );
-          if (pinCiteButton) {
-            resolve(pinCiteButton);
-          } else resolve("");
-        }
-      });
-    });
-  }
-  function implementParameters() {
+    function implementParameters() {
     async function getCollapsed() {
       try {
         //@ts-ignore
@@ -234,14 +211,14 @@ async function javaDOM() {
           }
         });
       } catch (error) {
-        console.log(`Error get collapsed: ${error}`);
+        console.log(`Error in getCollapsed(): ${error}`);
       }
       try {
-        initialIDNavigation = await promiseGetTabURL();
-        if (initialIDNavigation) {
-          console.log("navigating to " + initialIDNavigation.innerText);
-          expandSingle(initialIDNavigation);
-          initialIDNavigation.scrollIntoView();
+        const navID = await promiseGetNavID()
+        if (navID) {
+          console.log("navigating to " + navID.innerText);
+          expandSingle(navID);
+          navID.scrollIntoView();
         } else {
           console.log("No ORS section found in URL");
         }
@@ -253,7 +230,6 @@ async function javaDOM() {
       //@ts-ignore
       chrome.runtime.sendMessage({ message: "getShowBurnt" }, (response) => {
         const doShow = response.response;
-        console.log(`Show burnt ${doShow}`);
         doShowRSecs(doShow);
       });
     }
@@ -261,7 +237,6 @@ async function javaDOM() {
       //@ts-ignore
       chrome.runtime.sendMessage({ message: "getShowSNs" }, (response) => {
         const doShow = response.response;
-        console.log(`Show sourcenotes ${doShow}`);
         doShowSourceNotes(doShow);
       });
     }
@@ -278,6 +253,21 @@ async function javaDOM() {
   implementParameters();
 }
 
+function promiseGetTabURL() {
+  return new Promise((resolve, reject) => {
+    //@ts-ignore
+    chrome.runtime.sendMessage({ message: "getCurrentTab" }, (msg) => {
+      try {
+        const tab = msg.response;
+        initialTabUrl = tab.url;
+        resolve()
+      } catch (e) {
+        console.log(`Error retrieving URL: ${e}`);
+        reject(`Error retrieving URL: ${e}`);
+      }
+    });
+  });
+}
 function StyleSheetRefresh() {
   try {
     //@ts-ignore
@@ -631,7 +621,7 @@ function ReplaceText() {
         } else if (orLaw == "OrLeg") {
           OrLeg(); // replace with URL to Or.Leg.
         }
-        javaDOM(); // Add buttons & javascript elements
+        javaDOM(); // Do neither & go straight to adding buttons & javascript elements
       });
     } catch (e) {
       console.log(`Error: ${e}`);
@@ -694,23 +684,46 @@ function ReplaceText() {
     }
   }
 }
+function promiseGetNavID() {
+  return new Promise (async (resolve, reject) => {
+    try {
+      setTimeout(() => {
+        console.log(`Url: ${initialTabUrl}`)
+        const idFinder = /(?<=\.html\#)[^\/]*/;
+        if (idFinder.test(initialTabUrl)) {
+          console.log('Found string')
+          const pinCiteButton = document.getElementById(
+            ifMatch(idFinder, initialTabUrl)
+          );
+          if (pinCiteButton) {
+            console.log(pinCiteButton.innerText)
+            resolve(pinCiteButton);
+          } else {
+            resolve('');
+          }
+        } else {
+          resolve ('')
+        }
+      }, 10);
+    } catch (e) {
+      console.log("Nothing here?")
+      reject (`promiseGetNavID: ${e}`)
+    }
+  })
+}
 
 // MAIN
-// let backgroundPort = chrome.runtime.connect(); // open port to background.js
-// backgroundPort.postMessage({ message: "RequestOrLawsSource" });
-// backgroundPort.onMessage.addListener((msg)
+let initialTabUrl;
+promiseGetTabURL()
+StyleSheetRefresh();
+window.addEventListener("load", ReplaceText);
 //@ts-ignore
 chrome.runtime.onMessage.addListener((msg, _sender, _reponse) => {
   const msgText = msg.toMORS;
   try {
-    console.log(`Received message`);
-    console.log(`Received: ${msgText.rsec}`);
     doShowSourceNotes(msgText.sN);
     doShowRSecs(msgText.rsec);
   } catch (e) {
     console.log(`Error w/ display rSecs or sourceNotes: ${e}`);
   }
 });
-let initialIDNavigation;
-StyleSheetRefresh();
-window.addEventListener("load", ReplaceText);

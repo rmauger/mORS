@@ -2,23 +2,26 @@
 //@ts-check
 "use strict";
 
-function promiseGetFromBackground(requestStr) {
+/**
+ * @param {string|object} requestMsg
+ */
+function promiseReqBackgroundJs(requestMsg) {
   return new Promise((resolve, reject)=>{
     try {
       //@ts-ignore
-      chrome.runtime.sendMessage({message: requestStr}, (response)=> {
-        console.log(`Response to ${requestStr} = ${response.response}`)
+      chrome.runtime.sendMessage({message: requestMsg}, (response)=> {
+        console.log(`Response to ${requestMsg} = ${response.response}`)
         resolve(response.response)
       })
       } catch (e) {
-        reject(`Failed sending {message: ${requestStr}} to background.js. Error: ${e}`)
+        reject(`Failed sending {message: ${requestMsg}} to background.js. Error: ${e}`)
       }
   })
 }
 //setup event listeners for form dropdowns & buttons
 function addAllListeners() {
   formCssNew.addEventListener("change", async () => {
-    const getOldCss = await promiseGetFromBackground("getCssFile")
+    const getOldCss = await promiseReqBackgroundJs("getCssFile")
     setAfterGet(getOldCss)
     function setAfterGet(formOldCss) {  //TODO Huh?
         //@ts-ignore
@@ -39,7 +42,6 @@ function addAllListeners() {
       // @ts-ignore
       {lawsReaderStored: orLawSelector.value}, ()=> {
         reloadORS()
-//        displayUserOptions();
       }
     );
   }); 
@@ -81,59 +83,38 @@ function addAllListeners() {
     //@ts-ignore
     chrome.tabs.create({ url: orsURL });
   });
-  orLawsLaunchButton.addEventListener("click", () => {
+  orLawsLaunchButton.addEventListener("click", async () => {
     // @ts-ignore
-    let orLawsYear = document.getElementById("orLawsYear").value;
+    const orLawsYear = document.getElementById("orLawsYear").value;
     // @ts-ignore
-    let orLawsChp = document.getElementById("orLawsChapter").value;
-    let errMsg = "";
-    let orLawURL = "";
-    if ((orLawsYear > 1859 && orLawsYear < 2030) == false) {
-      errMsg += "Oregon Laws volume must be a year after 1859.\n";
-    // @ts-ignore
-    } else if (orLawsYear > 1999 == false && orLawSelector.value == "OrLeg") {
-      errMsg +="Oregon Laws on the Oregon Legislature's website are only available before 1999.\n";
-    }
-    if ((orLawsChp < 2001 && orLawsChp > 0) == false) {
-      errMsg += "Chapter must be a number between 1 and 2000.\n";
-    }
-    // @ts-ignore
-    if (orLawSelector.value == "None") {
-      errMsg += "A session law lookup source (below) is required.";
-    }
-    if (errMsg.length > 1) {
-      alert(errMsg);
-      // TODO: #18 Create better display for error messages within popup.html
-    } else {
-      // @ts-ignore
-      if (orLawSelector.value == "Hein") {
-        orLawURL = `https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=${orLawsYear}&chapter=${orLawsChp}&sgo=Search&collection=ssl&search=go`;
-      } else {
-        let orLawFileName = orLawOrLegLookup["OL" + orLawsYear].replace(
-          /~/,
-          "000" + orLawsChp
-        );
-        orLawFileName = orLawFileName.replace(
-          /([^]*?\w)\d*(\d{4}(?:\.|\w)*)/,
-          "$1$2"
-        );
-        orLawURL =
-          "https://www.oregonlegislature.gov/bills_laws/lawsstatutes/" +
-          orLawFileName;
-      }
+    const orLawsChp = document.getElementById("orLawsChapter").value;
+    try {
+      const orLawsReader = await promiseReqBackgroundJs("getOrLaw");
+      console.log(`Looking for OrLaws using ${orLawsReader}`)
+      const orLawObj = {
+        msgType:'orLaws',
+        year:orLawsYear,
+        chap:orLawsChp,
+        reader:orLawsReader
+      } 
+      const orLawUrl = await promiseReqBackgroundJs({orLawObj})
+      console.log(orLawUrl)
       //@ts-ignore
-      chrome.tabs.create({ url: orLawURL });
+      chrome.tabs.create({ url: orLawUrl });
+      errorMsg.innerHTML=""
+    } catch (e) {
+      errorMsg.innerHTML = e
     }
   });
 }
 async function displayUserOptions() {
   function storedDataFinder() {
     return Promise.all([
-      promiseGetFromBackground("getCssFile"),
-      promiseGetFromBackground("getOrLaw"),
-      promiseGetFromBackground("getShowBurnt"), 
-      promiseGetFromBackground("getShowSNs"),
-      promiseGetFromBackground("getCollapsed")
+      promiseReqBackgroundJs("getCssFile"),
+      promiseReqBackgroundJs("getOrLaw"),
+      promiseReqBackgroundJs("getShowBurnt"), 
+      promiseReqBackgroundJs("getShowSNs"),
+      promiseReqBackgroundJs("getCollapsed")
     ]);
   };
   try {
@@ -236,6 +217,7 @@ async function refreshPage(oldCSS, newCSS) {
 }
 
 // MAIN
+const errorMsg = document.getElementById("errorMsg")
 const formCssNew = document.getElementById("cssSelector") ;
 const orLawSelector = document.getElementById("OrLaws");
 const chpLaunchButton = document.getElementById("chapterLaunch");
@@ -243,7 +225,7 @@ const orLawsLaunchButton = document.getElementById("orLawsLaunch");
 const showBurntCheck = document.getElementById("showRSec");
 const showSNsCheck = document.getElementById("showSNote")
 const collapseCheck = document.getElementById("collapseDefault") 
-const orLawOrLegLookup = { OL2021: "2021orlaw~.pdf",
+let orLawOrLegLookup2 = { OL2021: "2021orlaw~.pdf",
   OL2020: "2020orlaw~.pdf", OL2019: "2019orlaw~.pdf",
   OL2018: "2018orlaw~.pdf", OL2017: "2017orlaw~.pdf",
   OL2016: "2016orlaw~.pdf", OL2015: "2015orlaw~.pdf",
