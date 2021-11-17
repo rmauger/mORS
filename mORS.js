@@ -48,7 +48,7 @@ async function javaDOM() {
    */
   function collapseSingle(collapseObj) {
     if (!collapseObj) {
-      console.log("No button found in object!?");
+      console.warn("No button found in object!?");
     }
     collapseObj.anElement.style.maxHeight = collapseObj.height;
   }
@@ -72,12 +72,12 @@ async function javaDOM() {
         buttonElement.classList.add("active");
         sectionDiv.style.maxHeight = "none"; //`${sectionDiv.scrollHeight}px`;
       } else {
-        console.log(
+        console.warn(
           `Target ${buttonElement.innerHTML} is not an active section`
         );
       }
     } else {
-      console.log("No button element found...");
+      console.warn("No button element found...");
     }
   }
   // Expands all ORS sections to full height
@@ -144,21 +144,21 @@ async function javaDOM() {
       fixedDiv.appendChild(versionPar);
     }
     function addExpandAllButton() {
-      var expandAllButton = document.createElement("button");
+      let expandAllButton = document.createElement("button");
       expandAllButton.innerText = "Expand all";
       expandAllButton.id = "buttonExpand";
       fixedDiv.appendChild(expandAllButton);
       expandAllButton.addEventListener("click", () => expandAllSections());
     }
     function addCollapseAllButton() {
-      var collapseAllButton = document.createElement("button");
+      let collapseAllButton = document.createElement("button");
       collapseAllButton.innerText = "Collapse all";
       collapseAllButton.id = "buttonCollapse";
       fixedDiv.appendChild(collapseAllButton);
       collapseAllButton.addEventListener("click", () => collapseAllSections());
     }
     function addToggleCssButton() {
-      var toggleCSSButton = document.createElement("button");
+      let toggleCSSButton = document.createElement("button");
       toggleCSSButton.innerHTML = "Remove Style";
       toggleCSSButton.classList.add("cssOn");
       toggleCSSButton.id = "buttonToggleCSS";
@@ -178,7 +178,7 @@ async function javaDOM() {
               }
             });
           } catch (e) {
-            console.log(`Error in line 163: ${e}`);
+            console.warn(`Error removing CSS ${e}`);
           }
         } else {
           document.getElementById("buttonCollapse").style.display = "inline";
@@ -201,30 +201,7 @@ async function javaDOM() {
     document.body.appendChild(fixedDiv);
   }
 
-  function promiseGetTabURL() {
-    return new Promise((resolve, reject) => {
-      //@ts-ignore
-      chrome.runtime.sendMessage({ message: "getCurrentTab" }, (msg) => {
-        let tabUrl = "";
-        try {
-          const tab = msg.response;
-          tabUrl = tab.url;
-        } catch (e) {
-          console.log(`Error retrieving URL: ${e}`);
-        }
-        const idFinder = /(?<=\.html\#)[^\/]*/;
-        if (idFinder.test(tabUrl)) {
-          const pinCiteButton = document.getElementById(
-            ifMatch(idFinder, tabUrl)
-          );
-          if (pinCiteButton) {
-            resolve(pinCiteButton);
-          } else resolve("");
-        }
-      });
-    });
-  }
-  function implementParameters() {
+    function implementParameters() {
     async function getCollapsed() {
       try {
         //@ts-ignore
@@ -234,26 +211,25 @@ async function javaDOM() {
           }
         });
       } catch (error) {
-        console.log(`Error get collapsed: ${error}`);
+        console.warn(`Error in getCollapsed(): ${error}`);
       }
       try {
-        initialIDNavigation = await promiseGetTabURL();
-        if (initialIDNavigation) {
-          console.log("navigating to " + initialIDNavigation.innerText);
-          expandSingle(initialIDNavigation);
-          initialIDNavigation.scrollIntoView();
+        const navID = await promiseGetNavID()
+        if (navID) {
+          console.info(`navigating to ${navID.innerText}`);
+          expandSingle(navID);
+          navID.scrollIntoView();
         } else {
           console.log("No ORS section found in URL");
         }
       } catch (error) {
-        console.log(`Error getting tabURL: ${error}`);
+        console.warn(`Error getting tabURL: ${error}`);
       }
     }
     function getShowRSec() {
       //@ts-ignore
       chrome.runtime.sendMessage({ message: "getShowBurnt" }, (response) => {
         const doShow = response.response;
-        console.log(`Show burnt ${doShow}`);
         doShowRSecs(doShow);
       });
     }
@@ -261,7 +237,6 @@ async function javaDOM() {
       //@ts-ignore
       chrome.runtime.sendMessage({ message: "getShowSNs" }, (response) => {
         const doShow = response.response;
-        console.log(`Show sourcenotes ${doShow}`);
         doShowSourceNotes(doShow);
       });
     }
@@ -278,12 +253,27 @@ async function javaDOM() {
   implementParameters();
 }
 
+function promiseGetTabURL() {
+  return new Promise((resolve, reject) => {
+    //@ts-ignore
+    chrome.runtime.sendMessage({ message: "getCurrentTab" }, (msg) => {
+      try {
+        const tab = msg.response;
+        initialTabUrl = tab.url;
+        resolve()
+      } catch (e) {
+        console.warn(`Error retrieving URL: ${e}`);
+        reject(`Error retrieving URL: ${e}`);
+      }
+    });
+  });
+}
 function StyleSheetRefresh() {
   try {
     //@ts-ignore
     chrome.runtime.sendMessage({ message: "updateCSS" }, (response) => {});
   } catch (e) {
-    console.log(`Error applying stylesheet ${e}`);
+    console.warn(`Error applying stylesheet ${e}`);
   }
 }
 function ReplaceText() {
@@ -318,7 +308,6 @@ function ReplaceText() {
     const headHTML = document.head.innerHTML;
     const msoVolumeTag = /(?<=\<mso:Volume[^>]*\>0?)([^<]*)(?=\<)/;
     const msoChaperTag = /(?<=\<mso:[^>]*Chapter[^>]*\>0?)([^<]*)(?=\<)/g;
-    //  kill:    const titleTitle = /(?<=\.\s)([^]*?)(?=\s-)/;
     const edYearMatch = "20\\d{2}(?=\\sEDITION)";
     const chapterMatch = new RegExp(`(?<=Chapter\\s0{0,2})${orsChapter}`);
     const thisVolume = ifMatch(msoVolumeTag, headHTML);
@@ -326,7 +315,6 @@ function ReplaceText() {
     const thisChapterTitle = ifMatch(msoChaperTag, headHTML, 1);
     const thisEdYear = ifMatch(new RegExp(edYearMatch), chpHTML);
     thisChapterNum = ifMatch(chapterMatch, headHTML);
-
     const endOfHead = new RegExp(`[^]*?${edYearMatch}[^.]*?<p[^.]*?<p[^.]*?<p`); // three paragraphs past edition
     const preTitleMatch = new RegExp(`[^]*?Chapter\\s${thisChapterNum}`);
     const preTitle = ifMatch(
@@ -335,7 +323,8 @@ function ReplaceText() {
     );
     mainHead = `<div class=mainHead>${preTitle}<h3>Volume ${thisVolume}</h3><h2>Title ${thisTitle}</h2>
       <h1>Chapter ${thisChapterNum} - ${thisChapterTitle}</h1><h3>${thisEdYear} EDITION</h3></div>`;
-    chpHTML = chpHTML.replace(endOfHead, "<p"); //deleting existing heading
+      document.head.innerHTML=`<title>ORS ${thisChapterNum}: ${thisChapterTitle}</title>`;
+      chpHTML = chpHTML.replace(endOfHead, "<p"); //deleting existing heading
   }
   TableOfContents();
   //create & label new division for table of contents
@@ -409,7 +398,7 @@ function ReplaceText() {
       headAndTOC = chpHTML.match(new RegExp(`[^]*?(?=${tocBreak})`))[0]; // copy TOC to own variable
       chpHTML = chpHTML.replace(new RegExp(`[^]*?${tocBreak}`), ""); // and remove it from the editing document
     } else {
-      console.log("No table of contents found");
+      console.warn("No table of contents found");
     }
   }
   SubUnits(); // finds and classifies subunits (subsections, paragraphs, subsections etc.)
@@ -606,7 +595,7 @@ function ReplaceText() {
   }
   finalCleanUp(); // dump HTML back into document, clean up double returns & classify TOC paragraphs
   function finalCleanUp() {
-    document.head.remove();
+
     document.body.innerHTML = mainHead + headAndTOC + chpHTML;
     document.body.innerHTML = document.body.innerHTML.replace(emptyTags, "");
     let tocID = document.getElementById("toc");
@@ -632,10 +621,10 @@ function ReplaceText() {
         } else if (orLaw == "OrLeg") {
           OrLeg(); // replace with URL to Or.Leg.
         }
-        javaDOM(); // Add buttons & javascript elements
+        javaDOM(); // Do neither & go straight to adding buttons & javascript elements
       });
     } catch (e) {
-      console.log(`Error: ${e}`);
+      console.warn(`Error attempting to generate OrLaws links: ${e}`);
       javaDOM();
     }
 
@@ -654,15 +643,13 @@ function ReplaceText() {
       document.body.innerHTML = chpHTML;
     }
     function OrLeg() {
-      const orLegURL =
-        '<a href="https://www.oregonlegislature.gov/bills_laws/lawsstatutes/';
-      const urlTail = '">$&</a>';
-      const orLawSourceNoteTail = "\\W+c\\.\\W*(\\d{1,4})";
-      const yearOrLawChpHead = "(?:C|c)hapter\\s(\\d{1,4}),\\sOregon\\sLaws\\s";
-      chpHTML = document.body.innerHTML;
-      function orLawReplacer(yearRegExp, strFormat) {
-        let orLawSourceNote = new RegExp(yearRegExp + orLawSourceNoteTail, "g");
-        let yearOrLawChp = new RegExp(yearOrLawChpHead + yearRegExp, "g");
+      /**
+       * @param {string} years
+       * @param {string} strFormat
+       */
+       function orLawReplacer(years, strFormat) {
+        let orLawSourceNote = new RegExp(years + orLawSourceNoteTail, "g");
+        let yearOrLawChp = new RegExp(yearOrLawChpHead + years, "g");
         let orLawRepl = orLegURL + strFormat + urlTail;
         chpHTML = chpHTML.replace(orLawSourceNote, orLawRepl);
         chpHTML = chpHTML.replace(
@@ -670,6 +657,18 @@ function ReplaceText() {
           orLawRepl.replace(/(\$1)([^]*?)(\$2)/, "$3$2$1")
         );
       }
+      function removeExtraZeros() {
+        const xtraZeros = /(aw|adv)\d+(\d{4})/g;
+        const xtraZerosRepl = "$1$2";
+        chpHTML = chpHTML.replace(xtraZeros, xtraZerosRepl);
+      }
+      // OrLeg MAIN:
+      const orLegURL =
+        '<a href="https://www.oregonlegislature.gov/bills_laws/lawsstatutes/';
+      const urlTail = '">$&</a>';
+      const orLawSourceNoteTail = "\\W+c\\.\\W*(\\d{1,4})";
+      const yearOrLawChpHead = "(?:C|c)hapter\\s(\\d{1,4}),\\sOregon\\sLaws\\s";
+      chpHTML = document.body.innerHTML;
       orLawReplacer(
         "(202[\\d]|2019|2018|2017|2016|2015|2013)",
         "$1orlaw000$2.pdf"
@@ -681,32 +680,47 @@ function ReplaceText() {
       orLawReplacer("(2006)", "$1orLaw000$2ss1.pdf");
       orLawReplacer("(2005)", "$1orLaw000$2ses.html");
       removeExtraZeros(); // Make sure chapter is padded to exactly 4 digits
-      function removeExtraZeros() {
-        const xtraZeros = /(aw|adv)\d+(\d{4})/g;
-        const xtraZerosRepl = "$1$2";
-        chpHTML = chpHTML.replace(xtraZeros, xtraZerosRepl);
-      }
       document.body.innerHTML = chpHTML;
     }
   }
 }
+function promiseGetNavID() {
+  return new Promise (async (resolve, reject) => {
+    try {
+      setTimeout(() => {
+        const idFinder = /(?<=\.html\#)[^\/]*/;
+        if (idFinder.test(initialTabUrl)) {
+          const pinCiteButton = document.getElementById(
+            ifMatch(idFinder, initialTabUrl)
+          );
+          if (pinCiteButton) {
+            resolve(pinCiteButton);
+          } else {
+            resolve('');
+          }
+        } else {
+          resolve ('')
+        }
+      }, 10);
+    } catch (e) {
+      console.warn(`promiseGetNavID: ${e}`)
+      reject(`promiseGetNavID: ${e}`)
+    }
+  })
+}
 
 // MAIN
-// let backgroundPort = chrome.runtime.connect(); // open port to background.js
-// backgroundPort.postMessage({ message: "RequestOrLawsSource" });
-// backgroundPort.onMessage.addListener((msg)
+let initialTabUrl;
+promiseGetTabURL()
+StyleSheetRefresh();
+window.addEventListener("load", ReplaceText);
 //@ts-ignore
 chrome.runtime.onMessage.addListener((msg, _sender, _reponse) => {
   const msgText = msg.toMORS;
   try {
-    console.log(`Received message`);
-    console.log(`Received: ${msgText.rsec}`);
     doShowSourceNotes(msgText.sN);
     doShowRSecs(msgText.rsec);
   } catch (e) {
-    console.log(`Error w/ display rSecs or sourceNotes: ${e}`);
+    console.warn(`Error w/ display rSecs or sourceNotes: ${e}`);
   }
 });
-let initialIDNavigation;
-StyleSheetRefresh();
-window.addEventListener("load", ReplaceText);
