@@ -8,13 +8,17 @@
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason == "install") {
     //@ts-ignore
-    chrome.storage.set([
-      { cssSelectorStored: "Dark" },
-      { lawsReaderStored: "OrLeg" },
-      { collapseDefaultStored: false },
-      { showSNsStored: true },
-      { showBurntStored: true },
-    ]);
+    chrome.storage.sync.clear()
+    //@ts-ignore
+    chrome.storage.sync.set( { cssSelectorStored: "Dark" } )
+    //@ts-ignore
+    chrome.storage.sync.set( { lawsReaderStored: "OrLeg" } )
+    //@ts-ignore
+    chrome.storage.sync.set( { collapseDefaultStored: false } )
+    //@ts-ignore
+    chrome.storage.sync.set( { showSNsStored: true } )
+    //@ts-ignore
+    chrome.storage.sync.set( { showBurntStored: true } )
   }
 });
 
@@ -221,9 +225,9 @@ chrome.runtime.onMessage.addListener((msg, _, response) => {
 async function promiseDoUpdateCSS() {
   return new Promise(async (resolve, reject) => {
     try {
-      const resolve = await promiseGetChromeStorage("cssSelectorStored");
+      const cssStored = await promiseGetChromeStorage("cssSelectorStored");
       let insertCssFile = "";
-      switch (resolve) {
+      switch (cssStored) {
         case "Dark":
           insertCssFile = "/css/dark.css";
           break;
@@ -237,23 +241,23 @@ async function promiseDoUpdateCSS() {
           insertCssFile = "/css/light.css";
           break;
       }
-      await promiseDoRemoveCSS();
+      // Removing removal... await promiseDoRemoveCSS();
       const activeTab = await promiseGetActiveTab();
       //@ts-ignore
       chrome.scripting.insertCSS({
-        target: { tabId: activeTab.id },
+        target: { tabId: activeTab. id },
         files: [insertCssFile],
       });
       resolve("Success");
     } catch (e) {
-      logOrWarn(e, "updateCSS");
-      reject(`updateCSS error: ${e}`);
+      logOrWarn(`Could not update CSS. Err: ${e}` , "updateCSS");
+      reject(`UpdateCSS error: ${e}`);
     }
   });
 }
 
 async function promiseDoRemoveCSS() {
-  return new Promise(async (removeCSS, reject) => {
+  return new Promise(async (resolve, reject) => {
     try {
       const cssFileList = [
         "/css/dark.css",
@@ -266,9 +270,9 @@ async function promiseDoRemoveCSS() {
         target: { tabId: activeTab.id },
         files: cssFileList,
       });
-      removeCSS("Success");
+      resolve();
     } catch (e) {
-      logOrWarn(`Could not remove css files. Err: ${e}`, "removeCSS()");
+      logOrWarn(`Could not remove css files. Err: ${e}`, "removeCSS");
       reject(`RemoveCSS error: ${e}`);
     }
   });

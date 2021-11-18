@@ -273,7 +273,7 @@ function StyleSheetRefresh() {
     //@ts-ignore
     chrome.runtime.sendMessage({ message: "updateCSS" }, () => {});
   } catch (e) {
-    console.warn(`Error applying stylesheet ${e}`);
+    console.log(`Error applying stylesheet ${e}. Likely already applied`);
   }
 }
 function ReplaceText() {
