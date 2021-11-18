@@ -201,7 +201,7 @@ async function javaDOM() {
     document.body.appendChild(fixedDiv);
   }
 
-    function implementParameters() {
+  function implementParameters() {
     async function getCollapsed() {
       try {
         //@ts-ignore
@@ -214,7 +214,7 @@ async function javaDOM() {
         console.warn(`Error in getCollapsed(): ${error}`);
       }
       try {
-        const navID = await promiseGetNavID()
+        const navID = await promiseGetNavID();
         if (navID) {
           console.info(`navigating to ${navID.innerText}`);
           expandSingle(navID);
@@ -260,7 +260,7 @@ function promiseGetTabURL() {
       try {
         const tab = msg.response;
         initialTabUrl = tab.url;
-        resolve()
+        resolve();
       } catch (e) {
         console.warn(`Error retrieving URL: ${e}`);
         reject(`Error retrieving URL: ${e}`);
@@ -271,7 +271,7 @@ function promiseGetTabURL() {
 function StyleSheetRefresh() {
   try {
     //@ts-ignore
-    chrome.runtime.sendMessage({ message: "updateCSS" }, (response) => {});
+    chrome.runtime.sendMessage({ message: "updateCSS" }, () => {});
   } catch (e) {
     console.warn(`Error applying stylesheet ${e}`);
   }
@@ -323,8 +323,8 @@ function ReplaceText() {
     );
     mainHead = `<div class=mainHead>${preTitle}<h3>Volume ${thisVolume}</h3><h2>Title ${thisTitle}</h2>
       <h1>Chapter ${thisChapterNum} - ${thisChapterTitle}</h1><h3>${thisEdYear} EDITION</h3></div>`;
-      document.head.innerHTML=`<title>ORS ${thisChapterNum}: ${thisChapterTitle}</title>`;
-      chpHTML = chpHTML.replace(endOfHead, "<p"); //deleting existing heading
+    document.head.innerHTML = `<title>ORS ${thisChapterNum}: ${thisChapterTitle}</title>`;
+    chpHTML = chpHTML.replace(endOfHead, "<p"); //deleting existing heading
   }
   TableOfContents();
   //create & label new division for table of contents
@@ -595,7 +595,6 @@ function ReplaceText() {
   }
   finalCleanUp(); // dump HTML back into document, clean up double returns & classify TOC paragraphs
   function finalCleanUp() {
-
     document.body.innerHTML = mainHead + headAndTOC + chpHTML;
     document.body.innerHTML = document.body.innerHTML.replace(emptyTags, "");
     let tocID = document.getElementById("toc");
@@ -647,7 +646,7 @@ function ReplaceText() {
        * @param {string} years
        * @param {string} strFormat
        */
-       function orLawReplacer(years, strFormat) {
+      function orLawReplacer(years, strFormat) {
         let orLawSourceNote = new RegExp(years + orLawSourceNoteTail, "g");
         let yearOrLawChp = new RegExp(yearOrLawChpHead + years, "g");
         let orLawRepl = orLegURL + strFormat + urlTail;
@@ -685,7 +684,7 @@ function ReplaceText() {
   }
 }
 function promiseGetNavID() {
-  return new Promise (async (resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     try {
       setTimeout(() => {
         const idFinder = /(?<=\.html\#)[^\/]*/;
@@ -696,23 +695,24 @@ function promiseGetNavID() {
           if (pinCiteButton) {
             resolve(pinCiteButton);
           } else {
-            resolve('');
+            resolve("");
           }
         } else {
-          resolve ('')
+          resolve("");
         }
       }, 10);
     } catch (e) {
-      console.warn(`promiseGetNavID: ${e}`)
-      reject(`promiseGetNavID: ${e}`)
+      console.warn(`promiseGetNavID: ${e}`);
+      reject(`promiseGetNavID: ${e}`);
     }
-  })
+  });
 }
 
 // MAIN
 let initialTabUrl;
-promiseGetTabURL()
-StyleSheetRefresh();
+promiseGetTabURL();
+StyleSheetRefresh()
+window.addEventListener("focus", StyleSheetRefresh);
 window.addEventListener("load", ReplaceText);
 //@ts-ignore
 chrome.runtime.onMessage.addListener((msg, _sender, _reponse) => {

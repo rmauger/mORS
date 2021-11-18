@@ -6,74 +6,84 @@
  * @param {string|object} requestMsg
  */
 function promiseReqBackgroundJs(requestMsg) {
-  return new Promise((resolve, reject)=>{
+  return new Promise((resolve, reject) => {
     try {
       //@ts-ignore
-      chrome.runtime.sendMessage({message: requestMsg}, (response)=> {
-        infoLog(`Received response to ${requestMsg} : ${response.response}`,
-          `promiseReqBackgroundJs(${requestMsg})`)
-        resolve(response.response)
-      })
-      } catch (e) {
-        reject(`Failed sending {message: ${requestMsg}} to background.js. Error: ${e}`)
-      }
-  })
+      chrome.runtime.sendMessage({ message: requestMsg }, (response) => {
+        infoLog(
+          `Received response to ${requestMsg} : ${response.response}`,
+          `promiseReqBackgroundJs(${requestMsg})`
+        );
+        resolve(response.response);
+      });
+    } catch (e) {
+      reject(
+        `Failed sending {message: ${requestMsg}} to background.js. Error: ${e}`
+      );
+    }
+  });
 }
 //setup event listeners for form dropdowns & buttons
 function addAllListeners() {
   formCssNew.addEventListener("change", async () => {
-    const getOldCss = await promiseReqBackgroundJs("getCssFile")
-    setAfterGet(getOldCss)
+    const getOldCss = await promiseReqBackgroundJs("getCssFile");
+    setAfterGet(getOldCss);
     function setAfterGet(formOldCss) {
-        //@ts-ignore
-        chrome.storage.sync.set(
+      //@ts-ignore
+      chrome.storage.sync.set(
         // @ts-ignore
-        {cssSelectorStored: formCssNew.value}
-        , ()=> {
-          // @ts-ignore
-          infoLog(`Retrieved OldCSS: ${formOldCss}, replacing with ${formCssNew.value}`,
-          'formCssNew.eventListener')
+        { cssSelectorStored: formCssNew.value },
+        () => {
+          infoLog(
+            // @ts-ignore
+            `Retrieved OldCSS: ${formOldCss}, replacing with ${formCssNew.value}`,
+            "formCssNew.eventListener"
+          );
           //@ts-ignore
-          refreshPage(formOldCss, formCssNew.value)
+          refreshPage(formOldCss, formCssNew.value);
         }
       );
-    };
-  })
+    }
+  });
   orLawSelector.addEventListener("change", () => {
     //@ts-ignore
     chrome.storage.sync.set(
       // @ts-ignore
-      {lawsReaderStored: orLawSelector.value}, ()=> {
-        reloadORS()
+      { lawsReaderStored: orLawSelector.value },
+      () => {
+        reloadORS();
       }
     );
-  }); 
-  showBurntCheck.addEventListener("change", ()=> {
+  });
+  showBurntCheck.addEventListener("change", () => {
     //@ts-ignore
     chrome.storage.sync.set(
       // @ts-ignore
-      {showBurntStored: showBurntCheck.checked}, ()=> {
+      { showBurntStored: showBurntCheck.checked },
+      () => {
         // @ts-ignore
-        sendMsgTabs()
+        sendMsgTabs();
       }
-    )
-  })
-  showSNsCheck.addEventListener("change", ()=> {
+    );
+  });
+  showSNsCheck.addEventListener("change", () => {
     //@ts-ignore
     chrome.storage.sync.set(
       // @ts-ignore
-      {showSNsStored: showSNsCheck.checked}, ()=> {
-        sendMsgTabs()
+      { showSNsStored: showSNsCheck.checked },
+      () => {
+        sendMsgTabs();
       }
-    )
-  })
-  collapseCheck.addEventListener("change", ()=> {
+    );
+  });
+  collapseCheck.addEventListener("change", () => {
     //@ts-ignore
     chrome.storage.sync.set(
       // @ts-ignore
-      {collapseDefaultStored: collapseCheck.checked}, ()=> {}
-    )
-  })
+      { collapseDefaultStored: collapseCheck.checked },
+      () => {}
+    );
+  });
   chpLaunchButton.addEventListener("click", () => {
     // @ts-ignore
     const orsSection = document.getElementById("orsChapter").value;
@@ -90,40 +100,41 @@ function addAllListeners() {
     try {
       const orLawsReader = await promiseReqBackgroundJs("getOrLaw");
       const orLawObj = {
-        year:orLawsYear,
-        chap:orLawsChp,
-        reader:orLawsReader
-      } 
-      const orLawUrl = await promiseReqBackgroundJs({orLawObj})
-      if (/(oregonlegislature\.gov|heinonline)/.test(orLawUrl)){
-        infoLog(`Creating new tab for ${orLawUrl}`,
-         `orLawsLaunch.EventListener`)
-        errorMsg.innerHTML=""
-        //@ts-ignore
-        chrome.tabs.create({ url: orLawUrl }), 2000
-      } else {
-        errorMsg.innerHTML=orLawUrl
+        year: orLawsYear,
+        chap: orLawsChp,
+        reader: orLawsReader,
       };
+      const orLawUrl = await promiseReqBackgroundJs({ orLawObj });
+      if (/(oregonlegislature\.gov|heinonline)/.test(orLawUrl)) {
+        infoLog(
+          `Creating new tab for ${orLawUrl}`,
+          `orLawsLaunch.EventListener`
+        );
+        errorMsg.innerHTML = "";
+        //@ts-ignore
+        chrome.tabs.create({ url: orLawUrl }), 2000;
+      } else {
+        errorMsg.innerHTML = orLawUrl;
+      }
     } catch (e) {
-      errorMsg.innerHTML = e
+      errorMsg.innerHTML = e;
     }
   });
 }
 async function displayUserOptions() {
-  
   function storedDataFinder() {
     return Promise.all([
       promiseReqBackgroundJs("getCssFile"),
       promiseReqBackgroundJs("getOrLaw"),
-      promiseReqBackgroundJs("getShowBurnt"), 
+      promiseReqBackgroundJs("getShowBurnt"),
       promiseReqBackgroundJs("getShowSNs"),
-      promiseReqBackgroundJs("getCollapsed")
+      promiseReqBackgroundJs("getCollapsed"),
     ]);
-  };
+  }
 
   try {
     console.groupCollapsed();
-    const data = await storedDataFinder()
+    const data = await storedDataFinder();
     // @ts-ignore
     for (let i = 0; i < formCssNew.options.length; i++) {
       // @ts-ignore
@@ -143,52 +154,52 @@ async function displayUserOptions() {
       }
     }
     // @ts-ignore
-    showBurntCheck.checked=data[2]
+    showBurntCheck.checked = data[2];
     // @ts-ignore
-    showSNsCheck.checked=data[3]
+    showSNsCheck.checked = data[3];
     // @ts-ignore
-    collapseCheck.checked=data[4]
-    console.groupEnd()
+    collapseCheck.checked = data[4];
+    console.groupEnd();
   } catch (e) {
     alert(e);
   }
 }
 
-function getTabsWithOrs(){
-  return new Promise((resolve, reject)=> {
-    try{
+function getTabsWithOrs() {
+  return new Promise((resolve, reject) => {
+    try {
       //@ts-ignore
       chrome.tabs.query(
         { url: "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html*" },
         (tabs) => {
-          resolve(tabs)
+          resolve(tabs);
         }
       );
     } catch (e) {
-      reject(`Failed while looking for tabs with ORS. Error ${e}`)
+      reject(`Failed while looking for tabs with ORS. Error ${e}`);
     }
-  })
+  });
 }
 
-async function sendMsgTabs(){
-  const orsTabs = await getTabsWithOrs()
+async function sendMsgTabs() {
+  const orsTabs = await getTabsWithOrs();
   for (const aTab of orsTabs) {
     const message = {
       // @ts-ignore
       rsec: showBurntCheck.checked,
       // @ts-ignore
-      sN: showSNsCheck.checked  
-    }
+      sN: showSNsCheck.checked,
+    };
     //@ts-ignore
-    chrome.tabs.sendMessage(aTab.id, {toMORS:message})
+    chrome.tabs.sendMessage(aTab.id, { toMORS: message });
   }
 }
 
 async function reloadORS() {
-  const orsTabs = await getTabsWithOrs()
+  const orsTabs = await getTabsWithOrs();
   for (const aTab of orsTabs) {
     //@ts-ignore
-    chrome.tabs.reload(aTab.id)
+    chrome.tabs.reload(aTab.id);
   }
 }
 
@@ -197,8 +208,8 @@ async function reloadORS() {
  * @param {string} newCSS
  */
 async function refreshPage(oldCSS, newCSS) {
-  const oldCssFile = `/css/${cssSourceLookup[oldCSS]}`
-  const newCssFile = `/css/${cssSourceLookup[newCSS]}`
+  const oldCssFile = `/css/${cssSourceLookup[oldCSS]}`;
+  const newCssFile = `/css/${cssSourceLookup[newCSS]}`;
   const orsTabs = await getTabsWithOrs();
   for (const aTab of orsTabs) {
     try {
@@ -227,37 +238,28 @@ async function refreshPage(oldCSS, newCSS) {
  * @param {string} infoTxt
  * @param {string} aFunction
  */
- function infoLog(infoTxt, aFunction) {
-  console.info(`%cpopup.js/${aFunction}: ${infoTxt}`, "color:orange")
+function infoLog(infoTxt, aFunction) {
+  console.info(`%cpopup.js/${aFunction}: ${infoTxt}`, "color:orange");
 }
 // MAIN
-const errorMsg = document.getElementById("errorMsg")
-const formCssNew = document.getElementById("cssSelector") ;
+const errorMsg = document.getElementById("errorMsg");
+const formCssNew = document.getElementById("cssSelector");
 const orLawSelector = document.getElementById("OrLaws");
 const chpLaunchButton = document.getElementById("chapterLaunch");
 const orLawsLaunchButton = document.getElementById("orLawsLaunch");
 const showBurntCheck = document.getElementById("showRSec");
-const showSNsCheck = document.getElementById("showSNote")
-const collapseCheck = document.getElementById("collapseDefault") 
-let orLawOrLegLookup2 = { OL2021: "2021orlaw~.pdf",
-  OL2020: "2020orlaw~.pdf", OL2019: "2019orlaw~.pdf",
-  OL2018: "2018orlaw~.pdf", OL2017: "2017orlaw~.pdf",
-  OL2016: "2016orlaw~.pdf", OL2015: "2015orlaw~.pdf",
-  OL2014: "2014R1orLaw~ss.pdf", OL2013: "2013orlaw~.pdf",
-  OL2012: "2012adv~ss.pdf", OL2011: "2011orLaw~.html",
-  OL2010: "2010orLaw~.html", OL2009: "2009orLaw~.html",
-  OL2008: "2008orLaw~.html", OL2007: "2007orLaw~.html",
-  OL2006: "2006orLaw~ss1.pdf", OL2005: "2005orLaw~ses.html",
-  OL2003: "2003orLaw~ses.html", OL2001: "2001orLaw~ses.html",
-  OL1999: "1999orLaw~.html"};
+const showSNsCheck = document.getElementById("showSNote");
+const collapseCheck = document.getElementById("collapseDefault");
 const cssSourceLookup = {
-  Dark: "dark.css", Light: "light.css", DarkGrey: "darkgrey.css"
-}
+  Dark: "dark.css",
+  Light: "light.css",
+  DarkGrey: "darkgrey.css",
+};
 addAllListeners();
-window.addEventListener("focus", ()=>{
-  infoLog('Displaying user options & adding event listeners',
-   'window.addEventListener')
+window.addEventListener("focus", () => {
+  infoLog(
+    "Displaying user options & adding event listeners",
+    "window.addEventListener"
+  );
   displayUserOptions();
-})
-
-
+});
