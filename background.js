@@ -4,7 +4,6 @@
 "use strict";
 
 //@ts-ignore
-//TODO: #31 Verify installer works; clean out old storage on update
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason == "install") {
     //@ts-ignore
@@ -19,6 +18,8 @@ chrome.runtime.onInstalled.addListener((details) => {
     chrome.storage.sync.set( { showSNsStored: true } )
     //@ts-ignore
     chrome.storage.sync.set( { showBurntStored: true } )
+    //@ts-ignore
+    chrome.storage.sync.set( { showMenuCheck: true } )
   }
 });
 
@@ -166,7 +167,7 @@ async function messageHandler(referencedPromise, response) {
 }
 
 //@ts-ignore
-chrome.runtime.onMessage.addListener((msg, _, response) => {
+chrome.runtime.onMessage.addListener((msg, _sender, response) => {
   const received = msg.message;
   if (typeof received == "string") {
     switch (received) {
@@ -188,6 +189,9 @@ chrome.runtime.onMessage.addListener((msg, _, response) => {
       case "getShowBurnt":
         messageHandler(promiseGetChromeStorage("showBurntStored"), response);
         break;
+      case "getShowMenu":
+        messageHandler(promiseGetChromeStorage("showMenuStored"), response);
+        break;
       case "getCollapsed":
         messageHandler(
           promiseGetChromeStorage("collapseDefaultStored"),
@@ -200,9 +204,8 @@ chrome.runtime.onMessage.addListener((msg, _, response) => {
       default:
         logOrWarn(
           "Received message made no sense.",
-          "Invalid message to script"
+          "Invalid message to script; no response sent."
         );
-        response("");
         break;
     }
   } else if (received["orLawObj"]) {
@@ -241,7 +244,7 @@ async function promiseDoUpdateCSS() {
           insertCssFile = "/css/light.css";
           break;
       }
-      // Removing removal... await promiseDoRemoveCSS();
+      await promiseDoRemoveCSS();
       const activeTab = await promiseGetActiveTab();
       //@ts-ignore
       chrome.scripting.insertCSS({

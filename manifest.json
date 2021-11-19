@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "ORS Extension",
-    "version": "1.4.2",
+    "version": "1.4.3",
     "action": {
         "default_icon": {
             "16": "/images/icon16.png",

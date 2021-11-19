@@ -5,7 +5,7 @@
  * @param {string | RegExp} searchFor
  * @param {string} initialText
  */
-function ifMatch(searchFor, initialText, index = 0) {
+function ifRegExMatch(searchFor, initialText, index = 0) {
   let aRegExp = new RegExp("");
   if (typeof searchFor == "string") {
     aRegExp = new RegExp(searchFor, "g");
@@ -134,27 +134,27 @@ async function javaDOM() {
   // add floating div with version info & buttons
   function buildFloatingMenuDiv() {
     function addMenuBody() {
-      fixedDiv.classList.add("fixed");
+      menuPanel.classList.add("fixed");
       let versionPar = document.createElement("p");
       //@ts-ignore
       let manifest = chrome.runtime.getManifest();
       let thisVersion = manifest.version;
       versionPar.classList.add("version");
       versionPar.innerHTML = `style markup by <a href="https://github.com/rmauger/mORS/#readme">mORS<\/a> v.${thisVersion}`;
-      fixedDiv.appendChild(versionPar);
+      menuPanel.appendChild(versionPar);
     }
     function addExpandAllButton() {
       let expandAllButton = document.createElement("button");
       expandAllButton.innerText = "Expand all";
       expandAllButton.id = "buttonExpand";
-      fixedDiv.appendChild(expandAllButton);
+      menuPanel.appendChild(expandAllButton);
       expandAllButton.addEventListener("click", () => expandAllSections());
     }
     function addCollapseAllButton() {
       let collapseAllButton = document.createElement("button");
       collapseAllButton.innerText = "Collapse all";
       collapseAllButton.id = "buttonCollapse";
-      fixedDiv.appendChild(collapseAllButton);
+      menuPanel.appendChild(collapseAllButton);
       collapseAllButton.addEventListener("click", () => collapseAllSections());
     }
     function addToggleCssButton() {
@@ -162,7 +162,7 @@ async function javaDOM() {
       toggleCSSButton.innerHTML = "Remove Style";
       toggleCSSButton.classList.add("cssOn");
       toggleCSSButton.id = "buttonToggleCSS";
-      fixedDiv.appendChild(toggleCSSButton);
+      menuPanel.appendChild(toggleCSSButton);
       toggleCSSButton.addEventListener("click", () => {
         if (toggleCSSButton.classList.contains("cssOn")) {
           expandAllSections();
@@ -191,14 +191,17 @@ async function javaDOM() {
       });
     }
     // BuildFloatingMenuDiv MAIN
-    let fixedDiv = document.createElement("div");
-    addMenuBody();
-    addExpandAllButton();
-    addCollapseAllButton();
-    addToggleCssButton();
-    /*     addToggleSourceNoteButton();
-    addToggleBurntSecButton(); */
-    document.body.appendChild(fixedDiv);
+    let menuPanel = document.createElement("div");
+    //@ts-ignore
+    chrome.runtime.sendMessage({ message: "getShowMenu" }, (response) => {
+      if (response.response) {
+        addMenuBody();
+        addExpandAllButton();
+        addCollapseAllButton();
+        addToggleCssButton();
+        document.body.appendChild(menuPanel);    
+      }
+    });
   }
 
   function implementParameters() {
@@ -310,16 +313,16 @@ function ReplaceText() {
     const msoChaperTag = /(?<=\<mso:[^>]*Chapter[^>]*\>0?)([^<]*)(?=\<)/g;
     const edYearMatch = "20\\d{2}(?=\\sEDITION)";
     const chapterMatch = new RegExp(`(?<=Chapter\\s0{0,2})${orsChapter}`);
-    const thisVolume = ifMatch(msoVolumeTag, headHTML);
-    const thisTitle = ifMatch(msoChaperTag, headHTML);
-    const thisChapterTitle = ifMatch(msoChaperTag, headHTML, 1);
-    const thisEdYear = ifMatch(new RegExp(edYearMatch), chpHTML);
-    thisChapterNum = ifMatch(chapterMatch, headHTML);
+    const thisVolume = ifRegExMatch(msoVolumeTag, headHTML);
+    const thisTitle = ifRegExMatch(msoChaperTag, headHTML);
+    const thisChapterTitle = ifRegExMatch(msoChaperTag, headHTML, 1);
+    const thisEdYear = ifRegExMatch(new RegExp(edYearMatch), chpHTML);
+    thisChapterNum = ifRegExMatch(chapterMatch, headHTML);
     const endOfHead = new RegExp(`[^]*?${edYearMatch}[^.]*?<p[^.]*?<p[^.]*?<p`); // three paragraphs past edition
     const preTitleMatch = new RegExp(`[^]*?Chapter\\s${thisChapterNum}`);
-    const preTitle = ifMatch(
+    const preTitle = ifRegExMatch(
       new RegExp(`[^]*?(?=Chapter\\s${thisChapterNum})`),
-      ifMatch(preTitleMatch, chpHTML)
+      ifRegExMatch(preTitleMatch, chpHTML)
     );
     mainHead = `<div class=mainHead>${preTitle}<h3>Volume ${thisVolume}</h3><h2>Title ${thisTitle}</h2>
       <h1>Chapter ${thisChapterNum} - ${thisChapterTitle}</h1><h3>${thisEdYear} EDITION</h3></div>`;
@@ -493,12 +496,12 @@ function ReplaceText() {
   function headingReformat() {
     const headingFind = /<p class=default>([A-Z][^a-z]{3,}?)<\/p>/g; //Replaces 3+ initial capital letters with:
     const headingRepl =
-      "#hclose#</div><div class=heading><p class=headingLabel><b>$1</b></p><div>";
+      "#hclose#</div><div class=heading><p class=headingLabel><b>$1</b></p><div>"; // #tag helps readjust heading divs at cleanup
     const tempSec = /p class=default>(\(Temporary\sprovisions[^~]*?<\/)p/g; //Replaces "(Temporary provisions ..." with:
     const tempSecRepl = 'div class=TempHead style="text-align:center">$1div';
     const subheadFind = /<p class=default>(\([^]{5,}?\))<\/p>/g; //Replaces leading parens with at least 5 letters with:
     const subheadRepl =
-      "#sclose#</div><div class=subhead><p class=subheadLabel>$1</p><div>";
+      "#sclose#</div><div class=subhead><p class=subheadLabel>$1</p><div>"; // #tag helps readjust heading divs at cleanup
     const headInTOCRepl = "<p class=tocHeading>$1</p>";
     const headInForm =
       /(=orsForm break=\'\`\'[^`~]*)#hclose#[^`~]*?<p[^`~>]*>([^`~]*?)<div>/g; //Used to count headings to get "<div> breaks to line up"
@@ -520,7 +523,7 @@ function ReplaceText() {
       let hCount = 0;
       while (closeHeadTags.test(chpHTML)) {
         let divHeadClose = "";
-        let nextTag = ifMatch(closeHeadTags, chpHTML);
+        let nextTag = ifRegExMatch(closeHeadTags, chpHTML);
         if (nextTag[1] == "s") {
           if (hCount == 2) {
             divHeadClose = "</div>";
@@ -557,7 +560,7 @@ function ReplaceText() {
       "<p class=default><b>Note section for ORS $1:</b></p><p class=default>$2</div><div";
     const noteSesLaw =
       /<div\sclass=note>([^~]*?Section[^~]+?provides?:)[^~]*?<\/div>([^~]*?)<div/g;
-    const noteSesLawRepl = "</div><div class='note notesec'>$1$2<div"; //"</div><div class='note notesec'>$1$2</div><div";;
+    const noteSesLawRepl = "</div><div class='note notesec'>$1$2<div"; 
     const SesLawSec = new RegExp(
       `<b>${tabs}(Sec\\.\\s\\d{1,3}\\.)\\s?<\\/b>`,
       "g"
@@ -690,7 +693,7 @@ function promiseGetNavID() {
         const idFinder = /(?<=\.html\#)[^\/]*/;
         if (idFinder.test(initialTabUrl)) {
           const pinCiteButton = document.getElementById(
-            ifMatch(idFinder, initialTabUrl)
+            ifRegExMatch(idFinder, initialTabUrl)
           );
           if (pinCiteButton) {
             resolve(pinCiteButton);
@@ -712,7 +715,7 @@ function promiseGetNavID() {
 let initialTabUrl;
 promiseGetTabURL();
 StyleSheetRefresh()
-window.addEventListener("focus", StyleSheetRefresh);
+window.addEventListener("load", StyleSheetRefresh);
 window.addEventListener("load", ReplaceText);
 //@ts-ignore
 chrome.runtime.onMessage.addListener((msg, _sender, _reponse) => {
