@@ -144,7 +144,7 @@ function addAllListeners() {
       { showBurntStored: showBurntCheck.checked },
       () => {
         // @ts-ignore
-        sendMsgToOrsTabs();
+        sendMsgToOrsTabs({burnt:showBurntCheck.checked});
       }
     );
   });
@@ -154,7 +154,8 @@ function addAllListeners() {
       // @ts-ignore
       { showSNsStored: showSNsCheck.checked },
       () => {
-        sendMsgToOrsTabs();
+        //@ts-ignore
+        sendMsgToOrsTabs({sn:showSNsCheck.checked});
       }
     );
   });
@@ -197,17 +198,11 @@ function getOrsTabs() {
 
 // Sends message to ORS tabs (no response)
 // TODO: #33 separate messages for change in rSec & sourcenote; maybe use for show menu
-async function sendMsgToOrsTabs() {
+async function sendMsgToOrsTabs(msg) {
   const orsTabs = await getOrsTabs();
   for (const aTab of orsTabs) {
-    const message = {
-      // @ts-ignore
-      rsec: showBurntCheck.checked,
-      // @ts-ignore
-      sN: showSNsCheck.checked,
-    };
     //@ts-ignore
-    chrome.tabs.sendMessage(aTab.id, { toMORS: message });
+    chrome.tabs.sendMessage(aTab.id, { toMORS: msg });
   }
 }
 

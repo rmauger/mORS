@@ -1,16 +1,22 @@
 # mORS
 
-Chrome Extension that alters appearance of Oregon Revised Statutes on Oregon State Legisature website. The Oregon Revised Statutes are the codified laws of the State of Oregon.
+Google Chrome Extension that alters appearance of Oregon Revised Statutes on Oregon State Legisature website. The Oregon Revised Statutes are the codified laws of the State of Oregon.
 
 ## Installation instructions:
-* Unzip to folder
-* Navigate to chrome://extensions/
-* "Load Unpacked"
-* Select folder
+  * Navigate to https://github.com/rmauger/mORS
+  * From green "Code" button > "Download Zip"
+  * Unzip to folder
+  * Navigate to chrome://extensions/ (or ... > More Tools > Extensions)
+  * "Load Unpacked"
+  * Select folder
 
 ## To use:
-* Navigate to [ORS website](https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx) and select a chapter; or
-* Enter chapter into extension popup
+  * Navigate to [ORS website](https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx) and select a chapter;
+  * Enter chapter into extension popup (puzzle piece in upper right of browser); or
+  * Type 'mors' in the Chrome Omnibox (search bar) then type:
+    * An ORS chapter (e.g., '659A')
+    * An ORS section ('174.020')
+    * An Oregon Session Law ('2015 c.614') 
 
 ## Disclaimers:
 * Chrome Manifest version 3
@@ -19,6 +25,10 @@ Chrome Extension that alters appearance of Oregon Revised Statutes on Oregon Sta
 See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx)
 
 ## Updates:
+
+  ### Version 1.4.4 - 11/19/2021
+   * Page menu can be removed from options popup
+   * 
 
   ### Version 1.4.0 - 11/17/2021
    * Omnibox works with 'mors'
@@ -31,27 +41,13 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
       * hide source notes
       * set default collapse all
    
-  ### Version 1.2.3 - 11/11/2021
-   * Bug fixes (runs all popup promises in background script)
-   * Fixed collapsing section layout issues & remove css issues
-
-  ### Version 1.2.1 - 11/11/2021
-   * Reorganized css files & css selection
-
   ### Version 1.2.0 - 11/11/2021
    * Added toggle button to show/hide source notes & repealed/renumbered sections
 
-  ### Version 1.1.2 - 11/08/2021
-   * Minor bug fix (identifying start of table of contents)
-
-  ### Version 1.1.1 - 11/05/2021
-   * Minor bug fix (collapse all fixed)
-   * Converted promise resolutions to async/await syntex
-
-  ### Version 1.1.0 - 11/04/2021
+  ### Version 1.1 - 11/04/2021
   * Migrated to updated Chrome Manifest version 3
  
-  ### Version 1.0.0 - 10/28/2021
+  ### Version 1.0 - 10/28/2021
   * Separates table of contents; sections; forms and notes into separetly styled divisions
   * Collapsable sections
   * Links to internal and external ORS sections

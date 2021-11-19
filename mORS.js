@@ -20,6 +20,47 @@ function ifRegExMatch(searchFor, initialText, index = 0) {
   }
   return "";
 }
+function promiseGetNavID() {
+  return new Promise(async (resolve, reject) => {
+    try {
+      setTimeout(() => {
+        const idFinder = /(?<=\.html\#)[^\/]*/;
+        if (idFinder.test(initialTabUrl)) {
+          const pinCiteButton = document.getElementById(
+            ifRegExMatch(idFinder, initialTabUrl)
+          );
+          if (pinCiteButton) {
+            resolve(pinCiteButton);
+          } else {
+            resolve("");
+          }
+        } else {
+          resolve("");
+        }
+      }, 10);
+    } catch (e) {
+      console.warn(`promiseGetNavID: ${e}`);
+      reject(`promiseGetNavID: ${e}`);
+    }
+  });
+}
+function addPopupJsListener(){
+  //@ts-ignore
+  chrome.runtime.onMessage.addListener((msg, _sender, _reponse) => {
+    const msgText = msg.toMORS;
+    try {
+      if (msgText["burnt"]!=undefined) {
+        doShowRSecs(msgText["burnt"]);
+      } else if (msgText["sn"]!=undefined) {
+        doShowSourceNotes(msgText["sn"])
+      } else {
+        console.warn('Error unidentified message received from popup.html')
+      }
+    } catch (e) {
+      console.warn(`Error w/ display rSecs or sourceNotes: ${e}`);
+    }
+  });
+}
 /**
  * @param {boolean} show
  */
@@ -42,18 +83,31 @@ function doShowRSecs(show) {
     note.classList.add(!show && "hideMe");
   }
 }
-async function javaDOM() {
-  /** collapses single ORS section
-   * @param {{ anElement: HTMLElement; height: any; }} collapseObj
-   */
-  function collapseSingle(collapseObj) {
-    if (!collapseObj) {
-      console.warn("No button found in object!?");
-    }
-    collapseObj.anElement.style.maxHeight = collapseObj.height;
+function promiseGetTabURL() {
+  return new Promise((resolve, reject) => {
+    //@ts-ignore
+    chrome.runtime.sendMessage({ message: "getCurrentTab" }, (msg) => {
+      try {
+        const tab = msg.response;
+        initialTabUrl = tab.url;
+        resolve();
+      } catch (e) {
+        console.warn(`Error retrieving URL: ${e}`);
+        reject(`Error retrieving URL: ${e}`);
+      }
+    });
+  });
+}
+function StyleSheetRefresh() {
+  try {
+    //@ts-ignore
+    chrome.runtime.sendMessage({ message: "updateCSS" }, () => {});
+  } catch (e) {
+    console.log(`Error applying stylesheet ${e}.`);
   }
-
-  /** returns object containing HTML elements & heights (Currently just one element, but may edit later)
+}
+async function javaDOM() {
+  /** returns object (HTML elements & collapsed heights) (just one element, but may edit later)
    * @param {Element} buttonElement
    */
   function findCollapseHeight(buttonElement) {
@@ -62,6 +116,16 @@ async function javaDOM() {
     buttonElement.classList.remove("active");
     return { anElement: thisElement, height: thisHeight };
   }
+  /** collapses single ORS section
+  * @param {{ anElement: HTMLElement; height: any; }} collapseObj
+  */
+    function collapseSingle(collapseObj) {
+    if (!collapseObj) {
+      console.warn("No button found in object!?");
+    }
+    collapseObj.anElement.style.maxHeight = collapseObj.height;
+  }
+  
   /** expands single ORS section
    * @param {Element} buttonElement
    */
@@ -77,7 +141,7 @@ async function javaDOM() {
         );
       }
     } else {
-      console.warn("No button element found...");
+      console.warn("No button element found.");
     }
   }
   // Expands all ORS sections to full height
@@ -87,7 +151,8 @@ async function javaDOM() {
       expandSingle(collapsibles[i]);
     }
   }
-  function addCollapseButtons() {
+  // Adds button to each ORS section leadline toggling expand/collapse 
+  function addSectionCollapseButtons() {
     const collapsibles = document.getElementsByClassName("collapsible");
     let collapseObjHeightList = [];
     for (let i = 0; i < collapsibles.length; i++) {
@@ -114,7 +179,7 @@ async function javaDOM() {
       collapseSingle(collapseObjHeightList[i]);
     }
   }
-  //adds button element to internal link ORS to expand target upon selection
+  //adds button element to internal ORS links to force expansion of target on selection
   function buildOrsLinkButton() {
     let orsLinkList = document.getElementsByClassName("ors");
     for (let i = 0; i < orsLinkList.length; i++) {
@@ -203,8 +268,7 @@ async function javaDOM() {
       }
     });
   }
-
-  function implementParameters() {
+  function implementStoredParameters() {
     async function getCollapsed() {
       try {
         //@ts-ignore
@@ -243,71 +307,32 @@ async function javaDOM() {
         doShowSourceNotes(doShow);
       });
     }
-    // Main Implement Parameters
+    // MAIN Implement Stored Parameters
     getCollapsed();
     getShowRSec();
     getShowSNs();
   }
-
   // JavaDOM MAIN:
-  addCollapseButtons();
+  addSectionCollapseButtons();
   buildOrsLinkButton();
   buildFloatingMenuDiv();
-  implementParameters();
-}
-
-function promiseGetTabURL() {
-  return new Promise((resolve, reject) => {
-    //@ts-ignore
-    chrome.runtime.sendMessage({ message: "getCurrentTab" }, (msg) => {
-      try {
-        const tab = msg.response;
-        initialTabUrl = tab.url;
-        resolve();
-      } catch (e) {
-        console.warn(`Error retrieving URL: ${e}`);
-        reject(`Error retrieving URL: ${e}`);
-      }
-    });
-  });
-}
-function StyleSheetRefresh() {
-  try {
-    //@ts-ignore
-    chrome.runtime.sendMessage({ message: "updateCSS" }, () => {});
-  } catch (e) {
-    console.log(`Error applying stylesheet ${e}. Likely already applied`);
-  }
+  implementStoredParameters();
 }
 function ReplaceText() {
-  //declaring global variables:
-  let chpHTML = "";
-  let headAndTOC = "";
-  let thisChapterNum = "";
-  let mainHead = "";
-  const tocBreak = "!@%";
-  const tabs = "(?:&nbsp;|\\s){0,8}";
-  const orsChapter = "[1-9]\\d{0,2}[A-C]?\\b";
-  const emptyTags = new RegExp(`<(\\w)[^>]*?>${tabs}<\\/\\1>`, "g"); // is deleted (in first HTMLCleanUp & FinalClean)
-  const orsSection = `(?:${orsChapter}\\.\\d{3}\\b|\\b7\\dA?\\.\\d{4}\\b)`;
-  HTMLCleanUp();
-  // delete span syntex & msoClasses & existing divs & empty tags from HTML
-  function HTMLCleanUp() {
-    chpHTML = document.body.innerHTML;
+  function htmlCleanup() {
+    bodyHtml = document.body.innerHTML;
     const styleGarb = /<span style=[^]+?>([^]+?)<\/span>/g; // is deleted
     const msoGarb = /<p\sclass=\W?Mso[^>]*>/g; // is replaced by:
     const msoRepl = "<p class=default>";
     const divGarb = /<div[^>]*?>/g; // is deleted
-    chpHTML = chpHTML.replace(/(\n|\r|\f)/g, " ");
-    chpHTML = chpHTML.replace(/\s\s/, " ");
-    chpHTML = chpHTML.replace(styleGarb, "$1");
-    chpHTML = chpHTML.replace(msoGarb, msoRepl);
-    chpHTML = chpHTML.replace(divGarb, "");
-    chpHTML = chpHTML.replace(emptyTags, "");
+    bodyHtml = bodyHtml.replace(/(\n|\r|\f)/g, " ");
+    bodyHtml = bodyHtml.replace(/\s\s/, " ");
+    bodyHtml = bodyHtml.replace(styleGarb, "$1");
+    bodyHtml = bodyHtml.replace(msoGarb, msoRepl);
+    bodyHtml = bodyHtml.replace(divGarb, "");
+    bodyHtml = bodyHtml.replace(emptyTags, "");
   }
-  chapterHeading();
-  // build replacement heading for top of page. Delete html.head
-  function chapterHeading() {
+  function chapterHeadRepl() {
     const headHTML = document.head.innerHTML;
     const msoVolumeTag = /(?<=\<mso:Volume[^>]*\>0?)([^<]*)(?=\<)/;
     const msoChaperTag = /(?<=\<mso:[^>]*Chapter[^>]*\>0?)([^<]*)(?=\<)/g;
@@ -316,39 +341,33 @@ function ReplaceText() {
     const thisVolume = ifRegExMatch(msoVolumeTag, headHTML);
     const thisTitle = ifRegExMatch(msoChaperTag, headHTML);
     const thisChapterTitle = ifRegExMatch(msoChaperTag, headHTML, 1);
-    const thisEdYear = ifRegExMatch(new RegExp(edYearMatch), chpHTML);
+    const thisEdYear = ifRegExMatch(new RegExp(edYearMatch), bodyHtml);
     thisChapterNum = ifRegExMatch(chapterMatch, headHTML);
     const endOfHead = new RegExp(`[^]*?${edYearMatch}[^.]*?<p[^.]*?<p[^.]*?<p`); // three paragraphs past edition
     const preTitleMatch = new RegExp(`[^]*?Chapter\\s${thisChapterNum}`);
     const preTitle = ifRegExMatch(
       new RegExp(`[^]*?(?=Chapter\\s${thisChapterNum})`),
-      ifRegExMatch(preTitleMatch, chpHTML)
+      ifRegExMatch(preTitleMatch, bodyHtml)
     );
     mainHead = `<div class=mainHead>${preTitle}<h3>Volume ${thisVolume}</h3><h2>Title ${thisTitle}</h2>
       <h1>Chapter ${thisChapterNum} - ${thisChapterTitle}</h1><h3>${thisEdYear} EDITION</h3></div>`;
     document.head.innerHTML = `<title>ORS ${thisChapterNum}: ${thisChapterTitle}</title>`;
-    chpHTML = chpHTML.replace(endOfHead, "<p"); //deleting existing heading
+    bodyHtml = bodyHtml.replace(endOfHead, "<p"); //deleting existing heading
   }
-  TableOfContents();
-  //create & label new division for table of contents
-  function TableOfContents() {
+  function createTOC() {
     const tocFind = /(<p[^>]*?>[^]*?<\/p>)([^]*?)(?=\1|<p class=default><b>)/; // is replaced by:
     const tocRepl = `<div id=toc><h1>Table of Contents</h1><div class=tocItems>\$1\$2</div></div>${tocBreak}`;
-    chpHTML = chpHTML.replace(tocFind, tocRepl);
+    bodyHtml = bodyHtml.replace(tocFind, tocRepl);
   }
-  ORSHighlight();
-  //highlight all cross references to ORS sections (xx.xxx) (to be replaced later by relevant links)
-  function ORSHighlight() {
+  function classifyOrsRefs() {
     const orsFind = new RegExp(
       `(${orsSection}((?:\s?(?:\(\w{1,4}\))){0,5})(\sto\s(?:(?:\(\w{1,4}\))))?)`,
       "g"
     ); // is replaced by:
     const orsRepl = "<span class=ors>$1</span>";
-    chpHTML = chpHTML.replace(orsFind, orsRepl);
+    bodyHtml = bodyHtml.replace(orsFind, orsRepl);
   }
-  Leadlines();
-  //highlight & create new div for each new section
-  function Leadlines() {
+  function classLeadlines() {
     const orsSecLead = `(?:<span class=ors>)(${thisChapterNum}\\.\\d{3,4}\\b)\\s?</span>([^\\.][^\\]]+?\\.\\s?)`;
     const leadFind = new RegExp(
       `<p class=default><b>${tabs}${orsSecLead}</b>`,
@@ -356,11 +375,9 @@ function ReplaceText() {
     );
     const leadRepl =
       '</div><div class=section break="~"><button id="$1" class="collapsible"><p class=leadline>$1$2</p></button><p class=default>';
-    chpHTML = chpHTML.replace(leadFind, leadRepl);
+    bodyHtml = bodyHtml.replace(leadFind, leadRepl);
   }
-  Forms();
-  // create new div for forms
-  function Forms() {
+  function createFormDivs() {
     const startForm = new RegExp(
       `(form[^]*?:)<\\/p>${tabs}(<p[^>]*>)_{78}`,
       "g"
@@ -369,20 +386,18 @@ function ReplaceText() {
     const endForm = /(`([^~`]*_{78}|[^`~]*?(?=<div class=orsForm)))/g; // finds ends of form
     const endFormRepl = "$1</div break='`'>"; // closes div
     const endFormCleanup = /(_{78}<\/div>)/g; // cleans up ending form _____
-    chpHTML = chpHTML.replace(startForm, startFormRepl);
-    chpHTML = chpHTML.replace(endForm, endFormRepl);
-    chpHTML = chpHTML.replace(endFormCleanup, "$1");
+    bodyHtml = bodyHtml.replace(startForm, startFormRepl);
+    bodyHtml = bodyHtml.replace(endForm, endFormRepl);
+    bodyHtml = bodyHtml.replace(endFormCleanup, "$1");
   }
-  orsInChapLink(); // builds links to ORS sections in chapter to #id of ORS section
   function orsInChapLink() {
     const orsInChp = new RegExp(
       `<span class=ors(>(${thisChapterNum}\\.\\d{3,4}\\b)[^]*?<\\/)span`,
       "g"
     );
     const orsInChpRepl = '<a class=ors href="#$2"$1a';
-    chpHTML = chpHTML.replace(orsInChp, orsInChpRepl);
+    bodyHtml = bodyHtml.replace(orsInChp, orsInChpRepl);
   }
-  orsOutChapLink(); // builds links to ORS sections in other chapters
   function orsOutChapLink() {
     const remainingORS = new RegExp(
       `span\\sclass=ors>((${orsChapter}).\\d{3}\\b|(\\b7\\dA?)\\.\\d{4}\\b)<\\/span`,
@@ -392,20 +407,18 @@ function ReplaceText() {
       "https://www.oregonlegislature.gov/bills_laws/ors/ors00$2$3.html#$1";
     const replRemainingORS = `a href="${orsOrLegURL}">$1</a`;
     const trimZeros = /(ors)0+(\d{3})/g;
-    chpHTML = chpHTML.replace(remainingORS, replRemainingORS);
-    chpHTML = chpHTML.replace(trimZeros, "$1$2");
+    bodyHtml = bodyHtml.replace(remainingORS, replRemainingORS);
+    bodyHtml = bodyHtml.replace(trimZeros, "$1$2");
   }
-  SeparateTOC(); //separate TOC & chapter heading from rest of body to facilitate editing body
-  function SeparateTOC() {
-    if (new RegExp(tocBreak).test(chpHTML)) {
-      headAndTOC = chpHTML.match(new RegExp(`[^]*?(?=${tocBreak})`))[0]; // copy TOC to own variable
-      chpHTML = chpHTML.replace(new RegExp(`[^]*?${tocBreak}`), ""); // and remove it from the editing document
+  function separateToc() {
+    if (new RegExp(tocBreak).test(bodyHtml)) {
+      headAndTOC = bodyHtml.match(new RegExp(`[^]*?(?=${tocBreak})`))[0]; // copy TOC to own variable
+      bodyHtml = bodyHtml.replace(new RegExp(`[^]*?${tocBreak}`), ""); // and remove it from the editing document
     } else {
       console.warn("No table of contents found");
     }
   }
-  SubUnits(); // finds and classifies subunits (subsections, paragraphs, subsections etc.)
-  function SubUnits() {
+  function classifySubunits() {
     const subsecFind = new RegExp(
       `<p[^>]*?>${tabs}?\\s?(\\(\\d{1,2}\\)[^]+?)</p>`,
       "g"
@@ -421,9 +434,9 @@ function ReplaceText() {
     const subsecRepl = "<p class=subsec>$1</p>";
     const subsubRepl = "<p class=subsubpara>$1</p>";
     const subsubsubRepl = "<p class=subsubsubpara>$1</p>";
-    chpHTML = chpHTML.replace(subsecFind, subsecRepl);
-    chpHTML = chpHTML.replace(subsubPara, subsubRepl);
-    chpHTML = chpHTML.replace(subsubsubPara, subsubsubRepl);
+    bodyHtml = bodyHtml.replace(subsecFind, subsecRepl);
+    bodyHtml = bodyHtml.replace(subsubPara, subsubRepl);
+    bodyHtml = bodyHtml.replace(subsubsubPara, subsubsubRepl);
     Romans(); // separate roman numerals (subsubpara & subsubsubpara) from letters (para & subpara)
     function Romans() {
       const sameLtrLower = /=subsubpara>(\(([a-z])(?:\2){0,4}\))/g; // reclassifies single letter (a) or letters match (aa) as:
@@ -447,41 +460,41 @@ function ReplaceText() {
       const VUpper = new RegExp(romanUpperLead + "V)", "g");
       const XUpper = new RegExp(romanUpperLead + "X)", "g");
       const XXUpper = new RegExp(romanUpperLead + "XX)", "g");
-      chpHTML = chpHTML.replace(sameLtrLower, ltrLowerRepl);
-      chpHTML = chpHTML.replace(sameLetterUpper, ltrUpperRepl);
+      bodyHtml = bodyHtml.replace(sameLtrLower, ltrLowerRepl);
+      bodyHtml = bodyHtml.replace(sameLetterUpper, ltrUpperRepl);
       Roman_wrapper: {
         let breakIf = (/** @type {string} */ romanNum) => {
           // ensure that when matches dry up, stop looking for more
-          return new RegExp(`/\(${romanNum}\)/`).test(chpHTML);
+          return new RegExp(`/\(${romanNum}\)/`).test(bodyHtml);
         };
         if (breakIf("ii")) {
           break Roman_wrapper;
         }
-        chpHTML = chpHTML.replace(iiLower, iiRepl);
-        chpHTML = chpHTML.replace(iiiLower, romanLowerRepl);
-        chpHTML = chpHTML.replace(vLower, romanLowerRepl);
-        chpHTML = chpHTML.replace(xLower, romanLowerRepl);
-        chpHTML = chpHTML.replace(xxLower, romanLowerRepl);
+        bodyHtml = bodyHtml.replace(iiLower, iiRepl);
+        bodyHtml = bodyHtml.replace(iiiLower, romanLowerRepl);
+        bodyHtml = bodyHtml.replace(vLower, romanLowerRepl);
+        bodyHtml = bodyHtml.replace(xLower, romanLowerRepl);
+        bodyHtml = bodyHtml.replace(xxLower, romanLowerRepl);
         if (breakIf("II")) {
           break Roman_wrapper;
         }
-        chpHTML = chpHTML.replace(IIUpper, IIRepl);
+        bodyHtml = bodyHtml.replace(IIUpper, IIRepl);
         if (breakIf("III")) {
           break Roman_wrapper;
         }
-        chpHTML = chpHTML.replace(IIIUpper, romanUpperRepl);
+        bodyHtml = bodyHtml.replace(IIIUpper, romanUpperRepl);
         if (breakIf("V")) {
           break Roman_wrapper;
         }
-        chpHTML = chpHTML.replace(VUpper, romanUpperRepl);
+        bodyHtml = bodyHtml.replace(VUpper, romanUpperRepl);
         if (breakIf("X")) {
           break Roman_wrapper;
         }
-        chpHTML = chpHTML.replace(XUpper, romanUpperRepl);
+        bodyHtml = bodyHtml.replace(XUpper, romanUpperRepl);
         if (breakIf("XX")) {
           break Roman_wrapper;
         }
-        chpHTML = chpHTML.replace(XXUpper, romanUpperRepl);
+        bodyHtml = bodyHtml.replace(XXUpper, romanUpperRepl);
       }
     }
     LittleL();
@@ -489,10 +502,9 @@ function ReplaceText() {
       // reclasses (L) as paragraph if following (k)
       const lilL = /((=para[^>]*>\(k\)[^~!]*))(?:=subpara)[^>]*(?=>\(L\))/g;
       const lilLRepl = "$1=para";
-      chpHTML = chpHTML.replace(lilL, lilLRepl);
+      bodyHtml = bodyHtml.replace(lilL, lilLRepl);
     }
   }
-  headingReformat(); // classify HEADINGS and (Subheadings) and (Temporary Labels) & build divs for each
   function headingReformat() {
     const headingFind = /<p class=default>([A-Z][^a-z]{3,}?)<\/p>/g; //Replaces 3+ initial capital letters with:
     const headingRepl =
@@ -507,23 +519,23 @@ function ReplaceText() {
       /(=orsForm break=\'\`\'[^`~]*)#hclose#[^`~]*?<p[^`~>]*>([^`~]*?)<div>/g; //Used to count headings to get "<div> breaks to line up"
     const subheadInForm =
       /(=orsForm break=\'\`\'[^`~]*)#sclose#[^`~]*?<p[^`~>]*>([^`~]*?)<div>/g; //Used to count subheadings
-    chpHTML = chpHTML.replace(headingFind, headingRepl);
-    chpHTML = chpHTML.replace(tempSec, tempSecRepl);
-    chpHTML = chpHTML.replace(subheadFind, subheadRepl);
+    bodyHtml = bodyHtml.replace(headingFind, headingRepl);
+    bodyHtml = bodyHtml.replace(tempSec, tempSecRepl);
+    bodyHtml = bodyHtml.replace(subheadFind, subheadRepl);
     headAndTOC = headAndTOC.replace(headingFind, headInTOCRepl);
     headAndTOC = headAndTOC.replace(subheadFind, headInTOCRepl);
-    while (headInForm.test(chpHTML) || subheadInForm.test(chpHTML)) {
+    while (headInForm.test(bodyHtml) || subheadInForm.test(bodyHtml)) {
       // replaces headings found within forms (which probably aren't actual headings) with with:
-      chpHTML = chpHTML.replace(headInForm, "$1<p class=formHeading>$2");
-      chpHTML = chpHTML.replace(subheadInForm, "$1<p class=default>$2");
+      bodyHtml = bodyHtml.replace(headInForm, "$1<p class=formHeading>$2");
+      bodyHtml = bodyHtml.replace(subheadInForm, "$1<p class=default>$2");
     }
     headingDivs(); // makes sure that all headings & subheading <divs> are closed exactly once. Could break if there's a subheading w/o heading
     function headingDivs() {
       const closeHeadTags = /(#hclose#|#sclose#)/;
       let hCount = 0;
-      while (closeHeadTags.test(chpHTML)) {
+      while (closeHeadTags.test(bodyHtml)) {
         let divHeadClose = "";
-        let nextTag = ifRegExMatch(closeHeadTags, chpHTML);
+        let nextTag = ifRegExMatch(closeHeadTags, bodyHtml);
         if (nextTag[1] == "s") {
           if (hCount == 2) {
             divHeadClose = "</div>";
@@ -541,12 +553,11 @@ function ReplaceText() {
           }
           hCount = 1;
         }
-        chpHTML = chpHTML.replace(closeHeadTags, divHeadClose);
+        bodyHtml = bodyHtml.replace(closeHeadTags, divHeadClose);
       }
     }
   }
-  Notes(); // Notes put into divs, sourcenotes styled, adds hyperlinks for Preface to ORS & vol22
-  function Notes() {
+  function notesRepl() {
     const noteFind = new RegExp(
       "<p[^>]*>\\s?<b>" + tabs + "(Note(\\s\\d)?:\\s?<\\/b>[^]*?<\\/p>)",
       "g"
@@ -573,33 +584,101 @@ function ReplaceText() {
       /(\d{4}\sComparative\sSection\sTable\slocated\sin\sVolume\s22)/g; // CST is replaced by link:
     const v22Repl =
       '<a href="https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx#">$1</a>';
-    chpHTML = chpHTML.replace(noteFind, noteRepl);
-    chpHTML = chpHTML.replace(noteSec, noteSecRepl);
-    chpHTML = chpHTML.replace(noteSesLaw, noteSesLawRepl);
-    chpHTML = chpHTML.replace(SesLawSec, SesLawSecRepl);
-    chpHTML = chpHTML.replace(prefaceFind, prefaceRepl);
-    chpHTML = chpHTML.replace(v22Find, v22Repl);
+    bodyHtml = bodyHtml.replace(noteFind, noteRepl);
+    bodyHtml = bodyHtml.replace(noteSec, noteSecRepl);
+    bodyHtml = bodyHtml.replace(noteSesLaw, noteSesLawRepl);
+    bodyHtml = bodyHtml.replace(SesLawSec, SesLawSecRepl);
+    bodyHtml = bodyHtml.replace(prefaceFind, prefaceRepl);
+    bodyHtml = bodyHtml.replace(v22Find, v22Repl);
     const subsecOne = /<p[^>]*?>\s?(\(1\)[^]+?)<\/p>/g;
     const subsecRepl = "<p class=subsec>$1</p>";
-    chpHTML = chpHTML.replace(subsecOne, subsecRepl);
+    bodyHtml = bodyHtml.replace(subsecOne, subsecRepl);
   }
-  sourceNotesRepl(); // Find source notes and classify
   function sourceNotesRepl() {
     const sourceNote = /(\[(19\d{2}|20\d{2}|Sub|Fo|Re|Am)[^]+?\]<\/p>)/g; //is replaced by:
     const sourceNoteRepl = "<p class=sourceNote>$1</p>";
-    chpHTML = chpHTML.replace(sourceNote, sourceNoteRepl);
+    bodyHtml = bodyHtml.replace(sourceNote, sourceNoteRepl);
     burntORS(); // Find burnt ORS (repealed/renumbered, aka rsecs) and classify
     function burntORS() {
       const burntOrs =
         /<p class=default><b>[^>\[]*?<a[^>\[]+?>([^<\[]+?)\s?<\/a>\s?<\/b>\s?<p class=sourceNote>/g;
       const burntOrsRepl = "</div><div class='burnt' id='$1'><b>$1:</b> ";
-      chpHTML = chpHTML.replace(burntOrs, burntOrsRepl);
+      bodyHtml = bodyHtml.replace(burntOrs, burntOrsRepl);
     }
   }
-  finalCleanUp(); // dump HTML back into document, clean up double returns & classify TOC paragraphs
+  function OrLawLinking() {
+    function HeinLinks() {
+      const heinURL =
+        "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$1&chapter=$2&sgo=Search&collection=ssl&search=go";
+      const orLawH1 = /((?:20|19)\d{2})\W*c\.\W*(\d+)/g; // is replaced by:
+      const orLawH1Repl = "<a href=" + heinURL + ">$&</a>";
+      const heinURL2 =
+        "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$2&chapter=$1&sgo=Search&collection=ssl&search=go";
+      const orLawH2 = /(?:C|c)hapter\s(\d{1,4}),\sOregon\sLaws\s(\d{4})/g;
+      const orLawH2Repl = "<a href=" + heinURL2 + ">$&</a>";
+      bodyHtml = bodyHtml.replace(orLawH1, orLawH1Repl);
+      bodyHtml = bodyHtml.replace(orLawH2, orLawH2Repl);
+      document.body.innerHTML = bodyHtml;
+    }
+    function OrLeg() {
+      /**
+       * @param {string} years
+       * @param {string} strFormat
+       */
+      function orLawReplacer(years, strFormat) {
+        let orLawSourceNote = new RegExp(years + orLawSourceNoteTail, "g");
+        let yearOrLawChp = new RegExp(yearOrLawChpHead + years, "g");
+        let orLawRepl = orLegURL + strFormat + urlTail;
+        bodyHtml = bodyHtml.replace(orLawSourceNote, orLawRepl);
+        bodyHtml = bodyHtml.replace(
+          yearOrLawChp,
+          orLawRepl.replace(/(\$1)([^]*?)(\$2)/, "$3$2$1")
+        );
+      }
+      function removeExtraZeros() {
+        const xtraZeros = /(aw|adv)\d+(\d{4})/g;
+        const xtraZerosRepl = "$1$2";
+        bodyHtml = bodyHtml.replace(xtraZeros, xtraZerosRepl);
+      }
+      // OrLeg MAIN:
+      const orLegURL =
+        '<a href="https://www.oregonlegislature.gov/bills_laws/lawsstatutes/';
+      const urlTail = '">$&</a>';
+      const orLawSourceNoteTail = "\\W+c\\.\\W*(\\d{1,4})";
+      const yearOrLawChpHead = "(?:C|c)hapter\\s(\\d{1,4}),\\sOregon\\sLaws\\s";
+      bodyHtml = document.body.innerHTML;
+      orLawReplacer(
+        "(202[\\d]|2019|2018|2017|2016|2015|2013)",
+        "$1orlaw000$2.pdf"
+      );
+      orLawReplacer("(2011|2010|2009|2008|2007|1999)", "$1orlaw000$2.html");
+      orLawReplacer("(2003|2001)", "$1orlaw000$2ses.html");
+      orLawReplacer("(2014)", "$1R1orlaw000$2ses.html");
+      orLawReplacer("(2012)", "$1adv000$2ss.pdf");
+      orLawReplacer("(2006)", "$1orLaw000$2ss1.pdf");
+      orLawReplacer("(2005)", "$1orLaw000$2ses.html");
+      removeExtraZeros(); // Make sure chapter is padded to exactly 4 digits
+      document.body.innerHTML = bodyHtml;    
+    }
+    // OrLawLinking MAIN
+    try {
+      // @ts-ignore
+      chrome.runtime.sendMessage({ message: "getOrLaw" }, (msg) => {
+        const orLaw = msg.response;
+        if (orLaw == "Hein") {
+          HeinLinks(); // replace with URL to HeinOnline search link through SOLL
+        } else if (orLaw == "OrLeg") {
+          OrLeg(); // replace with URL to Or.Leg.
+        }
+      });
+    } catch (e) {
+      console.warn(`Error attempting to generate OrLaws links: ${e}`);
+    } 
+  }
   function finalCleanUp() {
-    document.body.innerHTML = mainHead + headAndTOC + chpHTML;
-    document.body.innerHTML = document.body.innerHTML.replace(emptyTags, "");
+    bodyHtml = mainHead + headAndTOC + bodyHtml;
+    bodyHtml = bodyHtml.replace(emptyTags, "");
+    document.body.innerHTML=bodyHtml
     let tocID = document.getElementById("toc");
     if (Boolean(tocID)) {
       let allTocPs = tocID.getElementsByTagName("p");
@@ -612,118 +691,46 @@ function ReplaceText() {
       elem.removeAttribute("break");
     }
   }
-  OrLawLinking(); // get user data for OrLaws for link for 'year c.###' & 'chapter ###, Oregon Laws [year]'
-  function OrLawLinking() {
-    try {
-      // @ts-ignore
-      chrome.runtime.sendMessage({ message: "getOrLaw" }, (msg) => {
-        const orLaw = msg.response;
-        if (orLaw == "Hein") {
-          HeinLinks(); // replace with URL to HeinOnline search link through SOLL
-        } else if (orLaw == "OrLeg") {
-          OrLeg(); // replace with URL to Or.Leg.
-        }
-        javaDOM(); // Do neither & go straight to adding buttons & javascript elements
-      });
-    } catch (e) {
-      console.warn(`Error attempting to generate OrLaws links: ${e}`);
-      javaDOM();
-    }
+  // ReplaceText MAIN
+  //declaring global variables:
+  let bodyHtml = "";
+  let headAndTOC = "";
+  let thisChapterNum = "";
+  let mainHead = "";
+  const tocBreak = "!@%";
+  const tabs = "(?:&nbsp;|\\s){0,8}";
+  const orsChapter = "[1-9]\\d{0,2}[A-C]?\\b";
+  const emptyTags = new RegExp(`<(\\w)[^>]*?>${tabs}<\\/\\1>`, "g"); // is deleted (in first HTMLCleanUp & FinalClean)
+  const orsSection = `(?:${orsChapter}\\.\\d{3}\\b|\\b7\\dA?\\.\\d{4}\\b)`;
 
-    function HeinLinks() {
-      const heinURL =
-        "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$1&chapter=$2&sgo=Search&collection=ssl&search=go";
-      const orLawH1 = /((?:20|19)\d{2})\W*c\.\W*(\d+)/g; // is replaced by:
-      const orLawH1Repl = "<a href=" + heinURL + ">$&</a>";
-      const heinURL2 =
-        "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$2&chapter=$1&sgo=Search&collection=ssl&search=go";
-      const orLawH2 = /(?:C|c)hapter\s(\d{1,4}),\sOregon\sLaws\s(\d{4})/g;
-      const orLawH2Repl = "<a href=" + heinURL2 + ">$&</a>";
-      chpHTML = document.body.innerHTML;
-      chpHTML = chpHTML.replace(orLawH1, orLawH1Repl);
-      chpHTML = chpHTML.replace(orLawH2, orLawH2Repl);
-      document.body.innerHTML = chpHTML;
-    }
-    function OrLeg() {
-      /**
-       * @param {string} years
-       * @param {string} strFormat
-       */
-      function orLawReplacer(years, strFormat) {
-        let orLawSourceNote = new RegExp(years + orLawSourceNoteTail, "g");
-        let yearOrLawChp = new RegExp(yearOrLawChpHead + years, "g");
-        let orLawRepl = orLegURL + strFormat + urlTail;
-        chpHTML = chpHTML.replace(orLawSourceNote, orLawRepl);
-        chpHTML = chpHTML.replace(
-          yearOrLawChp,
-          orLawRepl.replace(/(\$1)([^]*?)(\$2)/, "$3$2$1")
-        );
-      }
-      function removeExtraZeros() {
-        const xtraZeros = /(aw|adv)\d+(\d{4})/g;
-        const xtraZerosRepl = "$1$2";
-        chpHTML = chpHTML.replace(xtraZeros, xtraZerosRepl);
-      }
-      // OrLeg MAIN:
-      const orLegURL =
-        '<a href="https://www.oregonlegislature.gov/bills_laws/lawsstatutes/';
-      const urlTail = '">$&</a>';
-      const orLawSourceNoteTail = "\\W+c\\.\\W*(\\d{1,4})";
-      const yearOrLawChpHead = "(?:C|c)hapter\\s(\\d{1,4}),\\sOregon\\sLaws\\s";
-      chpHTML = document.body.innerHTML;
-      orLawReplacer(
-        "(202[\\d]|2019|2018|2017|2016|2015|2013)",
-        "$1orlaw000$2.pdf"
-      );
-      orLawReplacer("(2011|2010|2009|2008|2007|1999)", "$1orlaw000$2.html");
-      orLawReplacer("(2003|2001)", "$1orlaw000$2ses.html");
-      orLawReplacer("(2014)", "$1R1orlaw000$2ses.html");
-      orLawReplacer("(2012)", "$1adv000$2ss.pdf");
-      orLawReplacer("(2006)", "$1orLaw000$2ss1.pdf");
-      orLawReplacer("(2005)", "$1orLaw000$2ses.html");
-      removeExtraZeros(); // Make sure chapter is padded to exactly 4 digits
-      document.body.innerHTML = chpHTML;
-    }
-  }
+  htmlCleanup();   // delete span syntex & msoClasses & existing divs & empty tags from HTML
+  chapterHeadRepl(); // Replace heading at top of page.
+  createTOC(); //create & label new division for table of contents
+  classifyOrsRefs(); //classify internal cross references to ORS sections (xx.xxx) (to be replaced later by relevant links)
+  classLeadlines(); // classify leadlines & create new div for each new section
+  createFormDivs(); // create new div for forms
+  orsInChapLink(); // builds links to ORS sections in chapter to #id of ORS section
+  orsOutChapLink(); // builds links to ORS sections in other chapters
+  separateToc(); //separate TOC & chapter heading from rest of body to facilitate editing body
+  classifySubunits(); // finds and classifies subunits (subsections, paragraphs, subsections etc.)
+  headingReformat(); // classify HEADINGS and (Subheadings) and (Temporary Labels) & build divs for each
+
+  notesRepl(); // Notes put into divs, sourcenotes styled, adds hyperlinks for Preface to ORS & vol22
+  sourceNotesRepl(); // Find source notes and classify
+  OrLawLinking(); // get user data for OrLaws for link for 'year c.###' & 'chapter ###, Oregon Laws [year]'
+  finalCleanUp()
+  javaDOM() // add buttons for collapsable sections & menu
+  
+// MAIN ReplaceText
+  
 }
-function promiseGetNavID() {
-  return new Promise(async (resolve, reject) => {
-    try {
-      setTimeout(() => {
-        const idFinder = /(?<=\.html\#)[^\/]*/;
-        if (idFinder.test(initialTabUrl)) {
-          const pinCiteButton = document.getElementById(
-            ifRegExMatch(idFinder, initialTabUrl)
-          );
-          if (pinCiteButton) {
-            resolve(pinCiteButton);
-          } else {
-            resolve("");
-          }
-        } else {
-          resolve("");
-        }
-      }, 10);
-    } catch (e) {
-      console.warn(`promiseGetNavID: ${e}`);
-      reject(`promiseGetNavID: ${e}`);
-    }
-  });
-}
+
 
 // MAIN
 let initialTabUrl;
 promiseGetTabURL();
-StyleSheetRefresh()
-window.addEventListener("load", StyleSheetRefresh);
+//StyleSheetRefresh();
+addPopupJsListener();
 window.addEventListener("load", ReplaceText);
-//@ts-ignore
-chrome.runtime.onMessage.addListener((msg, _sender, _reponse) => {
-  const msgText = msg.toMORS;
-  try {
-    doShowSourceNotes(msgText.sN);
-    doShowRSecs(msgText.rsec);
-  } catch (e) {
-    console.warn(`Error w/ display rSecs or sourceNotes: ${e}`);
-  }
-});
+window.addEventListener("load", StyleSheetRefresh);
+
