@@ -312,11 +312,27 @@ async function javaDOM() {
     getShowRSec();
     getShowSNs();
   }
+  
+  async function ResizeCollapsed(){
+    try {
+      //@ts-ignore
+      chrome.runtime.sendMessage({ message: "getCollapsed" }, (response) => {
+        if (response.response) {
+          expandAllSections();
+          collapseAllSections();
+        }
+      });
+    } catch (error) {
+      console.warn(`Error in getCollapsed(): ${error}`);
+    }
+  }
+
   // JavaDOM MAIN:
   addSectionCollapseButtons();
   buildOrsLinkButton();
   buildFloatingMenuDiv();
   implementStoredParameters();
+  window.addEventListener("resize", ResizeCollapsed);
 }
 function ReplaceText() {
   function htmlCleanup() {
@@ -725,7 +741,6 @@ function ReplaceText() {
   
 }
 
-
 // MAIN
 let initialTabUrl;
 promiseGetTabURL();
@@ -733,4 +748,5 @@ promiseGetTabURL();
 addPopupJsListener();
 window.addEventListener("load", ReplaceText);
 window.addEventListener("load", StyleSheetRefresh);
+
 
