@@ -44,17 +44,17 @@ function promiseGetNavID() {
     }
   });
 }
-function addPopupJsListener(){
+function addPopupJsListener() {
   //@ts-ignore
   chrome.runtime.onMessage.addListener((msg, _sender, _reponse) => {
     const msgText = msg.toMORS;
     try {
-      if (msgText["burnt"]!=undefined) {
+      if (msgText["burnt"] != undefined) {
         doShowRSecs(msgText["burnt"]);
-      } else if (msgText["sn"]!=undefined) {
-        doShowSourceNotes(msgText["sn"])
+      } else if (msgText["sn"] != undefined) {
+        doShowSourceNotes(msgText["sn"]);
       } else {
-        console.warn('Error unidentified message received from popup.html')
+        console.warn("Error unidentified message received from popup.html");
       }
     } catch (e) {
       console.warn(`Error w/ display rSecs or sourceNotes: ${e}`);
@@ -117,15 +117,16 @@ async function javaDOM() {
     return { anElement: thisElement, height: thisHeight };
   }
   /** collapses single ORS section
-  * @param {{ anElement: HTMLElement; height: any; }} collapseObj
-  */
-    function collapseSingle(collapseObj) {
+   * @param {{ anElement: HTMLElement; height: any; }} collapseObj
+   */
+  function collapseSingle(collapseObj) {
     if (!collapseObj) {
       console.warn("No button found in object!?");
+    } else {
+      collapseObj.anElement.style.maxHeight = collapseObj.height;
     }
-    collapseObj.anElement.style.maxHeight = collapseObj.height;
   }
-  
+
   /** expands single ORS section
    * @param {Element} buttonElement
    */
@@ -134,7 +135,7 @@ async function javaDOM() {
       if (buttonElement.classList.contains("collapsible")) {
         const sectionDiv = buttonElement.parentElement;
         buttonElement.classList.add("active");
-        sectionDiv.style.maxHeight = "none"; //`${sectionDiv.scrollHeight}px`;
+        sectionDiv.style.maxHeight = "none";
       } else {
         console.warn(
           `Target ${buttonElement.innerHTML} is not an active section`
@@ -151,7 +152,7 @@ async function javaDOM() {
       expandSingle(collapsibles[i]);
     }
   }
-  // Adds button to each ORS section leadline toggling expand/collapse 
+  // Adds button to each ORS section leadline toggling expand/collapse
   function addSectionCollapseButtons() {
     const collapsibles = document.getElementsByClassName("collapsible");
     let collapseObjHeightList = [];
@@ -264,7 +265,7 @@ async function javaDOM() {
         addExpandAllButton();
         addCollapseAllButton();
         addToggleCssButton();
-        document.body.appendChild(menuPanel);    
+        document.body.appendChild(menuPanel);
       }
     });
   }
@@ -287,7 +288,7 @@ async function javaDOM() {
           expandSingle(navID);
           navID.scrollIntoView();
         } else {
-          console.log("No ORS section found in URL");
+          console.info("No ORS section found in URL");
         }
       } catch (error) {
         console.warn(`Error getting tabURL: ${error}`);
@@ -312,11 +313,44 @@ async function javaDOM() {
     getShowRSec();
     getShowSNs();
   }
+
+  async function ResizeCollapsed() {
+    try {
+      //@ts-ignore
+      const sectionList = document.body.getElementsByClassName("section");
+      let maxHeightList = [];
+      console.info(
+        `Reapply height to up to ${sectionList.length} section divs`
+      );
+      for (let i = 0; i < sectionList.length; i++) {
+        const aSection = sectionList[i];
+        //@ts-ignore
+        if (aSection.style.maxHeight != "none") {
+          maxHeightList.push(`${aSection.firstElementChild.scrollHeight}px`);
+          //@ts-ignore
+        } else maxHeightList.push("none");
+      }
+      for (let j = sectionList.length - 1; j >= 0; j--) {
+        //@ts-ignore
+        sectionList[j].style.maxHeight = maxHeightList[j];
+      }
+    } catch (error) {
+      console.warn(`Error in getCollapsed(): ${error}`);
+    }
+  }
+
   // JavaDOM MAIN:
   addSectionCollapseButtons();
   buildOrsLinkButton();
   buildFloatingMenuDiv();
   implementStoredParameters();
+  var resizedFinished;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizedFinished);
+    resizedFinished = setTimeout(function () {
+      ResizeCollapsed();
+    }, 350);
+  });
 }
 function ReplaceText() {
   function htmlCleanup() {
@@ -571,7 +605,7 @@ function ReplaceText() {
       "<p class=default><b>Note section for ORS $1:</b></p><p class=default>$2</div><div";
     const noteSesLaw =
       /<div\sclass=note>([^~]*?Section[^~]+?provides?:)[^~]*?<\/div>([^~]*?)<div/g;
-    const noteSesLawRepl = "</div><div class='note notesec'>$1$2<div"; 
+    const noteSesLawRepl = "</div><div class='note notesec'>$1$2<div";
     const SesLawSec = new RegExp(
       `<b>${tabs}(Sec\\.\\s\\d{1,3}\\.)\\s?<\\/b>`,
       "g"
@@ -658,7 +692,7 @@ function ReplaceText() {
       orLawReplacer("(2006)", "$1orLaw000$2ss1.pdf");
       orLawReplacer("(2005)", "$1orLaw000$2ses.html");
       removeExtraZeros(); // Make sure chapter is padded to exactly 4 digits
-      document.body.innerHTML = bodyHtml;    
+      document.body.innerHTML = bodyHtml;
     }
     // OrLawLinking MAIN
     try {
@@ -673,12 +707,12 @@ function ReplaceText() {
       });
     } catch (e) {
       console.warn(`Error attempting to generate OrLaws links: ${e}`);
-    } 
+    }
   }
   function finalCleanUp() {
     bodyHtml = mainHead + headAndTOC + bodyHtml;
     bodyHtml = bodyHtml.replace(emptyTags, "");
-    document.body.innerHTML=bodyHtml
+    document.body.innerHTML = bodyHtml;
     let tocID = document.getElementById("toc");
     if (Boolean(tocID)) {
       let allTocPs = tocID.getElementsByTagName("p");
@@ -691,8 +725,8 @@ function ReplaceText() {
       elem.removeAttribute("break");
     }
   }
-  // ReplaceText MAIN
-  //declaring global variables:
+  // ReplaceText() MAIN
+  // global variables:
   let bodyHtml = "";
   let headAndTOC = "";
   let thisChapterNum = "";
@@ -702,8 +736,7 @@ function ReplaceText() {
   const orsChapter = "[1-9]\\d{0,2}[A-C]?\\b";
   const emptyTags = new RegExp(`<(\\w)[^>]*?>${tabs}<\\/\\1>`, "g"); // is deleted (in first HTMLCleanUp & FinalClean)
   const orsSection = `(?:${orsChapter}\\.\\d{3}\\b|\\b7\\dA?\\.\\d{4}\\b)`;
-
-  htmlCleanup();   // delete span syntex & msoClasses & existing divs & empty tags from HTML
+  htmlCleanup(); // delete span syntex & msoClasses & existing divs & empty tags from HTML
   chapterHeadRepl(); // Replace heading at top of page.
   createTOC(); //create & label new division for table of contents
   classifyOrsRefs(); //classify internal cross references to ORS sections (xx.xxx) (to be replaced later by relevant links)
@@ -714,23 +747,16 @@ function ReplaceText() {
   separateToc(); //separate TOC & chapter heading from rest of body to facilitate editing body
   classifySubunits(); // finds and classifies subunits (subsections, paragraphs, subsections etc.)
   headingReformat(); // classify HEADINGS and (Subheadings) and (Temporary Labels) & build divs for each
-
   notesRepl(); // Notes put into divs, sourcenotes styled, adds hyperlinks for Preface to ORS & vol22
   sourceNotesRepl(); // Find source notes and classify
   OrLawLinking(); // get user data for OrLaws for link for 'year c.###' & 'chapter ###, Oregon Laws [year]'
-  finalCleanUp()
-  javaDOM() // add buttons for collapsable sections & menu
-  
-// MAIN ReplaceText
-  
+  finalCleanUp(); // reassemble pieces. Final tweaks to TOC
+  javaDOM(); // add buttons for collapsable sections & menu
 }
 
-
-// MAIN
+// MAIN mORS.js
 let initialTabUrl;
 promiseGetTabURL();
-//StyleSheetRefresh();
 addPopupJsListener();
 window.addEventListener("load", ReplaceText);
 window.addEventListener("load", StyleSheetRefresh);
-

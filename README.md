@@ -26,9 +26,11 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 
 ## Updates:
 
+  ### Vesion 1.4.5 - 11/20/2021
+   * Height of collapsed sections automatically resizes
+
   ### Version 1.4.4 - 11/19/2021
    * Page menu can be removed from options popup
-   * 
 
   ### Version 1.4.0 - 11/17/2021
    * Omnibox works with 'mors'
@@ -58,9 +60,6 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
   
 ## Known bugs:
   * TODO: #28 Not identifying roman numerals if appearing with a paragraph & subparagraph (e.g. "(d)(A)(i)" or "(C)(i)(I)")
-  * Heights of sections may not be correct if resizing window horizontally (can fix with "collapse all")
   * Stylesheets don't update/stay right on non-active page when changing Oregon Law source (can fix by refreshing page or "remove stylesheet" + "add stylesheet")
 
 ## Planned features/fixes:
-  * TODO: #29 Improve speed and eliminate needless looping
-  * TODO: #30 Allow removal of menu from page.
