@@ -155,16 +155,21 @@ async function javaDOM() {
   // Adds button to each ORS section leadline toggling expand/collapse
   function addSectionCollapseButtons() {
     const collapsibles = document.getElementsByClassName("collapsible");
-    let collapseObjHeightList = [];
+    //let collapseObjHeightList = [];
     for (let i = 0; i < collapsibles.length; i++) {
+      
       const buttonElement = collapsibles[i];
-      collapseObjHeightList.push(findCollapseHeight(buttonElement));
+      console.log(`button ${i} = ${buttonElement.innerHTML}`)
+      //collapseObjHeightList.push(findCollapseHeight(buttonElement));
       buttonElement.addEventListener("click", () => {
-        if (collapseObjHeightList[i].anElement.style.maxHeight == "none") {
+        console.log('button')
+        /* if (buttonElement.parentElement.style.maxHeight == "none") {
           collapseSingle(findCollapseHeight(buttonElement));
+          console.log(`collapsing`)
         } else {
           expandSingle(buttonElement);
-        }
+          console.log('expanding')
+        } */
       });
     }
   }

@@ -7,19 +7,19 @@
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason == "install") {
     //@ts-ignore
-    chrome.storage.sync.clear()
+    chrome.storage.sync.clear();
     //@ts-ignore
-    chrome.storage.sync.set( { cssSelectorStored: "Dark" } )
+    chrome.storage.sync.set({ cssSelectorStored: "Dark" });
     //@ts-ignore
-    chrome.storage.sync.set( { lawsReaderStored: "OrLeg" } )
+    chrome.storage.sync.set({ lawsReaderStored: "OrLeg" });
     //@ts-ignore
-    chrome.storage.sync.set( { collapseDefaultStored: false } )
+    chrome.storage.sync.set({ collapseDefaultStored: false });
     //@ts-ignore
-    chrome.storage.sync.set( { showSNsStored: true } )
+    chrome.storage.sync.set({ showSNsStored: true });
     //@ts-ignore
-    chrome.storage.sync.set( { showBurntStored: true } )
+    chrome.storage.sync.set({ showBurntStored: true });
     //@ts-ignore
-    chrome.storage.sync.set( { showMenuCheck: true } )
+    chrome.storage.sync.set({ showMenuCheck: true });
   }
 });
 
@@ -44,23 +44,27 @@ chrome.omnibox.onInputEntered.addListener((omniText) => {
       logOrWarn(e, "Invalid OrLaw Request");
     }
   }
-  const ors = /[^.|&/1234567890]*(\b\d{1,3}[A-C]?)(?:\.?$|.\d{3,4}$)[^]*/g;
   const orlaw = /[^]*((?:19|20)\d{2})\s*?([/|&]|\s|c\.)\s*?(\d{1,4}$)[^]*/g;
+  const ors = /[^.|&/123456789]*(\b\d{1,3}[A-C]?)(?:\.?$|.\d{3,4}$)[^]*/g;
   console.info(orlaw);
+  console.info(ors)
   console.info(omniText);
   if (orlaw.test(omniText)) {
     getOrLaw();
-  } else if (ors.test(omniText)) {
+    return
+  } 
+  if (ors.test(omniText)) {
     let orsSearch = omniText.replace(ors, "00$1.html#$&");
-    orsSearch = orsSearch.replace(/\d{1,2}(\d{3}[A-C]?)(\.html)/, "$1$2");
+    orsSearch = orsSearch.replace(/\d{1,2}(\d{3}[A-C]?\.html)/, "$1");
     navigate(
       `https://www.oregonlegislature.gov/bills_laws/ors/ors${orsSearch}`
     );
-  } else {
-    logOrWarn(`Type 'mORS' + ORS '{chapter}' or '{section}' or '{year} c.{chapter#}\n
-      (E.g., '659A', '174.010', or '2015 c.614')`);
+    return
+  } 
+  logOrWarn(`Type 'mORS' + ORS '{chapter}' or '{section}' or '{year} c.{chapter#}\n
+    (E.g., '659A', '174.010', or '2015 c.614')`);
   }
-});
+);
 
 /**
  * @param {number} year
@@ -116,12 +120,12 @@ function promiseGetOrLegUrl(year, chapter, reader) {
   });
 }
 
-function promiseGetActiveTab() {
+function promiseGetActiveTab(source) {
   return new Promise((resolve, reject) => {
     // @ts-ignore
     chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
       if (tabs) {
-        logOrWarn(`Active tab is #${tabs[0].id}, url: ${tabs[0].url}`);
+        logOrWarn(`Active tab is #${tabs[0].id}, url: ${tabs[0].url}; requested by ${source}`);
         resolve(tabs[0]);
       } else {
         reject("Unable to determine active tab");
@@ -160,7 +164,9 @@ function promiseGetChromeStorage(objKey) {
  */
 async function messageHandler(referencedPromise, response) {
   try {
-    response({ response: await referencedPromise });
+    const resolvedPromise = await referencedPromise
+    //console.info(`Response: ${resolvedPromise}`)
+    response({ response: await resolvedPromise });
   } catch (e) {
     response({ response: `Error: ${e}` });
   }
@@ -181,7 +187,17 @@ chrome.runtime.onMessage.addListener((msg, _sender, response) => {
         messageHandler(promiseGetChromeStorage("lawsReaderStored"), response);
         break;
       case "getCssFile":
-        messageHandler(promiseGetChromeStorage("cssSelectorStored"), response);
+        getCss(response)
+        async function getCss(response) {
+          const cssSource = await promiseGetChromeStorage("cssSelectorStored")
+          console.log(`GetCss returning, "${cssSourceLookup[cssSource]}""`);
+          response({response : cssSourceLookup[cssSource] });
+        };
+        break;
+      case "getCssSelector":
+        messageHandler(promiseGetChromeStorage("cssSelectorStored"),
+          response
+        );
         break;
       case "getShowSNs":
         messageHandler(promiseGetChromeStorage("showSNsStored"), response);
@@ -199,7 +215,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, response) => {
         );
         break;
       case "getCurrentTab":
-        messageHandler(promiseGetActiveTab(), response);
+        messageHandler(promiseGetActiveTab("msgHandler"), response);
         break;
       default:
         logOrWarn(
@@ -227,47 +243,44 @@ chrome.runtime.onMessage.addListener((msg, _sender, response) => {
 //removes existing css and adds css from stored value
 async function promiseDoUpdateCSS() {
   return new Promise(async (resolve, reject) => {
+    let insertCssFile;
     try {
       const cssStored = await promiseGetChromeStorage("cssSelectorStored");
-      let insertCssFile = "";
-      switch (cssStored) {
-        case "Dark":
-          insertCssFile = "/css/dark.css";
-          break;
-        case "Light":
-          insertCssFile = "/css/light.css";
-          break;
-        case "DarkGrey":
-          insertCssFile = "/css/darkgrey.css";
-          break;
-        default:
-          insertCssFile = "/css/light.css";
-          break;
-      }
-      await promiseDoRemoveCSS();
-      const activeTab = await promiseGetActiveTab();
+      insertCssFile = `${cssSourceLookup[cssStored]}`;
+    } catch (e) {
+      insertCssFile = "/css/light.css";
+      console.warn(`Error finding Css request: ${e}`);
+    }
+    const activeTab = await promiseGetActiveTab("insertCss");
+    try {
+      await promiseDoRemoveCSS(activeTab);
+    } catch (e) {
+      reject(`Could not remove css. Error: ${e}`);
+    }
+    try {
       //@ts-ignore
       chrome.scripting.insertCSS({
-        target: { tabId: activeTab. id },
+        target: { tabId: activeTab.id },
         files: [insertCssFile],
       });
       resolve("Success");
     } catch (e) {
-      logOrWarn(`Could not update CSS. Err: ${e}` , "updateCSS");
+      logOrWarn(`Could not update CSS. Err: ${e}`, "updateCSS");
       reject(`UpdateCSS error: ${e}`);
     }
   });
 }
 
-async function promiseDoRemoveCSS() {
+async function promiseDoRemoveCSS(activeTab = null) {
   return new Promise(async (resolve, reject) => {
+    let cssFileList = []
+    for (const key in cssSourceLookup) {
+      cssFileList.push(cssSourceLookup[key])       
+    }
     try {
-      const cssFileList = [
-        "/css/dark.css",
-        "/css/light.css",
-        "/css/darkgrey.css",
-      ];
-      const activeTab = await promiseGetActiveTab();
+      if (activeTab==null) {
+        activeTab = await promiseGetActiveTab("removeCss");
+      }
       // @ts-ignore
       chrome.scripting.removeCSS({
         target: { tabId: activeTab.id },
@@ -308,7 +321,12 @@ function logOrWarn(msgTxt, warningId = "") {
     );
   }
 }
-let orLawOrLegLookup = {
+const cssSourceLookup = {
+  Dark: "/css/dark.css",
+  Light: "/css/light.css",
+  DarkGrey: "/css/darkgrey.css",
+};
+const orLawOrLegLookup = {
   OL2021: "2021orlaw~.pdf",
   OL2020: "2020orlaw~.pdf",
   OL2019: "2019orlaw~.pdf",
