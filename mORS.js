@@ -107,7 +107,7 @@ function StyleSheetRefresh() {
   }
 }
 async function javaDOM() {
-  /** returns object (HTML elements & collapsed heights) (just one element, but may edit later)
+  /** returns object (HTML elements & their collapsed heights) (just one element, but may edit later)
    * @param {Element} buttonElement
    */
   function findCollapseHeight(buttonElement) {
@@ -159,11 +159,10 @@ async function javaDOM() {
     for (let i = 0; i < collapsibles.length; i++) {
       
       const buttonElement = collapsibles[i];
-      console.log(`button ${i} = ${buttonElement.innerHTML}`)
-      //collapseObjHeightList.push(findCollapseHeight(buttonElement));
+      buttonElement.parentElement.style.maxHeight="none"
+      // collapseObjHeightList.push(findCollapseHeight(buttonElement));
       buttonElement.addEventListener("click", () => {
-        console.log('button')
-        /* if (buttonElement.parentElement.style.maxHeight == "none") {
+        if (buttonElement.parentElement.style.maxHeight == "none") {
           collapseSingle(findCollapseHeight(buttonElement));
           console.log(`collapsing`)
         } else {
@@ -230,7 +229,7 @@ async function javaDOM() {
     }
     function addToggleCssButton() {
       let toggleCSSButton = document.createElement("button");
-      toggleCSSButton.innerHTML = "Remove Style";
+      toggleCSSButton.innerText = "Remove Style";
       toggleCSSButton.classList.add("cssOn");
       toggleCSSButton.id = "buttonToggleCSS";
       menuPanel.appendChild(toggleCSSButton);
@@ -357,13 +356,14 @@ async function javaDOM() {
     }, 350);
   });
 }
-function ReplaceText() {
+function SyncReplaceText() {
   function htmlCleanup() {
     bodyHtml = document.body.innerHTML;
     const styleGarb = /<span style=[^]+?>([^]+?)<\/span>/g; // is deleted
     const msoGarb = /<p\sclass=\W?Mso[^>]*>/g; // is replaced by:
     const msoRepl = "<p class=default>";
     const divGarb = /<div[^>]*?>/g; // is deleted
+    const emptyTags = new RegExp(`<(\\w)[^>]*?>${tabs}<\\/\\1>`, "g"); // is deleted 
     bodyHtml = bodyHtml.replace(/(\n|\r|\f)/g, " ");
     bodyHtml = bodyHtml.replace(/\s\s/, " ");
     bodyHtml = bodyHtml.replace(styleGarb, "$1");
@@ -451,7 +451,7 @@ function ReplaceText() {
   }
   function separateToc() {
     if (new RegExp(tocBreak).test(bodyHtml)) {
-      headAndTOC = bodyHtml.match(new RegExp(`[^]*?(?=${tocBreak})`))[0]; // copy TOC to own variable
+      headAndToc = bodyHtml.match(new RegExp(`[^]*?(?=${tocBreak})`))[0]; // copy TOC to own variable
       bodyHtml = bodyHtml.replace(new RegExp(`[^]*?${tocBreak}`), ""); // and remove it from the editing document
     } else {
       console.warn("No table of contents found");
@@ -561,8 +561,8 @@ function ReplaceText() {
     bodyHtml = bodyHtml.replace(headingFind, headingRepl);
     bodyHtml = bodyHtml.replace(tempSec, tempSecRepl);
     bodyHtml = bodyHtml.replace(subheadFind, subheadRepl);
-    headAndTOC = headAndTOC.replace(headingFind, headInTOCRepl);
-    headAndTOC = headAndTOC.replace(subheadFind, headInTOCRepl);
+    headAndToc = headAndToc.replace(headingFind, headInTOCRepl);
+    headAndToc = headAndToc.replace(subheadFind, headInTOCRepl);
     while (headInForm.test(bodyHtml) || subheadInForm.test(bodyHtml)) {
       // replaces headings found within forms (which probably aren't actual headings) with with:
       bodyHtml = bodyHtml.replace(headInForm, "$1<p class=formHeading>$2");
@@ -645,101 +645,13 @@ function ReplaceText() {
       bodyHtml = bodyHtml.replace(burntOrs, burntOrsRepl);
     }
   }
-  function OrLawLinking() {
-    function HeinLinks() {
-      const heinURL =
-        "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$1&chapter=$2&sgo=Search&collection=ssl&search=go";
-      const orLawH1 = /((?:20|19)\d{2})\W*c\.\W*(\d+)/g; // is replaced by:
-      const orLawH1Repl = "<a href=" + heinURL + ">$&</a>";
-      const heinURL2 =
-        "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$2&chapter=$1&sgo=Search&collection=ssl&search=go";
-      const orLawH2 = /(?:C|c)hapter\s(\d{1,4}),\sOregon\sLaws\s(\d{4})/g;
-      const orLawH2Repl = "<a href=" + heinURL2 + ">$&</a>";
-      bodyHtml = bodyHtml.replace(orLawH1, orLawH1Repl);
-      bodyHtml = bodyHtml.replace(orLawH2, orLawH2Repl);
-      document.body.innerHTML = bodyHtml;
-    }
-    function OrLeg() {
-      /**
-       * @param {string} years
-       * @param {string} strFormat
-       */
-      function orLawReplacer(years, strFormat) {
-        let orLawSourceNote = new RegExp(years + orLawSourceNoteTail, "g");
-        let yearOrLawChp = new RegExp(yearOrLawChpHead + years, "g");
-        let orLawRepl = orLegURL + strFormat + urlTail;
-        bodyHtml = bodyHtml.replace(orLawSourceNote, orLawRepl);
-        bodyHtml = bodyHtml.replace(
-          yearOrLawChp,
-          orLawRepl.replace(/(\$1)([^]*?)(\$2)/, "$3$2$1")
-        );
-      }
-      function removeExtraZeros() {
-        const xtraZeros = /(aw|adv)\d+(\d{4})/g;
-        const xtraZerosRepl = "$1$2";
-        bodyHtml = bodyHtml.replace(xtraZeros, xtraZerosRepl);
-      }
-      // OrLeg MAIN:
-      const orLegURL =
-        '<a href="https://www.oregonlegislature.gov/bills_laws/lawsstatutes/';
-      const urlTail = '">$&</a>';
-      const orLawSourceNoteTail = "\\W+c\\.\\W*(\\d{1,4})";
-      const yearOrLawChpHead = "(?:C|c)hapter\\s(\\d{1,4}),\\sOregon\\sLaws\\s";
-      bodyHtml = document.body.innerHTML;
-      orLawReplacer(
-        "(202[\\d]|2019|2018|2017|2016|2015|2013)",
-        "$1orlaw000$2.pdf"
-      );
-      orLawReplacer("(2011|2010|2009|2008|2007|1999)", "$1orlaw000$2.html");
-      orLawReplacer("(2003|2001)", "$1orlaw000$2ses.html");
-      orLawReplacer("(2014)", "$1R1orlaw000$2ses.html");
-      orLawReplacer("(2012)", "$1adv000$2ss.pdf");
-      orLawReplacer("(2006)", "$1orLaw000$2ss1.pdf");
-      orLawReplacer("(2005)", "$1orLaw000$2ses.html");
-      removeExtraZeros(); // Make sure chapter is padded to exactly 4 digits
-      document.body.innerHTML = bodyHtml;
-    }
-    // OrLawLinking MAIN
-    try {
-      // @ts-ignore
-      chrome.runtime.sendMessage({ message: "getOrLaw" }, (msg) => {
-        const orLaw = msg.response;
-        if (orLaw == "Hein") {
-          HeinLinks(); // replace with URL to HeinOnline search link through SOLL
-        } else if (orLaw == "OrLeg") {
-          OrLeg(); // replace with URL to Or.Leg.
-        }
-      });
-    } catch (e) {
-      console.warn(`Error attempting to generate OrLaws links: ${e}`);
-    }
-  }
-  function finalCleanUp() {
-    bodyHtml = mainHead + headAndTOC + bodyHtml;
-    bodyHtml = bodyHtml.replace(emptyTags, "");
-    document.body.innerHTML = bodyHtml;
-    let tocID = document.getElementById("toc");
-    if (Boolean(tocID)) {
-      let allTocPs = tocID.getElementsByTagName("p");
-      for (let aP of allTocPs) {
-        aP.className += " toc";
-      }
-    }
-    let cleanUpBreaks = document.querySelectorAll("[break]");
-    for (let elem of cleanUpBreaks) {
-      elem.removeAttribute("break");
-    }
-  }
-  // ReplaceText() MAIN
-  // global variables:
   let bodyHtml = "";
-  let headAndTOC = "";
+  let headAndToc = "";
   let thisChapterNum = "";
   let mainHead = "";
   const tocBreak = "!@%";
   const tabs = "(?:&nbsp;|\\s){0,8}";
   const orsChapter = "[1-9]\\d{0,2}[A-C]?\\b";
-  const emptyTags = new RegExp(`<(\\w)[^>]*?>${tabs}<\\/\\1>`, "g"); // is deleted (in first HTMLCleanUp & FinalClean)
   const orsSection = `(?:${orsChapter}\\.\\d{3}\\b|\\b7\\dA?\\.\\d{4}\\b)`;
   htmlCleanup(); // delete span syntex & msoClasses & existing divs & empty tags from HTML
   chapterHeadRepl(); // Replace heading at top of page.
@@ -754,14 +666,121 @@ function ReplaceText() {
   headingReformat(); // classify HEADINGS and (Subheadings) and (Temporary Labels) & build divs for each
   notesRepl(); // Notes put into divs, sourcenotes styled, adds hyperlinks for Preface to ORS & vol22
   sourceNotesRepl(); // Find source notes and classify
-  OrLawLinking(); // get user data for OrLaws for link for 'year c.###' & 'chapter ###, Oregon Laws [year]'
-  finalCleanUp(); // reassemble pieces. Final tweaks to TOC
-  javaDOM(); // add buttons for collapsable sections & menu
+  return {
+    mainhead : mainHead, 
+    headAndToc : headAndToc, 
+    body : bodyHtml
+  }
+}
+async function OrLawLinking(html) {
+  return new Promise((resolve, reject)=>{
+    function HeinLinks() {
+      const heinURL =
+        "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$1&chapter=$2&sgo=Search&collection=ssl&search=go";
+      const orLawH1 = /((?:20|19)\d{2})\W*c\.\W*(\d+)/g; // is replaced by:
+      const orLawH1Repl = "<a href=" + heinURL + ">$&</a>";
+      const heinURL2 =
+        "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$2&chapter=$1&sgo=Search&collection=ssl&search=go";
+      const orLawH2 = /(?:C|c)hapter\s(\d{1,4}),\sOregon\sLaws\s(\d{4})/g;
+      const orLawH2Repl = "<a href=" + heinURL2 + ">$&</a>";
+      html = html.replace(orLawH1, orLawH1Repl);
+      html = html.replace(orLawH2, orLawH2Repl);
+      resolve(html)
+    }
+    function OrLeg(html) {
+      /**
+       * @param {string} years
+       * @param {string} strFormat
+       */
+      function orLawReplacer(years, strFormat) {
+        let orLawSourceNote = new RegExp(years + orLawSourceNoteTail, "g");
+        let yearOrLawChp = new RegExp(yearOrLawChpHead + years, "g");
+        let orLawRepl = orLegURL + strFormat + urlTail;
+        html = html.replace(orLawSourceNote, orLawRepl);
+        html = html.replace(
+          yearOrLawChp,
+          orLawRepl.replace(/(\$1)([^]*?)(\$2)/, "$3$2$1")
+        );
+      }
+      function removeExtraZeros() {
+        const xtraZeros = /(aw|adv)\d+(\d{4})/g;
+        const xtraZerosRepl = "$1$2";
+        html = html.replace(xtraZeros, xtraZerosRepl);
+      }
+      // OrLeg MAIN:
+      const orLegURL =
+        '<a href="https://www.oregonlegislature.gov/bills_laws/lawsstatutes/';
+      const urlTail = '">$&</a>';
+      const orLawSourceNoteTail = "\\W+c\\.\\W*(\\d{1,4})";
+      const yearOrLawChpHead = "(?:C|c)hapter\\s(\\d{1,4}),\\sOregon\\sLaws\\s";
+      orLawReplacer(
+        "(202[\\d]|2019|2018|2017|2016|2015|2013)",
+        "$1orlaw000$2.pdf"
+      );
+      orLawReplacer("(2011|2010|2009|2008|2007|1999)", "$1orlaw000$2.html");
+      orLawReplacer("(2003|2001)", "$1orlaw000$2ses.html");
+      orLawReplacer("(2014)", "$1R1orlaw000$2ses.html");
+      orLawReplacer("(2012)", "$1adv000$2ss.pdf");
+      orLawReplacer("(2006)", "$1orLaw000$2ss1.pdf");
+      orLawReplacer("(2005)", "$1orLaw000$2ses.html");
+      removeExtraZeros(); // Make sure chapter is padded to exactly 4 digits
+      resolve(html)
+    }
+    // OrLawLinking MAIN
+    try {
+      // @ts-ignore
+      chrome.runtime.sendMessage({ message: "getOrLaw" }, (msg) => {
+        const orLaw = msg.response;
+        if (orLaw == "Hein") {
+          HeinLinks(); // replace with URL to HeinOnline search link through SOLL
+        } else if (orLaw == "OrLeg") {
+          OrLeg(); // replace with URL to Or.Leg.
+        } else {
+          resolve(html)
+        }
+      });
+    } catch (e) {
+      const warning = `Error attempting to generate OrLaws links: ${e}` 
+      console.warn(warning);
+      reject(warning)
+    }
+  })
+}
+
+/**
+ * @param {{ [x: string]: any; head?: string; toc?: string; body?: any; }} html
+ */
+function finalCleanUp(html) {
+  document.body.innerHTML = html["head"] + html["toc"] + html["body"];
+  let tocID = document.getElementById("toc");
+  if (Boolean(tocID)) {
+    let allTocPs = tocID.getElementsByTagName("p");
+    for (let aP of allTocPs) {
+      aP.className += " toc";
+    }
+  }
+  let cleanUpBreaks = document.querySelectorAll("[break]");
+  for (let elem of cleanUpBreaks) {
+    elem.removeAttribute("break");
+  }
+  let allElements = document.getElementsByTagName('*')
+    for (let elem of allElements) {
+      //@ts-ignore
+      if (/^(\s|\&nbsp)+$ /.test(elem.innerText)) {
+        console.log(`deleting ${elem.innerHTML}`)
+        elem.remove()
+      }
+   }
 }
 
 // MAIN mORS.js
 let initialTabUrl;
 promiseGetTabURL();
 addPopupJsListener();
-window.addEventListener("load", ReplaceText);
+window.addEventListener("load", async function () {
+  const html = SyncReplaceText()
+  const addOrLaws = await (OrLawLinking(html["body"]))
+  finalCleanUp({head : html['mainhead'], toc: html["headAndToc"], body: addOrLaws})  
+  javaDOM(); // add buttons for collapsable sections & menu
+});
 window.addEventListener("load", StyleSheetRefresh);
