@@ -155,9 +155,9 @@ async function javaDOM() {
   // Adds button to each ORS section leadline toggling expand/collapse
   function addSectionCollapseButtons() {
     const collapsibles = document.getElementsByClassName("collapsible");
-    for (let i = 0; i < collapsibles.length; i++) {      
+    for (let i = 0; i < collapsibles.length; i++) {
       const buttonElement = collapsibles[i];
-      buttonElement.parentElement.style.maxHeight="none"
+      buttonElement.parentElement.style.maxHeight = "none";
       buttonElement.addEventListener("click", () => {
         if (buttonElement.parentElement.style.maxHeight == "none") {
           collapseSingle(findCollapseHeight(buttonElement));
@@ -358,7 +358,7 @@ function SyncReplaceText() {
     const msoGarb = /<p\sclass=\W?Mso[^>]*>/g; // is replaced by:
     const msoRepl = "<p class=default>";
     const divGarb = /<div[^>]*?>/g; // is deleted
-    const emptyTags = new RegExp(`<(\\w)[^>]*?>${tabs}<\\/\\1>`, "g"); // is deleted 
+    const emptyTags = new RegExp(`<(\\w)[^>]*?>${tabs}<\\/\\1>`, "g"); // is deleted
     bodyHtml = bodyHtml.replace(/(\n|\r|\f)/g, " ");
     bodyHtml = bodyHtml.replace(/\s\s/, " ");
     bodyHtml = bodyHtml.replace(styleGarb, "$1");
@@ -662,13 +662,13 @@ function SyncReplaceText() {
   notesRepl(); // Notes put into divs, sourcenotes styled, adds hyperlinks for Preface to ORS & vol22
   sourceNotesRepl(); // Find source notes and classify
   return {
-    mainhead : mainHead, 
-    headAndToc : headAndToc, 
-    body : bodyHtml
-  }
+    mainhead: mainHead,
+    headAndToc: headAndToc,
+    body: bodyHtml,
+  };
 }
 async function OrLawLinking(html) {
-  return new Promise((resolve, reject)=>{
+  return new Promise((resolve, reject) => {
     function HeinLinks() {
       const heinURL =
         "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$1&chapter=$2&sgo=Search&collection=ssl&search=go";
@@ -680,9 +680,9 @@ async function OrLawLinking(html) {
       const orLawH2Repl = "<a href=" + heinURL2 + ">$&</a>";
       html = html.replace(orLawH1, orLawH1Repl);
       html = html.replace(orLawH2, orLawH2Repl);
-      resolve(html)
+      resolve(html);
     }
-    function OrLeg(html) {
+    function OrLeg() {
       /**
        * @param {string} years
        * @param {string} strFormat
@@ -719,7 +719,7 @@ async function OrLawLinking(html) {
       orLawReplacer("(2006)", "$1orLaw000$2ss1.pdf");
       orLawReplacer("(2005)", "$1orLaw000$2ses.html");
       removeExtraZeros(); // Make sure chapter is padded to exactly 4 digits
-      resolve(html)
+      resolve(html);
     }
     // OrLawLinking MAIN
     try {
@@ -731,15 +731,15 @@ async function OrLawLinking(html) {
         } else if (orLaw == "OrLeg") {
           OrLeg(); // replace with URL to Or.Leg.
         } else {
-          resolve(html)
+          resolve(html);
         }
       });
     } catch (e) {
-      const warning = `Error attempting to generate OrLaws links: ${e}` 
+      const warning = `Error attempting to generate OrLaws links: ${e}`;
       console.warn(warning);
-      reject(warning)
+      reject(warning);
     }
-  })
+  });
 }
 
 /**
@@ -758,14 +758,14 @@ function finalCleanUp(html) {
   for (let elem of cleanUpBreaks) {
     elem.removeAttribute("break");
   }
-  let allElements = document.getElementsByTagName('*')
-    for (let elem of allElements) {
-      //@ts-ignore
-      if (/^(\s|\&nbsp)+$ /.test(elem.innerText)) {
-        console.log(`deleting ${elem.innerHTML}`)
-        elem.remove()
-      }
-   }
+  let allElements = document.getElementsByTagName("*");
+  for (let elem of allElements) {
+    //@ts-ignore
+    if (/^(\s|\&nbsp)+$ /.test(elem.innerText)) {
+      console.log(`deleting ${elem.innerHTML}`);
+      elem.remove();
+    }
+  }
 }
 
 // MAIN mORS.js
@@ -773,9 +773,13 @@ let initialTabUrl;
 promiseGetTabURL();
 addPopupJsListener();
 window.addEventListener("load", async function () {
-  const html = SyncReplaceText()
-  const addOrLaws = await (OrLawLinking(html["body"]))
-  finalCleanUp({head : html['mainhead'], toc: html["headAndToc"], body: addOrLaws})  
+  const html = SyncReplaceText();
+  const addOrLaws = await OrLawLinking(html["body"]);
+  finalCleanUp({
+    head: html["mainhead"],
+    toc: html["headAndToc"],
+    body: addOrLaws,
+  });
   javaDOM(); // add buttons for collapsable sections & menu
 });
 window.addEventListener("load", StyleSheetRefresh);

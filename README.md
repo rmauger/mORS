@@ -26,6 +26,10 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 
 ## Updates:
 
+  ### Version 1.4.6 - 11/26/2021
+   * Bugfix - buttons are working again
+   * use of css sheets reorganized to clean code
+
   ### Vesion 1.4.5 - 11/20/2021
    * Height of collapsed sections automatically resizes
 
