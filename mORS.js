@@ -155,11 +155,9 @@ async function javaDOM() {
   // Adds button to each ORS section leadline toggling expand/collapse
   function addSectionCollapseButtons() {
     const collapsibles = document.getElementsByClassName("collapsible");
-    let collapseObjHeightList = [];
-    for (let i = 0; i < collapsibles.length; i++) {
+    for (let i = 0; i < collapsibles.length; i++) {      
       const buttonElement = collapsibles[i];
       buttonElement.parentElement.style.maxHeight="none"
-      // collapseObjHeightList.push(findCollapseHeight(buttonElement));
       buttonElement.addEventListener("click", () => {
         if (buttonElement.parentElement.style.maxHeight == "none") {
           collapseSingle(findCollapseHeight(buttonElement));

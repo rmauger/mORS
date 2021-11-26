@@ -32,18 +32,21 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
   ### Version 1.4.4 - 11/19/2021
    * Page menu can be removed from options popup
 
+  ### Versions 1.4.1 to 3:
+   * Bugfixes & tweaks
+
   ### Version 1.4.0 - 11/17/2021
    * Omnibox works with 'mors'
    * Created simple data validation for form
    * Redid version numbering
 
-  ### Version 1.3.0 - 11/15/2021
+  ### Version 1.3 - 11/15/2021
    * Updates to menu defaults:
       * hiding repealed sections
       * hide source notes
       * set default collapse all
    
-  ### Version 1.2.0 - 11/11/2021
+  ### Version 1.2 - 11/11/2021
    * Added toggle button to show/hide source notes & repealed/renumbered sections
 
   ### Version 1.1 - 11/04/2021

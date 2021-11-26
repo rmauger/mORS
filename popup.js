@@ -27,7 +27,7 @@ function promiseBackgroundRequest(requestMsg) {
 async function displayUserOptions() {
   function storedDataFinder() {
     return Promise.all([
-      promiseBackgroundRequest("getCssFile"),
+      promiseBackgroundRequest("getCssSelector"),
       promiseBackgroundRequest("getOrLaw"),
       promiseBackgroundRequest("getShowBurnt"),
       promiseBackgroundRequest("getShowSNs"),
@@ -115,14 +115,16 @@ function addAllListeners() {
       chrome.storage.sync.set(
         // @ts-ignore
         { cssSelectorStored: formCssSelector.value },
-        () => {
-          infoLog(
+        async () => {
+
+          //@ts-ignore
+          const formNewCss = await promiseBackgroundRequest("getCssFile")
+          infoLog(            
             // @ts-ignore
-            `Retrieved OldCSS: ${formOldCss}, replacing with ${formCssSelector.value}`,
+            `OldCSS: ${formOldCss} is being replacing with ${formNewCss}`,
             "formCssNew.eventListener"
           );
-          //@ts-ignore
-          injectCssOrsTabs(formOldCss, formCssSelector.value);
+          injectCssOrsTabs(formOldCss, formNewCss);
         }
       );
     }
@@ -216,34 +218,34 @@ async function reloadORS() {
 }
 
 /** injecting newly selected stylesheet into existing ORS tabs
- * @param {string} oldCSS
- * @param {string} newCSS
+ * @param {string} oldCss
+ * @param {string} newCss
  */
-async function injectCssOrsTabs(oldCSS, newCSS) {
-  const oldCssFile = `/css/${cssSourceLookup[oldCSS]}`;
-  const newCssFile = `/css/${cssSourceLookup[newCSS]}`;
+async function injectCssOrsTabs(oldCss, newCss) {
   const orsTabs = await getOrsTabs();
   for (const aTab of orsTabs) {
+    console.log(`tab id = ${aTab.id} & ${newCss}`)
     try {
       //@ts-ignore
       chrome.scripting.removeCSS(
         {
           target: { tabId: aTab.id },
-          files: [oldCssFile],
+          files: [oldCss],
         },
-        () => {}
-      );
+        () => {
+          //@ts-ignore
+          chrome.scripting.insertCSS(
+            {
+              target: { tabId: aTab.id },
+              files: [newCss],
+            },
+            () => {}
+          );
+        }
+      )
     } catch (error) {
       console.warn(`Error refreshing page: ${error}`);
     }
-    //@ts-ignore
-    chrome.scripting.insertCSS(
-      {
-        target: { tabId: aTab.id },
-        files: [newCssFile],
-      },
-      () => {}
-    );
   }
 }
 
@@ -266,12 +268,6 @@ const showSNsCheck = document.getElementById("showSNote");
 const collapseCheck = document.getElementById("collapseDefault");
 const showMenuCheck = document.getElementById("showMenu")
 
-//TODO #32 move css lookup to background.js to avoid duplication
-const cssSourceLookup = {
-  Dark: "dark.css",
-  Light: "light.css",
-  DarkGrey: "darkgrey.css",
-};
 displayUserOptions();
 addAllListeners();
 window.addEventListener("focus", () => {
