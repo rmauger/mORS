@@ -1,0 +1,56 @@
+/* dark.css Depreciated - added to stylesheet.js */
+:root {
+  /* dark / background*/
+  --background: #221;
+  --altBack: #432;
+  --formBack: #765;
+  --buttonColor: #654;
+  --buttonHover: #876;
+  /* light / foreground */
+  --maintext: #eee;
+  --heading: #eb7;
+  --subheading: #fc9;
+  --sourceNote: #fed;
+  --linkExt: #cdf;
+  --linkInt: #fdc;
+  --linkVisited: #dcf;
+  --highContrast: #f8b;
+}
+
+/* darkgrey.css Depreciated - added to stylesheet.js */
+:root {
+  /* dark / background*/
+  --background: #222;
+  --altBack: #444;
+  --formBack: #555;
+  --buttonColor: #333;
+  --buttonHover: #666;
+  /* light / foreground */
+  --maintext: #eee;
+  --heading: #bbb;
+  --subheading: #ddd;
+  --sourceNote: #ccc;
+  --linkExt: #cdf;
+  --linkInt: #fdc;
+  --linkVisited: #dcf;
+  --highContrast: #f8b;
+}
+
+/* light.css  Depreciated - added to stylesheet.js */
+:root {
+  /* light / background*/
+  --background: #def;
+  --altBack: #bdf;
+  --formBack: #bcd;
+  --buttonColor: #ddd;
+  --buttonHover: #bbb;
+  /* dark / foreground */
+  --maintext: #224;
+  --heading: #129;
+  --subheading: #169;
+  --sourceNote: #236;
+  --linkExt: #12a;
+  --linkInt: #047;
+  --linkVisited: #507;
+  --highContrast: #f46;
+}

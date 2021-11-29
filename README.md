@@ -25,6 +25,10 @@ Google Chrome Extension that alters appearance of Oregon Revised Statutes on Ore
 See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx)
 
 ## Updates:
+  ### Version 1.4.7 - 11/29/2021
+   * Reorganized content scripts
+   * removed css from background & css file injection to fix persistance issue
+   * fixed roman numeral bug
 
   ### Version 1.4.6 - 11/26/2021
    * Bugfix - buttons are working again
@@ -66,7 +70,6 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
   * Dark and light modes
   
 ## Known bugs:
-  * TODO: #28 Not identifying roman numerals if appearing with a paragraph & subparagraph (e.g. "(d)(A)(i)" or "(C)(i)(I)")
-  * Stylesheets don't update/stay right on non-active page when changing Oregon Law source (can fix by refreshing page or "remove stylesheet" + "add stylesheet")
 
 ## Planned features/fixes:
+  * TODO: #38 Add options page for custom css

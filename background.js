@@ -177,27 +177,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, response) => {
   const received = msg.message;
   if (typeof received == "string") {
     switch (received) {
-      case "updateCSS":
-        messageHandler(promiseDoUpdateCSS(), response);
-        break;
-      case "removeCSS":
-        messageHandler(promiseDoRemoveCSS(), response);
-        break;
       case "getOrLaw":
         messageHandler(promiseGetChromeStorage("lawsReaderStored"), response);
         break;
-      case "getCssFile":
-        getCss(response)
-        async function getCss(response) {
-          const cssSource = await promiseGetChromeStorage("cssSelectorStored")
-          console.log(`GetCss returning, "${cssSourceLookup[cssSource]}""`);
-          response({response : cssSourceLookup[cssSource] });
-        };
-        break;
       case "getCssSelector":
-        messageHandler(promiseGetChromeStorage("cssSelectorStored"),
-          response
-        );
+        messageHandler(promiseGetChromeStorage("cssSelectorStored"), response);
         break;
       case "getShowSNs":
         messageHandler(promiseGetChromeStorage("showSNsStored"), response);
@@ -240,59 +224,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, response) => {
   }
   return true;
 });
-//removes existing css and adds css from stored value
-async function promiseDoUpdateCSS() {
-  return new Promise(async (resolve, reject) => {
-    let insertCssFile;
-    try {
-      const cssStored = await promiseGetChromeStorage("cssSelectorStored");
-      insertCssFile = `${cssSourceLookup[cssStored]}`;
-    } catch (e) {
-      insertCssFile = "/css/light.css";
-      console.warn(`Error finding Css request: ${e}`);
-    }
-    const activeTab = await promiseGetActiveTab("insertCss");
-    try {
-      await promiseDoRemoveCSS(activeTab);
-    } catch (e) {
-      reject(`Could not remove css. Error: ${e}`);
-    }
-    try {
-      //@ts-ignore
-      chrome.scripting.insertCSS({
-        target: { tabId: activeTab.id },
-        files: [insertCssFile],
-      });
-      resolve("Success");
-    } catch (e) {
-      logOrWarn(`Could not update CSS. Err: ${e}`, "updateCSS");
-      reject(`UpdateCSS error: ${e}`);
-    }
-  });
-}
 
-async function promiseDoRemoveCSS(activeTab = null) {
-  return new Promise(async (resolve, reject) => {
-    let cssFileList = []
-    for (const key in cssSourceLookup) {
-      cssFileList.push(cssSourceLookup[key])       
-    }
-    try {
-      if (activeTab==null) {
-        activeTab = await promiseGetActiveTab("removeCss");
-      }
-      // @ts-ignore
-      chrome.scripting.removeCSS({
-        target: { tabId: activeTab.id },
-        files: cssFileList,
-      });
-      resolve();
-    } catch (e) {
-      logOrWarn(`Could not remove css files. Err: ${e}`, "removeCSS");
-      reject(`RemoveCSS error: ${e}`);
-    }
-  });
-}
 /**
  * @param {string} warningId
  * @param {string} msgTxt
@@ -321,11 +253,6 @@ function logOrWarn(msgTxt, warningId = "") {
     );
   }
 }
-const cssSourceLookup = {
-  Dark: "/css/dark.css",
-  Light: "/css/light.css",
-  DarkGrey: "/css/darkgrey.css",
-};
 const orLawOrLegLookup = {
   OL2021: "2021orlaw~.pdf",
   OL2020: "2020orlaw~.pdf",

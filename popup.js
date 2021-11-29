@@ -23,6 +23,15 @@ function promiseBackgroundRequest(requestMsg) {
     }
   });
 }
+// Message passing to ORS tabs (no response)
+async function sendMsgToOrsTabs(msg) {
+  const orsTabs = await getOrsTabs();
+  for (const aTab of orsTabs) {
+    //@ts-ignore
+    chrome.tabs.sendMessage(aTab.id, { toMORS: msg });
+  }
+}
+
 //Retrieves data from chrome.storage.sync & puts it in userform
 async function displayUserOptions() {
   function storedDataFinder() {
@@ -107,27 +116,15 @@ function addAllListeners() {
       errorMsg.innerHTML = e;
     }
   });
-  formCssSelector.addEventListener("change", async () => {
-    const getOldCss = await promiseBackgroundRequest("getCssFile");
-    setAfterGet(getOldCss);
-    function setAfterGet(formOldCss) {
-      //@ts-ignore
-      chrome.storage.sync.set(
-        // @ts-ignore
-        { cssSelectorStored: formCssSelector.value },
-        async () => {
-
-          //@ts-ignore
-          const formNewCss = await promiseBackgroundRequest("getCssFile")
-          infoLog(            
-            // @ts-ignore
-            `OldCSS: ${formOldCss} is being replacing with ${formNewCss}`,
-            "formCssNew.eventListener"
-          );
-          injectCssOrsTabs(formOldCss, formNewCss);
-        }
-      );
-    }
+  formCssSelector.addEventListener("change", () => {
+    //@ts-ignore
+    chrome.storage.sync.set(
+      // @ts-ignore
+      { cssSelectorStored: formCssSelector.value },
+      () => {
+        sendMsgToOrsTabs("css")
+      }
+    );
   });
   orLawSelector.addEventListener("change", () => {
     //@ts-ignore
@@ -198,15 +195,6 @@ function getOrsTabs() {
   });
 }
 
-// Sends message to ORS tabs (no response)
-// TODO: #33 separate messages for change in rSec & sourcenote; maybe use for show menu
-async function sendMsgToOrsTabs(msg) {
-  const orsTabs = await getOrsTabs();
-  for (const aTab of orsTabs) {
-    //@ts-ignore
-    chrome.tabs.sendMessage(aTab.id, { toMORS: msg });
-  }
-}
 
 //reloading ORS tabs
 async function reloadORS() {
@@ -217,37 +205,6 @@ async function reloadORS() {
   }
 }
 
-/** injecting newly selected stylesheet into existing ORS tabs
- * @param {string} oldCss
- * @param {string} newCss
- */
-async function injectCssOrsTabs(oldCss, newCss) {
-  const orsTabs = await getOrsTabs();
-  for (const aTab of orsTabs) {
-    console.log(`tab id = ${aTab.id} & ${newCss}`)
-    try {
-      //@ts-ignore
-      chrome.scripting.removeCSS(
-        {
-          target: { tabId: aTab.id },
-          files: [oldCss],
-        },
-        () => {
-          //@ts-ignore
-          chrome.scripting.insertCSS(
-            {
-              target: { tabId: aTab.id },
-              files: [newCss],
-            },
-            () => {}
-          );
-        }
-      )
-    } catch (error) {
-      console.warn(`Error refreshing page: ${error}`);
-    }
-  }
-}
 
 /**
  * @param {string} infoTxt
