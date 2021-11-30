@@ -1,0 +1,48 @@
+{
+    "Dark": {
+      "background": "#221",
+      "altBack": "#432",
+      "formBack": "#765",
+      "buttonColor": "#654",
+      "buttonHover": "#876",
+      "maintext": "#eee",
+      "heading": "#eb7",
+      "subheading": "#fc9",
+      "sourceNote": "#fed",
+      "linkExt": "#cdf",
+      "linkInt": "#fdc",
+      "linkVisited": "dcf",
+      "highContrast": "#f8b"
+    },
+    "Light": {
+      "background": "#def",
+      "altBack": "#bdf",
+      "formBack": "#bcd",
+      "buttonColor": "#ddd",
+      "buttonHover": "#bbb",
+      "maintext": "#224",
+      "heading": "#129",
+      "subheading": "#169",
+      "sourceNote": "#236",
+      "linkExt": "#12a",
+      "linkInt": "#047",
+      "linkVisited": "#507",
+      "highContrast": "#f46"
+    },
+    "DarkGrey": {
+      "background": "#222",
+      "altBack": "#444",
+      "formBack": "#555",
+      "buttonColor": "#333",
+      "buttonHover": "#666",
+      "maintext": "#eee",
+      "heading": "#bbb",
+      "subheading": "#ddd",
+      "sourceNote": "#ccc",
+      "linkExt": "#cdf",
+      "linkInt": "#fdc",
+      "linkVisited": "#dcf",
+      "highContrast": "#f8b"
+    },
+    "Custom":"Custom"
+  }

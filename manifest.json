@@ -50,7 +50,11 @@
         "notifications",
         "scripting"        
 	], 
-
+    "web_accessible_resources":[{
+        "resources":["/data/*"],
+        "matches":[],
+        "extension_ids":[]
+    }],
     "host_permissions":
         ["*://www.oregonlegislature.gov/bills_laws/ors/ors*.html*"]
 }

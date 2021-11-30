@@ -30,6 +30,7 @@ const styleSheetRefresh = () => {
  * @param {string} css
  */
 function colorTemplate(css) {
+  if (css="Custom")
   return `
   /* background*/
   --background: ${cssLookup[css]["background"]};
@@ -48,7 +49,15 @@ function colorTemplate(css) {
   --highContrast: ${cssLookup[css]["highContrast"]};`;
 }
 
-const cssLookup = {
+let cssLookup
+//@ts-ignore
+chrome.runtime.sendMessage({ message: "getCssObject" }, (css) => {
+  cssLookup = (css.response)
+  console.log (cssLookup)
+  console.log(typeof cssLookup)
+})
+
+/* const cssLookup = {
   Dark: {
     background: "#221",
     altBack: "#432",
@@ -95,7 +104,7 @@ const cssLookup = {
     highContrast: "#f8b",
   },
 };
-
+ */
 const styleSheetTemplate = `:root { }
   html {
     scroll-behavior: smooth;

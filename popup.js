@@ -33,6 +33,31 @@ async function sendMsgToOrsTabs(msg) {
 }
 
 //Retrieves data from chrome.storage.sync & puts it in userform
+function promiseRefreshOptions() {
+  return new Promise((resolve, reject)=> {  
+    try{
+      console.log('message sending')
+      //@ts-ignore
+      chrome.runtime.sendMessage({message:"getCssObject"}, (response)=>{
+        const css=response.response
+        //@ts-ignore
+        formCssSelector.options.length=0
+        console.log('message retrieved')
+        for (var i=0; i < Object.keys(css).length; i++){
+          console.log (css[i])
+          console.log (Object.keys(css)[i])
+          var newOption = document.createElement('option');
+          newOption.value = Object.keys(css)[i]
+          newOption.innerHTML = Object.keys(css)[i]
+          formCssSelector.appendChild(newOption)
+        }
+        resolve(css)
+      })
+    } catch (e) {
+      reject (e)
+    }    
+  })
+}
 async function displayUserOptions() {
   function storedDataFinder() {
     return Promise.all([
@@ -41,12 +66,15 @@ async function displayUserOptions() {
       promiseBackgroundRequest("getShowBurnt"),
       promiseBackgroundRequest("getShowSNs"),
       promiseBackgroundRequest("getCollapsed"),
-      promiseBackgroundRequest("getShowMenu")
+      promiseBackgroundRequest("getShowMenu"),
+      promiseRefreshOptions()
     ]);
   }
+  // MAIN displayUserOptions
   try {
-    console.groupCollapsed();
+    console.groupCollapsed("StoredDataFinder");
     const data = await storedDataFinder();
+    console.log(data[6])
     // @ts-ignore
     for (let i = 0; i < formCssSelector.options.length; i++) {
       // @ts-ignore
@@ -76,6 +104,7 @@ async function displayUserOptions() {
     console.groupEnd();
   } catch (e) {
     alert(e);
+    console.groupEnd()
   }
 }
 //setup event listeners for form dropdowns & buttons

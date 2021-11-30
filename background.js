@@ -201,6 +201,9 @@ chrome.runtime.onMessage.addListener((msg, _sender, response) => {
       case "getCurrentTab":
         messageHandler(promiseGetActiveTab("msgHandler"), response);
         break;
+      case "getCssObject":
+        messageHandler(promiseGetCssObject(), response);
+        break;
       default:
         logOrWarn(
           "Received message made no sense.",
@@ -208,7 +211,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, response) => {
         );
         break;
     }
-  } else if (received["orLawObj"]) {
+  } else if (received) {
     try {
       messageHandler(
         promiseGetOrLegUrl(
@@ -219,7 +222,9 @@ chrome.runtime.onMessage.addListener((msg, _sender, response) => {
         response
       );
     } catch (e) {
-      response(`Error: ${e}`);
+      console.log(`received message:`)
+      console.log(received)
+      response(`Received message ${received}; err: ${e}`);
     }
   }
   return true;
@@ -305,3 +310,16 @@ chrome.omnibox.onInputCancelled.addListener(function() {
   resetDefaultSuggestion();
 });
  */
+const promiseGetCssObject = () => {
+  return new Promise(async (resolve, reject)=>{
+    //@ts-ignore
+    const cssObjectFile = chrome.runtime.getURL('/data/cssObject.json')
+    console.log(cssObjectFile)
+    fetch(cssObjectFile)
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(data) 
+      resolve(data)
+    })
+  })
+}
