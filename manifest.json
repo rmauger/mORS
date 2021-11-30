@@ -35,7 +35,7 @@
     "background": {
         "service_worker": "background.js"
     },
-    "options_page": "options.html",
+    "options_page": "/options/options.html",
     "icons": {
         "16": "/images/icon16.png",
         "24": "/images/icon24.png",
@@ -50,6 +50,7 @@
         "notifications",
         "scripting"        
 	], 
+
     "host_permissions":
         ["*://www.oregonlegislature.gov/bills_laws/ors/ors*.html*"]
 }

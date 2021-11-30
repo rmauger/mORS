@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      :root { --background: #c63 }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        max-width: none;
+        width: auto;
+        background-color: var(--background);
+        color: var(--maintext);
+        margin-top: 60px;
+      }
+      p {
+        padding: 2px;
+        margin: 0.3em 0;
+        font: 12pt Arial, sans-serif;
+      }
+      .fixed {
+        position: fixed;
+        top: 3px;
+        right: 10px;
+        width: max-content;
+        text-align: right;
+        border: 3px solid var(--maintext);
+        background-color: var(--background);
+        padding: 2px;
+      }
+      .version {
+        font: 9pt "Times New Roman", Times, serif;
+        margin: 0;
+        padding: 0;
+      }
+      h1 {
+        color: var(--heading);
+        font: 24pt Garamond, serif;
+        font-weight: bold;
+        text-align: center;
+      }
+      h2 {
+        color: var(--heading);
+        font: 18pt Garamond, serif;
+        font-weight: bold;
+        text-align: center;
+      }
+      h3 {
+        color: var(--heading);
+        font: 16pt Garamond, serif;
+        text-align: center;
+      }
+      .heading {
+        padding: 4px;
+        margin: 2px;
+        border: 2px solid var(--heading);
+      }
+      .headingLabel {
+        font: 14pt "Times New Roman", Times, serif;
+        font-weight: bold;
+        text-align: center;
+        color: var(--heading);
+      }
+      .subhead {
+        border: 2px solid var(--subheading);
+        padding: 8px;
+        margin: 2px;
+      }
+      .subheadLabel {
+        font: 14pt "Times New Roman", Times, serif;
+        font-style: italic;
+        color: var(--subheading);
+        text-align: center;
+      }
+      /* Hyperlinks */
+      a:link {
+        color: var(--linkExt);
+      }
+      a.ors:link,
+      a.ors:visited {
+        color: var(--linkInt);
+      }
+      a:visited {
+        color: var(--linkVisited);
+      }
+      a:hover {
+        background-color: var(--altBack);
+      }
+      /* Table of contents */
+      #toc {
+        margin: 2px;
+        padding: 4px;
+        border: 2px solid var(--heading);
+        background-color: var(--altBack);
+      }
+      .toc {
+        break-inside: avoid;
+      }
+      .tocHeading {
+        font-size: 12pt;
+        font-weight: bold;
+        text-align: center;
+        color: var(--heading);
+        break-inside: avoid;
+      }
+      .toc.default {
+        color: var(--heading);
+        padding-left: 20%;
+        text-indent: -25%;
+        font-size: 10pt;
+      }
+      .tocItems {
+        columns: 250px 3;
+        column-gap: 5%;
+      }
+      /* Sections & parts of sections */
+      .section {
+        margin: 0;
+        padding: 2px 2px;
+        display: block;
+        overflow: hidden;
+        transition: max-height 0.25s ease-out;
+      }
+      .leadline,
+      .tempHead {
+        font: 13pt "Times New Roman", Times, serif;
+        font-weight: bold;
+        text-align: left;
+        color: var(--subheading);
+        margin: 0.6em 0;
+      }
+      .collapsible {
+        cursor: pointer;
+        background-color: var(--buttonColor);
+        width: 100%;
+        border: none;
+      }
+      .expanded {
+        background-color: var(--altBack);
+      }
+      button {
+        color: var(--maintext);
+        background-color: var(--buttonColor);
+      }
+      .collapsible:hover,
+      button:hover {
+        background-color: var(--buttonHover);
+      }
+      :target {
+        color: var(--highContrast) !important;
+      }
+      .tempSec {
+        border: 2px solid var(--subheading);
+        margin: 0 2px;
+        padding: 0 2px;
+      }
+      /* Forms */
+      .orsForm {
+        background-color: var(--formBack);
+        margin: 1%;
+        border: 3px solid var(--subheading);
+        padding: 0% 1%;
+      }
+      .formHeading {
+        text-align: center;
+        font-weight: bold;
+        color: var(--subheading);
+      }
+      /* Source notes & notes */
+      .sourceNote,
+      .burnt {
+        margin: 0;
+        color: var(--sourceNote);
+        font: 11pt "Times New Roman", Times, serif;
+        padding: 0.4em 0 0.4em 10%;
+      }
+      .burnt {
+        text-indent: -1em;
+      }
+      .note {
+        font: 10pt, "Times New Roman", Times, serif;
+        max-width: 800px;
+        min-width: 300px;
+        width: 75%;
+        margin: 0 auto;
+        border: 2px solid var(--subheading);
+        padding: 6px;
+        background-color: var(--altBack);
+      }
+      /* Section Subunits */
+      .subsec,
+      .para,
+      .subpara,
+      .subsubpara,
+      .subsubsubpara {
+        text-indent: -1em;
+        margin: 0.2em auto 0 auto;
+      }
+      .subsec {
+        padding-left: 3%;
+      }
+      .para {
+        padding-left: 4.5%;
+      }
+      .subpara {
+        padding-left: 6%;
+      }
+      .subsubpara {
+        padding-left: 7.5%;
+      }
+      .subsubsubpara {
+        padding-left: 9%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mainHead">
+      <h3>
+        Volume 28 - Jedis - Chapters 980-999
+      </h3>
+      <h2>
+        Title 94. Jedi Weapons - Chapters 987-990
+      </h2>
+      <h1>
+        Chapter 989 - Lightsabers
+      </h1>
+      <h3>
+        3057 EDITION
+      </h3>
+    </div>
+    <div id="toc">
+      <h1>
+        Table of Contents
+      </h1>
+      <div class="tocItems">
+        <p class="tocHeading toc">
+          POSSESSION OF LIGHTSABER
+        </p>
+        <p class="tocHeading toc">
+          (Generally)
+        </p>
+        <p class="default toc">
+          <a class="ors" href="#989.005">989.005</a>&nbsp;&nbsp;&nbsp;&nbsp; Unauthorized possession prohibitted
+        </p>
+        <p class="default toc">
+          <a class="ors" href="#989.010">989.010</a>&nbsp;&nbsp;&nbsp;&nbsp; Affirmative defenses to unauthorized possession
+        </p>
+        <p class="tocHeading toc">
+          (Licensing)
+        </p>
+        <p class="default toc">
+          <a class="ors" href="#989.030">989.030</a>&nbsp;&nbsp;&nbsp;&nbsp; Form of application for license
+        </p>
+      </div>
+    </div>
+    <div class="heading">
+      <p class="headingLabel">
+        <b>POSSESSION OF LIGHTSABER</b>
+      </p>
+      <div class="subhead">
+        <p class="subheadLabel">
+          (Licensing)
+        </p>
+        <div class="section" style="max-height: none;">
+          <button id="989.005" class="collapsible expanded">
+            <p class="leadline">
+              989.005 Permit required; form of application.
+            </p>
+          </button>
+          <p class="subsec">
+            (1) A lightsaber may not be possessed by any person unless the person:
+          </p>
+          <p class="para">
+            (a) Is a Jedi, as defined in <a href="">980.100</a>; or
+          </p>
+          <p>
+            (b) Is licensed as a transporter or reseller under <a class="ors">989.005</a> to <a class="ors">989.100</a>.
+          <p class="subsec">
+            (2) A violation of this section is a class B felony.
+          </p>
+        </div>
+      </div>
+      <div class="subhead">
+        <p class="subheadLabel">
+          (Licensing)
+        </p>
+          <p class="para">(a) The complaint shall be in substantially the following form and shall be available from the court clerk:</p>
+          <div class="orsForm">
+            <p class="formHeading">
+              <b>IN THE _________ COURT FOR</b>
+            </p>
+            <p class="formHeading">
+              <b>THE COUNTY OF ____________</b>
+            </p>
+            <p class="default">
+              (Tenant),&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+</body>
+
+
+</html>
