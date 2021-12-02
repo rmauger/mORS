@@ -1,13 +1,13 @@
 //storeddata.js
 //@ts-check
 
-const implementStoredParameters = () => {
+const implementUserParameters = () => {
   async function getCollapsed() {
     try {
       //@ts-ignore
       chrome.runtime.sendMessage({ message: "getCollapsed" }, (response) => {
         if (response.response) {
-          collapseAllSections();
+          collapseAllSections(); //collapsibles.js
         }
       });
     } catch (error) {
@@ -18,17 +18,17 @@ const implementStoredParameters = () => {
     //@ts-ignore
     chrome.runtime.sendMessage({ message: "getShowBurnt" }, (response) => {
       const doShow = response.response;
-      doShowRSecs(doShow);
+      doShowRSecs(doShow); //helper.js
     });
   }
   function getShowSNs() {
     //@ts-ignore
     chrome.runtime.sendMessage({ message: "getShowSNs" }, (response) => {
       const doShow = response.response;
-      doShowSourceNotes(doShow);
+      doShowSourceNotes(doShow); //helper.js
     });
   }
-  // MAIN Implement Stored Parameters
+  // MAIN Implement User Parameters
   getCollapsed();
   getShowRSec();
   getShowSNs();

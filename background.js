@@ -86,7 +86,7 @@ function promiseGetOrLegUrl(year, chapter, reader) {
     }
     // @ts-ignore
     if (reader == "None") {
-      errMsg += "A session law lookup source is required.";
+      errMsg += "A session law lookup source is required. See extension options.";
     }
     return errMsg;
   }
@@ -95,17 +95,20 @@ function promiseGetOrLegUrl(year, chapter, reader) {
     if (errorMessage.length < 1) {
       try {
         if (reader == "OrLeg") {
-          let orLawFileName = orLawOrLegLookup["OL" + year].replace(
-            /~/,
-            "000" + chapter
-          );
-          orLawFileName = orLawFileName.replace(
-            /([^]*?\w)\d*(\d{4}(?:\.|\w)*)/,
-            "$1$2"
-          );
-          resolve(
-            `https://www.oregonlegislature.gov/bills_laws/lawsstatutes/${orLawFileName}`
-          );
+          (async ()=>{
+            const orLawOrLegLookup = await promiseReadJsonFile('orLawLegLookup.json')
+            let orLawFileName = orLawOrLegLookup["OL" + year].replace(
+              /~/,
+              "000" + chapter
+            );
+            orLawFileName = orLawFileName.replace(
+              /([^]*?\w)\d*(\d{4}(?:\.|\w)*)/,
+              "$1$2"
+            );
+            resolve(
+              `https://www.oregonlegislature.gov/bills_laws/lawsstatutes/${orLawFileName}`
+            );
+          })()
         } else if (reader == "Hein") {
           resolve(
             `https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=${year}&chapter=${chapter}&sgo=Search&collection=ssl&search=go`
@@ -116,6 +119,24 @@ function promiseGetOrLegUrl(year, chapter, reader) {
       }
     } else {
       reject(errorMessage);
+    }
+  });
+}
+
+// Returns list of tabs in active window displaying ORS pages
+function promiseGetOrsTabs() {
+  return new Promise((resolve, reject) => {
+    try {
+      //@ts-ignore
+      chrome.tabs.query(
+        { url: "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html*" },
+        (tabs) => {
+          console.log(tabs)
+          resolve(tabs);
+        }
+      );
+    } catch (e) {
+      reject(`Failed while looking for tabs with ORS. Error ${e}`);
     }
   });
 }
@@ -180,7 +201,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, response) => {
       case "getOrLaw":
         messageHandler(promiseGetChromeStorage("lawsReaderStored"), response);
         break;
-      case "getCssSelector":
+      case "getCssUserOption":
         messageHandler(promiseGetChromeStorage("cssSelectorStored"), response);
         break;
       case "getShowSNs":
@@ -198,15 +219,27 @@ chrome.runtime.onMessage.addListener((msg, _sender, response) => {
           response
         );
         break;
+      case "getUserColors":
+        messageHandler(promiseGetChromeStorage("userColors"), response)
+        break;
       case "getCurrentTab":
         messageHandler(promiseGetActiveTab("msgHandler"), response);
         break;
-      case "getCssObject":
-        messageHandler(promiseGetCssObject(), response);
+      case "getOrsTabs":
+        messageHandler(promiseGetOrsTabs(), response)
+        break;
+      case "generateCssString":
+        messageHandler(promiseGenerateCss(), response);
+        break;
+      case "getCssTemplateFile":
+        messageHandler(promiseGetCssTemplate(), response)
+        break;
+      case "getCssObjectJson":
+        messageHandler(promiseReadJsonFile("cssObject.json"), response)
         break;
       default:
         logOrWarn(
-          "Received message made no sense.",
+          `Received message "${received}"made no sense.`,
           "Invalid message to script; no response sent."
         );
         break;
@@ -230,6 +263,80 @@ chrome.runtime.onMessage.addListener((msg, _sender, response) => {
   return true;
 });
 
+const promiseGenerateCss = () => {
+  return new Promise (async (resolve, reject) => {
+    try {
+      console.log("attempting to generate css storage")
+      let cssOptions
+      const userCss = await promiseGetChromeStorage("cssSelectorStored")
+      if (userCss == "Custom") {
+        console.log("Loading user custom preferences...")
+        cssOptions = await promiseGetChromeStorage("userColors");
+        console.log(cssOptions)
+      } else {
+        console.log(`Loading ${userCss} stylesheet...`)
+        cssOptions = (await promiseReadJsonFile('cssObject.json'))[userCss]
+        console.log(cssOptions)
+      }
+      console.log('merging stylesheets')
+      resolve(
+  `       /* background*/
+  --background: ${cssOptions["background"]};
+  --altBack: ${cssOptions["altBack"]};
+  --formBack: ${cssOptions["formBack"]};
+  --buttonColor: ${cssOptions["buttonColor"]};
+  --buttonHover: ${cssOptions["buttonHover"]};
+        /* foreground */
+  --maintext: ${cssOptions["maintext"]};
+  --heading: ${cssOptions["heading"]};
+  --subheading: ${cssOptions["subheading"]};
+  --sourceNote: ${cssOptions["sourceNote"]};
+  --linkExt: ${cssOptions["linkExt"]};
+  --linkInt: ${cssOptions["linkInt"]};
+  --linkVisited: ${cssOptions["linkVisited"]};
+  --highContrast: ${cssOptions["highContrast"]};`
+      ); 
+    } catch (e) {
+      console.warn (e)
+      reject (e)
+    }
+  })
+}
+
+const promiseReadJsonFile = (filename) => {
+  return new Promise(async (resolve, reject)=>{
+    try {
+      //@ts-ignore
+      const cssObjectFile = chrome.runtime.getURL(`/data/${filename}`)
+      console.info(`Unpacking ${cssObjectFile}...`)
+      fetch(cssObjectFile)
+      .then((response) => response.json())
+      .then((data) => {
+        resolve(data)
+      })
+    } catch (e) {
+      reject(`File ${filename} not loaded: ${e}`)
+    }
+  })
+}
+
+const promiseGetCssTemplate = () => {
+  return new Promise(async (resolve, reject)=> {
+    try {
+      //@ts-ignore
+      const cssTemplateFile = chrome.runtime.getURL('/data/cssTemplate.css');
+      console.info(`Unpacking ${cssTemplateFile}...`)
+      fetch(cssTemplateFile)
+      .then(response=> response.text())
+      .then(text=>{
+        resolve(text)
+      })
+    } catch (e) {
+      console.warn(`cssTemplate.css not loaded. ${e}`)
+      reject (e)
+    }
+  })
+}
 /**
  * @param {string} warningId
  * @param {string} msgTxt
@@ -252,34 +359,13 @@ function logOrWarn(msgTxt, warningId = "") {
         title: `Warning! ${warningId}`,
         type: "basic",
         message: msgTxt,
-        priority: 1,
+        priority: 2,
       },
       () => {}
     );
   }
 }
-const orLawOrLegLookup = {
-  OL2021: "2021orlaw~.pdf",
-  OL2020: "2020orlaw~.pdf",
-  OL2019: "2019orlaw~.pdf",
-  OL2018: "2018orlaw~.pdf",
-  OL2017: "2017orlaw~.pdf",
-  OL2016: "2016orlaw~.pdf",
-  OL2015: "2015orlaw~.pdf",
-  OL2014: "2014R1orLaw~ss.pdf",
-  OL2013: "2013orlaw~.pdf",
-  OL2012: "2012adv~ss.pdf",
-  OL2011: "2011orLaw~.html",
-  OL2010: "2010orLaw~.html",
-  OL2009: "2009orLaw~.html",
-  OL2008: "2008orLaw~.html",
-  OL2007: "2007orLaw~.html",
-  OL2006: "2006orLaw~ss1.pdf",
-  OL2005: "2005orLaw~ses.html",
-  OL2003: "2003orLaw~ses.html",
-  OL2001: "2001orLaw~ses.html",
-  OL1999: "1999orLaw~.html",
-};
+
 
 // OMNIBOX Items not yet ready for Manifest v3.
 //  @ts-ignore
@@ -310,16 +396,3 @@ chrome.omnibox.onInputCancelled.addListener(function() {
   resetDefaultSuggestion();
 });
  */
-const promiseGetCssObject = () => {
-  return new Promise(async (resolve, reject)=>{
-    //@ts-ignore
-    const cssObjectFile = chrome.runtime.getURL('/data/cssObject.json')
-    console.log(cssObjectFile)
-    fetch(cssObjectFile)
-    .then((response) => response.json())
-    .then((data) => {
-      console.log(data) 
-      resolve(data)
-    })
-  })
-}

@@ -25,6 +25,11 @@ Google Chrome Extension that alters appearance of Oregon Revised Statutes on Ore
 See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx)
 
 ## Updates:
+  ### Version 1.4.8 - 12/01/2021
+   * Moved data into separate files
+   * Built data reader
+   * Custom css progress, but stylesheets not back to fully stable yet.
+
   ### Version 1.4.7 - 11/29/2021
    * Reorganized content scripts
    * removed css from background & css file injection to fix persistance issue
