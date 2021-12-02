@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "ORS Extension",
     "description" : "Overdue for adding something here",
-    "version": "1.4.8",
+    "version": "1.4.9",
     "action": {
         "default_icon": {
             "16": "/images/icon16.png",
