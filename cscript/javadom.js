@@ -73,10 +73,9 @@ function javaDOM() {
       }
     });
   }
-
   // JavaDOM MAIN:
   addSectionCollapseButtons();
   buildOrsLinkButton();
   buildFloatingMenuDiv();
-//  implementStoredParameters(); duplicate from main mORS.js (I think)
+  return(new Promise(resolve => resolve())) // clarifying that function has ran
 }

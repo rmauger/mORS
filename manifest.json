@@ -1,7 +1,8 @@
 {
     "manifest_version": 3,
     "name": "ORS Extension",
-    "version": "1.4.7",
+    "description" : "Overdue for adding something here",
+    "version": "1.4.9",
     "action": {
         "default_icon": {
             "16": "/images/icon16.png",
@@ -11,7 +12,7 @@
             "128": "/images/icon128.png" 
         },
         "default_title": "mORS",
-        "default_popup": "popup.html"
+        "default_popup": "/popup/popup.html"
     },
     "omnibox": {"keyword": "mors"},
     "content_scripts":[
@@ -35,6 +36,7 @@
     "background": {
         "service_worker": "background.js"
     },
+    "options_page": "/options/options.html",
     "icons": {
         "16": "/images/icon16.png",
         "24": "/images/icon24.png",
@@ -49,6 +51,11 @@
         "notifications",
         "scripting"        
 	], 
+    "web_accessible_resources":[{
+        "resources":["/data/*"],
+        "matches":[],
+        "extension_ids":[]
+    }],
     "host_permissions":
         ["*://www.oregonlegislature.gov/bills_laws/ors/ors*.html*"]
 }

@@ -3,13 +3,14 @@
   chrome.runtime.onMessage.addListener((msg, _sender, _reponse) => {
     const msgText = msg.toMORS;
     try {
+      console.log(`${msgText} received`)
       if (msgText["burnt"] != undefined) {
-        doShowRSecs(msgText["burnt"]);
+        doShowRSecs(msgText["burnt"]); //helper.js
       } else if (msgText["sn"] != undefined) {
-        doShowSourceNotes(msgText["sn"]);
+        doShowSourceNotes(msgText["sn"]); //helper.js
       } else if (msgText=="css") {
         console.log('refresh stylesheet')
-        styleSheetRefresh();
+        styleSheetRefresh(); //stylesheet.js
       } else {
         console.warn("Error unidentified message received from popup.html");
       }
