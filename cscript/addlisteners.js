@@ -1,15 +1,21 @@
-(function listenToPopup() {
+//addlisteners.js
+//FIREFOX=CHROME
+//@ts-check
+
+function listenToPopup() {
   //@ts-ignore
-  chrome.runtime.onMessage.addListener((msg, _sender, _reponse) => {
+  browser.runtime.onMessage.addListener((msg, _sender, _reponse) => {
     const msgText = msg.toMORS;
     try {
-      console.log(`${msgText} received`)
+      console.info(
+        `Info on displaying ${Object.keys(msgText)} received from popup`
+      );
       if (msgText["burnt"] != undefined) {
         doShowRSecs(msgText["burnt"]); //helper.js
       } else if (msgText["sn"] != undefined) {
         doShowSourceNotes(msgText["sn"]); //helper.js
-      } else if (msgText=="css") {
-        console.log('refresh stylesheet')
+      } else if (msgText == "css") {
+        console.info("refresh stylesheet");
         styleSheetRefresh(); //stylesheet.js
       } else {
         console.warn("Error unidentified message received from popup.html");
@@ -18,17 +24,10 @@
       console.warn(`Error w/ display rSecs or sourceNotes: ${e}`);
     }
   });
-})();
+}
 
-(function windowResizeEvent() {
-  let resizedFinished;
-  window.addEventListener("resize", () => {
-    clearTimeout(resizedFinished);
-    resizedFinished = setTimeout(resizeSectionDivs, 500); // waits 1/2 sec after resize ends to execute
-  });
-})();
-
-const resizeSectionDivs = () => {
+function windowResizeEvent() {
+  const resizeSectionDivs = () => {
     try {
       //@ts-ignore
       const sectionList = document.body.getElementsByClassName("section");
@@ -48,8 +47,17 @@ const resizeSectionDivs = () => {
     } catch (error) {
       console.warn(`Error in Resizing collapsed divs: ${error}`);
     }
+  };
+
+  let resizedFinished;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizedFinished);
+    resizedFinished = setTimeout(resizeSectionDivs, 500); // waits 1/2 sec after resize ends to execute
+    console.info("Resized section title boxes.");
+  });
 }
 
-(function createStyleSheet (){
-  window.addEventListener("load", styleSheetCreate);
-})()  
+//MAIN ADD LISTENERS:
+windowResizeEvent();
+createStyleSheet();
+listenToPopup();

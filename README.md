@@ -1,14 +1,25 @@
 # mORS
 
-Google Chrome Extension that alters appearance of Oregon Revised Statutes on Oregon State Legisature website. The Oregon Revised Statutes are the codified laws of the State of Oregon.
+Extension (Google Chrome/Firefox) that alters appearance of Oregon Revised Statutes on Oregon State Legisature website and allows for easier retrieval of Oregon session law. The Oregon Revised Statutes are the codified laws of the State of Oregon.
 
-## Installation instructions:
+## Installation instructions (Chrome):
   * Navigate to https://github.com/rmauger/mORS
   * From green "Code" button > "Download Zip"
-  * Unzip to folder
+  * Unzip to a folder
   * Navigate to chrome://extensions/ (or ... > More Tools > Extensions)
   * "Load Unpacked"
   * Select folder
+
+## Installation instructions (Firefox):
+  * Navigate to https://github.com/rmauger/mORS
+  * From green "Code" button > "Download Zip"
+  * Unzip to a folder
+  * Copy 2 files from /firefox/ to main folder & overwrite (manifest.json, backgroud.js)
+  * Temporary installation (single session; removed when Firefox restarts):
+    * Enter "about:debugging" in the URL bar
+    * Click "This Firefox"
+    * Click "Load Temporary Add-on"
+    * Select any file in folder
 
 ## To use:
   * Navigate to [ORS website](https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx) and select a chapter;
@@ -25,6 +36,9 @@ Google Chrome Extension that alters appearance of Oregon Revised Statutes on Ore
 See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx)
 
 ## Updates:
+  ### Version 1.4.10 - 12/12/2021
+   * Merged back Firefox branch so extension can work on Firefox or Chrome
+
   ### Version 1.4.9 - 12/01/2021
    * Custom css options page functional and stable, if not entirely complete
 
@@ -82,5 +96,6 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 ## Known bugs:
 
 ## Planned features/fixes:
+  * TODO: #42 Version for MS Edge (should be easier than Firefox was)?
   * TODO: #40 Resolve handling of additional styles not yet on custom sheet.
   * TODO: #39 Update and synthesize error handling, logging issues to console and popup messaging to user

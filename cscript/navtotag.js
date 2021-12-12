@@ -1,15 +1,18 @@
+//navtotag.js
+//FIREFOX=CHROME
+//@ts-check
+
 const promiseGetTabURL = () => {
   return new Promise((resolve, reject) => {
-    //@ts-ignore
-    chrome.runtime.sendMessage({ message: "getCurrentTab" }, (msg) => {
-      try {
-        const tab = msg.response;
+    sendAwaitResponse("getCurrentTab")
+    .then (response => {
+        const tab = response.response;
         resolve(tab.url);
-      } catch (e) {
+      }, e => {
         console.warn(`Error retrieving URL: ${e}`);
         reject(`Error retrieving URL: ${e}`);
       }
-    });
+    );
   });
 };
 const promiseGetNavID = (theTabUrl) => {

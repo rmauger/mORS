@@ -1,4 +1,5 @@
 //finalclean.js
+//FIREFOX = CHROME
 //@ts-check
 
 /**

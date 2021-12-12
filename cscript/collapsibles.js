@@ -1,4 +1,5 @@
 //collapsibles.js
+//CHROME = FIREFOX
 //@ts-check
 
 // Collapses all ORS sections to button height

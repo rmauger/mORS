@@ -1,29 +1,29 @@
 //storeddata.js
+//FIREFOX = CHROME
 //@ts-check
 
 const implementUserParameters = () => {
-  async function getCollapsed() {
-    try {
-      //@ts-ignore
-      chrome.runtime.sendMessage({ message: "getCollapsed" }, (response) => {
+  function getCollapsed() {
+    sendAwaitResponse("getCollapsed").then(
+      (response) => {
         if (response.response) {
           collapseAllSections(); //collapsibles.js
         }
-      });
-    } catch (error) {
-      console.warn(`Error in getCollapsed(): ${error}`);
-    }
+      },
+      (e) => {
+        console.warn(`Error in getCollapsed(): ${e}`);
+      }
+    );
   }
   function getShowRSec() {
-    //@ts-ignore
-    chrome.runtime.sendMessage({ message: "getShowBurnt" }, (response) => {
+    sendAwaitResponse("getShowBurnt").then((response) => {
       const doShow = response.response;
       doShowRSecs(doShow); //helper.js
     });
   }
   function getShowSNs() {
     //@ts-ignore
-    chrome.runtime.sendMessage({ message: "getShowSNs" }, (response) => {
+    sendAwaitResponse("getShowSNs").then((response) => {
       const doShow = response.response;
       doShowSourceNotes(doShow); //helper.js
     });
@@ -32,4 +32,4 @@ const implementUserParameters = () => {
   getCollapsed();
   getShowRSec();
   getShowSNs();
-}
+};

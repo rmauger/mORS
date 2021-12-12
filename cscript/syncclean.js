@@ -1,3 +1,7 @@
+//syncclean.js
+//FIREFOX = CHROME
+//@ts-check
+
 function SyncReplaceText() {
     function htmlCleanup() {
       bodyHtml = document.body.innerHTML;
@@ -192,7 +196,7 @@ function SyncReplaceText() {
         let hCount = 0;
         while (closeHeadTags.test(bodyHtml)) {
           let divHeadClose = "";
-          let nextTag = ifRegExMatch(closeHeadTags, bodyHtml);
+          let nextTag = ifRegExMatch(closeHeadTags, bodyHtml); //helper.js
           if (nextTag[1] == "s") {
             if (hCount == 2) {
               divHeadClose = "</div>";

@@ -1,4 +1,5 @@
 //@javadom.js
+//FIREFOX=CHROME
 //@ts-check
 
 function javaDOM() {
@@ -41,7 +42,7 @@ function javaDOM() {
       menuPanel.classList.add("fixed");
       let versionPar = document.createElement("p");
       //@ts-ignore
-      let manifest = chrome.runtime.getManifest();
+      let manifest = browser.runtime.getManifest();
       let thisVersion = manifest.version;
       versionPar.classList.add("version");
       versionPar.innerHTML = `style markup by <a href="https://github.com/rmauger/mORS/#readme">mORS<\/a> v.${thisVersion}`;
@@ -64,7 +65,8 @@ function javaDOM() {
     // BuildFloatingMenuDiv MAIN
     let menuPanel = document.createElement("div");
     //@ts-ignore
-    chrome.runtime.sendMessage({ message: "getShowMenu" }, (response) => {
+    sendAwaitResponse("getShowMenu"
+    ).then ((response) => {
       if (response.response) {
         addMenuBody();
         addExpandAllButton();

@@ -7,55 +7,60 @@
  */
 function promiseBackgroundRequest(requestMsg) {
   return new Promise((resolve, reject) => {
-    try {
-      //@ts-ignore
-      chrome.runtime.sendMessage({ message: requestMsg }, (response) => {
+    //@ts-ignore
+    browser.runtime
+      .sendMessage({ message: requestMsg })
+      .then((response) => {
         infoLog(
           `Received response to ${requestMsg} : ${response.response}`,
           `promiseReqBackgroundJs(${requestMsg})`
         );
         resolve(response.response);
+      })
+      .catch((e) => {
+        reject(
+          `Failed sending {message: ${requestMsg}} to background.js. Error: ${e}`
+        );
       });
-    } catch (e) {
-      reject(
-        `Failed sending {message: ${requestMsg}} to background.js. Error: ${e}`
-      );
-    }
   });
 }
-// Message passing to ORS tabs (no response)
-async function sendMsgToOrsTabs(msg) {
+// Message passing to ORS tabs (no response requested)
+async function sendMsgToOrsTabs(message) {
   //@ts-ignore
-  chrome.runtime.sendMessage({message:"getOrsTabs"}, (response) => {
-    const orsTabs = response.response
-    for (const aTab of orsTabs) {
-      //@ts-ignore
-      chrome.tabs.sendMessage(aTab.id, { toMORS: msg });
-    }
-  })
+  browser.runtime
+    .sendMessage({ message: "getOrsTabs" })
+    .then((response) => {
+      const orsTabs = response.response;
+      for (const aTab of orsTabs) {
+        //@ts-ignore
+        browser.tabs.sendMessage(aTab.id, { toMORS: message });
+      }
+    })
+    .catch((e) => console.warn(e));
 }
 
-//Retrieves data from chrome.storage.sync & puts it in userform
+//Retrieves data from storage.sync & puts it in userform
 function promiseRefreshOptions() {
-  return new Promise((resolve, reject)=> {  
-    try{
-      //@ts-ignore
-      chrome.runtime.sendMessage({message:"getCssObjectJson"}, (response)=>{
-        const css=response.response
+  return new Promise((resolve, reject) => {
+    //@ts-ignore
+    browser.runtime
+      .sendMessage({ message: "getCssObjectJson" })
+      .then((response) => {
+        const css = response.response;
         //@ts-ignore
-        formCssSelector.options.length=0
-          for (var i=0; i < Object.keys(css).length; i++){
-          var newOption = document.createElement('option');
-          newOption.value = Object.keys(css)[i]
-          newOption.innerHTML = Object.keys(css)[i]
-          formCssSelector.appendChild(newOption)
+        formCssSelector.options.length = 0;
+        for (var i = 0; i < Object.keys(css).length; i++) {
+          var newOption = document.createElement("option");
+          newOption.value = Object.keys(css)[i];
+          newOption.innerHTML = Object.keys(css)[i];
+          formCssSelector.appendChild(newOption);
         }
-        resolve(css)
+        resolve(css);
       })
-    } catch (e) {
-      reject (e)
-    }    
-  })
+      .catch((e) => {
+        reject(e);
+      });
+  });
 }
 async function displayUserOptions() {
   function storedDataFinder() {
@@ -66,14 +71,17 @@ async function displayUserOptions() {
       promiseBackgroundRequest("getShowSNs"),
       promiseBackgroundRequest("getCollapsed"),
       promiseBackgroundRequest("getShowMenu"),
-      promiseRefreshOptions()
+      promiseRefreshOptions(),
     ]);
   }
   // MAIN displayUserOptions
   try {
-    console.groupCollapsed("StoredDataFinder");
     const data = await storedDataFinder();
-    console.log(data[6])
+    console.groupCollapsed("Stored data retrieved -->");
+    for (let i = 0; i < data.length; i++) {
+      console.info(data[i]);
+    }
+    console.groupEnd();
     // @ts-ignore
     for (let i = 0; i < formCssSelector.options.length; i++) {
       // @ts-ignore
@@ -100,10 +108,8 @@ async function displayUserOptions() {
     collapseCheck.checked = data[4];
     // @ts-ignore
     showMenuCheck.checked = data[5];
-    console.groupEnd();
   } catch (e) {
     alert(e);
-    console.groupEnd()
   }
 }
 //setup event listeners for form dropdowns & buttons
@@ -114,7 +120,7 @@ function addAllListeners() {
     let orsChapter = `00${orsSection}`.match(/\d{3}[A-C]?\b/)[0]; // pad to exactly 3 digits
     let orsURL = `https://www.oregonlegislature.gov/bills_laws/ors/ors${orsChapter}.html#${orsSection}`;
     //@ts-ignore
-    chrome.tabs.create({ url: orsURL });
+    browser.tabs.create({ url: orsURL });
   });
   orLawsLaunchButton.addEventListener("click", async () => {
     // @ts-ignore
@@ -135,8 +141,7 @@ function addAllListeners() {
           `orLawsLaunch.EventListener`
         );
         errorMsg.innerHTML = "";
-        //@ts-ignore
-        chrome.tabs.create({ url: orLawUrl }), 2000;
+        browser.tabs.create({ url: orLawUrl }), 2000;
       } else {
         errorMsg.innerHTML = orLawUrl;
       }
@@ -146,76 +151,63 @@ function addAllListeners() {
   });
   formCssSelector.addEventListener("change", () => {
     //@ts-ignore
-    chrome.storage.sync.set(
-      // @ts-ignore
-      { cssSelectorStored: formCssSelector.value },
-      () => {
-        sendMsgToOrsTabs("css")
-      }
-    );
+    browser.storage.sync
+      //@ts-ignore
+      .set({ cssSelectorStored: formCssSelector.value })
+      .then(sendMsgToOrsTabs("css"));
   });
   orLawSelector.addEventListener("change", () => {
     //@ts-ignore
-    chrome.storage.sync.set(
+    browser.storage.sync
       // @ts-ignore
-      { lawsReaderStored: orLawSelector.value },
-      () => {
-        reloadORS();
-      }
-    );
+      .set({ lawsReaderStored: orLawSelector.value })
+      .then(reloadORS());
   });
   showBurntCheck.addEventListener("change", () => {
     //@ts-ignore
-    chrome.storage.sync.set(
+    browser.storage.sync.set({ showBurntStored: showBurntCheck.checked }).then(
       // @ts-ignore
-      { showBurntStored: showBurntCheck.checked },
-      () => {
-        // @ts-ignore
-        sendMsgToOrsTabs({burnt:showBurntCheck.checked});
-      }
+      sendMsgToOrsTabs({ burnt: showBurntCheck.checked })
     );
   });
   showSNsCheck.addEventListener("change", () => {
     //@ts-ignore
-    chrome.storage.sync.set(
-      // @ts-ignore
-      { showSNsStored: showSNsCheck.checked },
-      () => {
-        //@ts-ignore
-        sendMsgToOrsTabs({sn:showSNsCheck.checked});
-      }
+    browser.storage.sync.set({ showSNsStored: showSNsCheck.checked }).then(
+      //@ts-ignore
+      sendMsgToOrsTabs({ sn: showSNsCheck.checked })
     );
   });
   collapseCheck.addEventListener("change", () => {
     //@ts-ignore
-    chrome.storage.sync.set(
+    browser.storage.sync.set(
       // @ts-ignore
-      { collapseDefaultStored: collapseCheck.checked },
-      () => {}
+      { collapseDefaultStored: collapseCheck.checked }
     );
   });
   showMenuCheck.addEventListener("change", () => {
     //@ts-ignore
-    chrome.storage.sync.set(
-      // @ts-ignore
-      { showMenuStored: showMenuCheck.checked },
-      () => {
-        reloadORS()
-      }
-    );
+    browser.storage.sync
+      .set(
+        // @ts-ignore
+        { showMenuStored: showMenuCheck.checked }
+      )
+      .then(reloadORS());
   });
 }
 
 //reloading ORS tabs
 function reloadORS() {
   //@ts-ignore
-  chrome.runtime.sendMessage({message:"getOrsTabs"}, (response) => {
-    const orsTabs = response.response
-    for (const aTab of orsTabs) {
-      //@ts-ignore
-      chrome.tabs.reload(aTab.id);
-    }
-  })
+  browser.runtime
+    .sendMessage({ message: "getOrsTabs" })
+    .then((response) => {
+      const orsTabs = response.response;
+      for (const aTab of orsTabs) {
+        //@ts-ignore
+        browser.tabs.reload(aTab.id);
+      }
+    })
+    .catch((e) => console.warn(e));
 }
 
 /**
@@ -235,13 +227,11 @@ const orLawsLaunchButton = document.getElementById("orLawsLaunch");
 const showBurntCheck = document.getElementById("showRSec");
 const showSNsCheck = document.getElementById("showSNote");
 const collapseCheck = document.getElementById("collapseDefault");
-const showMenuCheck = document.getElementById("showMenu")
+const showMenuCheck = document.getElementById("showMenu");
 
 displayUserOptions();
 addAllListeners();
 window.addEventListener("focus", () => {
-  infoLog(
-    "Refreshed user options", "window.addEventListener('focus')"
-  );
+  infoLog("Refreshed user options", "window.addEventListener('focus')");
   displayUserOptions();
 });

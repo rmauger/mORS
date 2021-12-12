@@ -1,4 +1,5 @@
 //helper.js
+//FIREFOX = CHROME
 //@ts-check
 
 /** returns match if one is available (defaults to first match)
@@ -44,3 +45,7 @@ const doShowRSecs = (doShow) => {
     note.classList.add(!doShow && "hideMe");
   }
 };
+
+function getFuncName() {
+  return getFuncName.caller.name
+}
