@@ -1,0 +1,74 @@
+{
+    "manifest_version": 2,
+    "name": "ORS Extension",
+    "description": "Improves appearance of Oregon Revised Statutes on legisature's website and helps retrieve Oregon session laws.",
+    "version": "1.4.10",
+    "browser_action": {
+        "default_icon": {
+            "16": "/images/icon16.png",
+            "24": "/images/icon24.png",
+            "32": "/images/icon32.png",
+            "48": "/images/icon48.png",
+            "128": "/images/icon128.png"
+        },
+        "default_title": "mORS",
+        "default_popup": "/popup/firefox/popup.html"
+    },
+    "omnibox": {
+        "keyword": "mors"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html*"
+            ],
+            "js": [
+                "/cscript/helper.js",
+                "/cscript/firefox/helpfox.js",
+                "/cscript/collapsibles.js",
+                "/cscript/stylesheet.js",
+                "/cscript/navtotag.js",
+                "/cscript/javadom.js",
+                "/cscript/orlawlink.js",
+                "/cscript/syncclean.js",
+                "/cscript/storeddata.js",
+                "/cscript/finalclean.js",
+                "/cscript/addlisteners.js",
+                "/cscript/mORS.js"
+            ]
+        }
+    ],
+    "background": {
+        "scripts": [
+            "bg-firefox.js"
+        ]
+    },
+    "options_ui": {
+        "page": "/options/firefox/options.html",
+        "browser_style": true
+    },
+    "icons": {
+        "16": "/images/icon16.png",
+        "24": "/images/icon24.png",
+        "32": "/images/icon32.png",
+        "48": "/images/icon48.png",
+        "128": "/images/icon128.png"
+    },
+    "permissions": [
+        "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html*",
+        "storage",
+        "activeTab",
+        "tabs",
+        "management",
+        "notifications"
+    ],
+    "web_accessible_resources": [
+        "/data/*"
+    ],
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "morFox@TestVersion",
+            "strict_min_version": "42.0"
+        }
+    }
+}

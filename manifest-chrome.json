@@ -1,0 +1,72 @@
+{
+    "manifest_version": 3,
+    "name": "ORS Extension",
+    "description": "Improves appearance of Oregon Revised Statutes on legisature's website and helps retrieve Oregon session laws.",
+    "version": "1.4.10",
+    "action": {
+        "default_icon": {
+            "16": "/images/icon16.png",
+            "24": "/images/icon24.png",
+            "32": "/images/icon32.png",
+            "48": "/images/icon48.png",
+            "128": "/images/icon128.png"
+        },
+        "default_title": "mORS",
+        "default_popup": "/popup/chrome/popup.html"
+    },
+    "omnibox": {
+        "keyword": "mors"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html*"
+            ],
+            "js": [
+                "/cscript/helper.js",
+                "/cscript/chrome/helpchrome.js",
+                "/cscript/collapsibles.js",
+                "/cscript/stylesheet.js",
+                "/cscript/navtotag.js",
+                "/cscript/javadom.js",
+                "/cscript/orlawlink.js",
+                "/cscript/syncclean.js",
+                "/cscript/storeddata.js",
+                "/cscript/finalclean.js",
+                "/cscript/addlisteners.js",
+                "/cscript/mORS.js"
+            ]
+        }
+    ],
+    "background": {
+        "service_worker": "bg-chrome.js"
+    },
+    "options_page": "options/chrome/options.html",
+    "icons": {
+        "16": "/images/icon16.png",
+        "24": "/images/icon24.png",
+        "32": "/images/icon32.png",
+        "48": "/images/icon48.png",
+        "128": "/images/icon128.png"
+    },
+    "permissions": [
+        "storage",
+        "activeTab",
+        "tabs",
+        "notifications",
+        "scripting"
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "/data/*"
+            ],
+            "matches": [],
+            "extension_ids": []
+        }
+    ],
+    "host_permissions": [
+        "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html*"
+    ],
+    "minimum_chrome_version": "92"
+}
