@@ -131,7 +131,7 @@ function promiseGetOrsTabs() {
       { url: "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html*" }
     ).then(
       tabs => resolve(tabs)
-    ).catch((e) => reject(`Failed while looking for tabs with ORS. Error ${e}`);
+    ).catch(e => reject(`Failed while looking for tabs with ORS. Error ${e}`)
     );
   });
 }

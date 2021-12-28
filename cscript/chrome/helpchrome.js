@@ -2,13 +2,12 @@
 //@ts-check
 
 //@ts-ignore
-const browser=chrome
+const browser = chrome;
 
 function sendAwaitResponse(messageItem) {
   return new Promise((resolve, reject) => {
     try {
-      //@ts-ignore
-      chrome.runtime.sendMessage({ message: messageItem }, (response) => {
+      browser.runtime.sendMessage({ message: messageItem }, (response) => {
         resolve(response);
       });
     } catch (error) {
@@ -19,12 +18,27 @@ function sendAwaitResponse(messageItem) {
 }
 
 function createStyleSheet() {
-  window.addEventListener("load", ()=>
-    {styleSheetCreate()});
+  window.addEventListener("load", () => {
+    styleSheetCreate();
+  });
 }
 
 function startUp() {
-  window.addEventListener("load", ()=> {
-    runMain()
+  window.addEventListener("load", () => {
+    runMain();
   });
+}
+
+function sendInfo(infoText) {
+  browser.runtime.sendMessage(
+    { message: { info: infoText } }
+    , ()=>{}
+  );
+}
+
+function sendWarn(warnText) {
+  browser.runtime.sendMessage(
+    { message: { warn: warnText } }
+    , ()=>{}
+  );
 }

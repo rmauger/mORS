@@ -47,5 +47,5 @@ const doShowRSecs = (doShow) => {
 };
 
 function getFuncName() {
-  return getFuncName.caller.name
+  return getFuncName.caller.name;
 }
