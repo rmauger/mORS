@@ -2,50 +2,102 @@
 //@ts-check
 "use strict";
 
+let browser =  getBrowser()
+function getBrowser() {
+  try {
+    //@ts-ignore
+    let manifest = chrome.runtime.getManifest();
+    if (manifest.manifest_version=='3') {
+      //@ts-ignore
+      return (chrome)
+    } else {
+      return (browser)
+    }
+  } catch (error) {
+    return(browser)
+  }
+}
+
 //@ts-ignore
-const browser = chrome;
+if (browser == chrome) {
+  chromeSetup()
+} else {
+  fireFoxSetup()
+}
+
+let promiseSetKey
+let promiseMsgResponse
+
+function chromeSetup() {
+  promiseSetKey = (keyAndValueObj) => {
+    return new Promise((resolve, reject)=>{
+      try {
+        browser.storage.sync.set({keyAndValueObj},
+        ()=> resolve())
+      } catch (e) {
+        reject(e)  
+      }
+    })
+  }
+  promiseMsgResponse = (messageObj) => {
+    return new Promise((resolve, reject)=> {
+      try {
+        browser.runtime.sendMessage((messageObj),
+          (response)=>resolve(response))
+      } catch(e) {
+        reject(e)
+      }
+    })
+  }
+}
+function fireFoxSetup(){
+  promiseSetKey = (keyAndValueObj) => {
+    return browser.storage.sync.set({keyAndValueObj})
+  }
+  promiseMsgResponse = (messageObj) => {
+    return browser.runtime.sendMessage((messageObj))
+  }
+}
 
 /** Message passing to background.js (send message & resolves response)
  * @param {string|object} requestMsg
  */
 function promiseBackgroundRequest(requestMsg) {
   return new Promise((resolve, reject) => {
-    try {
-      //@ts-ignore
-      chrome.runtime.sendMessage({ message: requestMsg }, (response) => {
+  promiseMsgResponse({message: requestMsg})
+  .then((response) => {
         infoLog(
           `Received response to ${requestMsg} : ${response.response}`,
           `promiseReqBackgroundJs(${requestMsg})`
         );
         resolve(response.response);
-      });
-    } catch (e) {
+      })
+    .catch((e) => {
       reject(
         `Failed sending {message: ${requestMsg}} to background.js. Error: ${e}`
       );
-    }
+    })
   });
 }
 // Message passing to ORS tabs (no response requested)
-async function sendMsgToOrsTabs(message) {
+function sendMsgToOrsTabs(message) {
   //@ts-ignore
-  chrome.runtime.sendMessage({ message: "getOrsTabs" }, (response) => {
-    const orsTabs = response.response;
-    for (const aTab of orsTabs) {
-      //@ts-ignore
-      chrome.tabs.sendMessage(aTab.id, { toMORS: message });
-    }
-  });
+  promiseBackgroundRequest("getOrsTabs")
+    .then((response) => {
+      const orsTabs = response.response;
+      for (const aTab of orsTabs) {
+        browser.tabs.sendMessage(aTab.id, { toMORS: message });
+      }
+    })
+    .catch((e) => console.warn(e));
 }
 
 //Retrieves data from storage.sync & puts it in userform
 function promiseRefreshOptions() {
   return new Promise((resolve, reject) => {
-    try {
       //@ts-ignore
-      chrome.runtime.sendMessage(
-        { message: "getCssObjectJson" },
-        (response) => {
+      promiseBackgroundRequest("getCssObjectJson")
+      .then((response) => {
           const css = response.response;
           //@ts-ignore
           formCssSelector.options.length = 0;
@@ -56,12 +108,11 @@ function promiseRefreshOptions() {
             formCssSelector.appendChild(newOption);
           }
           resolve(css);
-        }
-      );
-    } catch (e) {
-      reject(e);
-    }
-  });
+        })
+        .catch((e) => {
+          reject(e);
+        });
+    });
 }
 async function displayUserOptions() {
   function storedDataFinder() {
@@ -113,6 +164,7 @@ async function displayUserOptions() {
     alert(e);
   }
 }
+
 //setup event listeners for form dropdowns & buttons
 function addAllListeners() {
   orsLaunchButton.addEventListener("click", () => {
@@ -152,70 +204,56 @@ function addAllListeners() {
   });
   formCssSelector.addEventListener("change", () => {
     //@ts-ignore
-    chrome.storage.sync.set(
-      // @ts-ignore
-      { cssSelectorStored: formCssSelector.value },
-      () => {
-        sendMsgToOrsTabs("css");
-      }
-    );
+    promiseSetKey({ cssSelectorStored: formCssSelector.value })
+    .then(() => sendMsgToOrsTabs("css")) // alert tabs that css sheet has changed
+    .catch((e) => {
+      console.log(e)
+    })
   });
   orLawSelector.addEventListener("change", () => {
     //@ts-ignore
-    chrome.storage.sync.set(
-      // @ts-ignore
-      { lawsReaderStored: orLawSelector.value },
-      () => reloadORS()
-    );
-  });
+    promiseSetKey({ lawsReaderStored: orLawSelector.value })
+      .then(() => reloadORS())
+      .catch((e)=> console.log(e))
+    })
   showBurntCheck.addEventListener("change", () => {
     //@ts-ignore
-    chrome.storage.sync.set(
-      // @ts-ignore
-      { showBurntStored: showBurntCheck.checked },
-      // @ts-ignore
-      () => sendMsgToOrsTabs({ burnt: showBurntCheck.checked })
-    );
+    promiseSetKey({ showBurntStored: showBurntCheck.checked })
+    //@ts-ignore
+    .then(() => sendMsgToOrsTabs({ burnt: showBurntCheck.checked }))
+    .catch((e) => console.log(e))
   });
   showSNsCheck.addEventListener("change", () => {
     //@ts-ignore
-    chrome.storage.sync.set(
-      // @ts-ignore
-      { showSNsStored: showSNsCheck.checked },
-      () => {
-        //@ts-ignore
-        sendMsgToOrsTabs({ sn: showSNsCheck.checked });
-      }
-    );
+    promiseSetKey({ showSNsStored: showSNsCheck.checked })
+    //@ts-ignore
+    .then(sendMsgToOrsTabs({ sn: showSNsCheck.checked }))
+    .catch((e)=>console.log(e))
   });
   collapseCheck.addEventListener("change", () => {
     //@ts-ignore
-    chrome.storage.sync.set(
-      // @ts-ignore
-      { collapseDefaultStored: collapseCheck.checked },
-      () => {}
-    );
+    promiseSetKey({ collapseDefaultStored: collapseCheck.checked })
+    .then(() => {})
+    .catch((e)=>console.log(e))
   });
   showMenuCheck.addEventListener("change", () => {
     //@ts-ignore
-    chrome.storage.sync.set(
-      // @ts-ignore
-      { showMenuStored: showMenuCheck.checked },
-      () => reloadORS()
-    );
+    promiseSetKey({ showMenuStored: showMenuCheck.checked })
+      .then(() => reloadORS())
+      .catch((e)=>console.log(e))
   });
 }
 
 //reloading ORS tabs
 function reloadORS() {
-  //@ts-ignore
-  chrome.runtime.sendMessage({ message: "getOrsTabs" }, (response) => {
-    const orsTabs = response.response;
-    for (const aTab of orsTabs) {
-      //@ts-ignore
-      browser.tabs.reload(aTab.id);
-    }
-  });
+  promiseBackgroundRequest("getOrsTabs")
+    .then((response) => {
+      const orsTabs = response.response;
+      for (const aTab of orsTabs) {
+        browser.tabs.reload(aTab.id);
+      }
+    })
+    .catch((e) => console.warn(e));
 }
 
 /**

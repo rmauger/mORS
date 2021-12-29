@@ -1,18 +1,4 @@
 //@ts-check
-
-/**
- * @param {Promise<any>} soughtPromise
- * @param {(arg0: {response: any;}) => void} response
- */
- async function msgHandler(soughtPromise, response) {
-    try {
-      const resolvedPromise = await soughtPromise;
-      response({ response: await resolvedPromise });
-    } catch (e) {
-      response({ response: `Error: ${e}` });
-    }
-  }
-  
   browser.runtime.onMessage.addListener((message, sender, response) => {
     const received = message.message;
     if (typeof received == "string") {
@@ -82,7 +68,7 @@
         console.warn(`Received unidentified message`);
         console.warn(received);
         console.groupEnd();
-        response(`Received message ${received}`);
+        response(`Error: Received unidentified message ${received}`);
     }
     return true;
   });

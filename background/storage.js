@@ -1,3 +1,6 @@
+//background/storage.js
+//@ts-check
+
 /**
  * @param {string} objKey
  */

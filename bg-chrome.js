@@ -1,8 +1,7 @@
 const scriptList=[
-    "/background/bg-helper.js",
-    "/background/console.js",
-    "/background/installer.js",
+    "/background/helpchrome.js",
     "/background/storage.js",
+    "/background/webresources.js",
     "/background/querytabs.js",
     "/background/orlaws.js",
     "/background/styles.js",

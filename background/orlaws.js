@@ -1,3 +1,6 @@
+//background/orlaws.js
+//@ts-check
+
 /**
  * @param {number} year
  * @param {number} chapter
@@ -57,5 +60,3 @@
       }
     });
   }
-
-  //@ts-check
