@@ -1,7 +1,5 @@
+//helpfirefox.js
 //@ts-check
-
-//@ts-ignore
-const browser=browser
 
 function sendAwaitResponseBG(messageItem) {
     return new Promise((resolve, reject) => {
@@ -67,10 +65,3 @@ async function msgHandler(referencedPromise, response) {
   }
 }
 
-/**
- * @param {{ url?: string; currentWindow?: boolean; active?: boolean; }} queryObj
- */
-//needed for chrome to convert URL query into promise
-function queryPromise (queryObj) {
-  return (browser.tabs.query(queryObj))
-}

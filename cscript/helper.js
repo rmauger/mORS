@@ -1,5 +1,4 @@
 //helper.js
-//FIREFOX = CHROME
 //@ts-check
 
 /** returns match if one is available (defaults to first match)

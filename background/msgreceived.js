@@ -59,7 +59,9 @@
       } catch (e) {
         logOrWarn(e)
       }
-    } else if (received.info) {
+    } else if (received.navToOrs) {
+      newTabOrs(received["navToOrs"])
+    }else if (received.info) {
 
     } else if (received.warn) {
     

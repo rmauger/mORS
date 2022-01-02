@@ -1,62 +1,58 @@
 //popup.js
 //@ts-check
+
 "use strict";
 
-let browser =  getBrowser()
 function getBrowser() {
-  try {
-    //@ts-ignore
-    let manifest = chrome.runtime.getManifest();
-    if (manifest.manifest_version=='3') {
+  return new Promise((resolve) => {
+    try {
       //@ts-ignore
-      return (chrome)
-    } else {
-      return (browser)
+      let manifest = chrome.runtime.getManifest();
+      if (manifest.manifest_version == "3") {
+        //@ts-ignore
+        resolve(chrome);
+      } else {
+        //@ts-ignore
+        resolve(browser);
+      }
+    } catch (error) {
+      //@ts-ignore
+      resolve(browser);
     }
-  } catch (error) {
-    return(browser)
-  }
+  });
 }
-
-//@ts-ignore
-if (browser == chrome) {
-  chromeSetup()
-} else {
-  fireFoxSetup()
-}
-
-let promiseSetKey
-let promiseMsgResponse
 
 function chromeSetup() {
+  //@ts-ignore
+  browser = chrome;
   promiseSetKey = (keyAndValueObj) => {
-    return new Promise((resolve, reject)=>{
+    return new Promise((resolve, reject) => {
       try {
-        browser.storage.sync.set({keyAndValueObj},
-        ()=> resolve())
+        browser.storage.sync.set({ keyAndValueObj }, () => resolve());
       } catch (e) {
-        reject(e)  
+        reject(e);
       }
-    })
-  }
+    });
+  };
   promiseMsgResponse = (messageObj) => {
-    return new Promise((resolve, reject)=> {
+    return new Promise((resolve, reject) => {
       try {
-        browser.runtime.sendMessage((messageObj),
-          (response)=>resolve(response))
-      } catch(e) {
-        reject(e)
+        browser.runtime.sendMessage(messageObj, (response) =>
+          resolve(response)
+        );
+      } catch (e) {
+        reject(e);
       }
-    })
-  }
+    });
+  };
 }
-function fireFoxSetup(){
+function fireFoxSetup() {
   promiseSetKey = (keyAndValueObj) => {
-    return browser.storage.sync.set({keyAndValueObj})
-  }
+    return browser.storage.sync.set({ keyAndValueObj });
+  };
   promiseMsgResponse = (messageObj) => {
-    return browser.runtime.sendMessage((messageObj))
-  }
+    return browser.runtime.sendMessage(messageObj);
+  };
 }
 
 /** Message passing to background.js (send message & resolves response)
@@ -64,19 +60,19 @@ function fireFoxSetup(){
  */
 function promiseBackgroundRequest(requestMsg) {
   return new Promise((resolve, reject) => {
-  promiseMsgResponse({message: requestMsg})
-  .then((response) => {
+    promiseMsgResponse({ message: requestMsg })
+      .then((response) => {
         infoLog(
           `Received response to ${requestMsg} : ${response.response}`,
           `promiseReqBackgroundJs(${requestMsg})`
         );
         resolve(response.response);
       })
-    .catch((e) => {
-      reject(
-        `Failed sending {message: ${requestMsg}} to background.js. Error: ${e}`
-      );
-    })
+      .catch((e) => {
+        reject(
+          `Failed sending {message: ${requestMsg}} to background.js. Error: ${e}`
+        );
+      });
   });
 }
 // Message passing to ORS tabs (no response requested)
@@ -95,24 +91,24 @@ function sendMsgToOrsTabs(message) {
 //Retrieves data from storage.sync & puts it in userform
 function promiseRefreshOptions() {
   return new Promise((resolve, reject) => {
-      //@ts-ignore
-      promiseBackgroundRequest("getCssObjectJson")
+    //@ts-ignore
+    promiseBackgroundRequest("getCssObjectJson")
       .then((response) => {
-          const css = response.response;
-          //@ts-ignore
-          formCssSelector.options.length = 0;
-          for (var i = 0; i < Object.keys(css).length; i++) {
-            var newOption = document.createElement("option");
-            newOption.value = Object.keys(css)[i];
-            newOption.innerHTML = Object.keys(css)[i];
-            formCssSelector.appendChild(newOption);
-          }
-          resolve(css);
-        })
-        .catch((e) => {
-          reject(e);
-        });
-    });
+        const css = response.response;
+        //@ts-ignore
+        formCssSelector.options.length = 0;
+        for (var i = 0; i < Object.keys(css).length; i++) {
+          var newOption = document.createElement("option");
+          newOption.value = Object.keys(css)[i];
+          newOption.innerHTML = Object.keys(css)[i];
+          formCssSelector.appendChild(newOption);
+        }
+        resolve(css);
+      })
+      .catch((e) => {
+        reject(e);
+      });
+  });
 }
 async function displayUserOptions() {
   function storedDataFinder() {
@@ -169,11 +165,9 @@ async function displayUserOptions() {
 function addAllListeners() {
   orsLaunchButton.addEventListener("click", () => {
     // @ts-ignore
-    const orsSection = document.getElementById("orsChapter").value;
-    let orsChapter = `00${orsSection}`.match(/\d{3}[A-C]?\b/)[0]; // pad to exactly 3 digits
-    let orsURL = `https://www.oregonlegislature.gov/bills_laws/ors/ors${orsChapter}.html#${orsSection}`;
-    //@ts-ignore
-    browser.tabs.create({ url: orsURL });
+    promiseBackgroundRequest({
+      navToOrs: document.getElementById("orsChapter").value,
+    });
   });
   orLawsLaunchButton.addEventListener("click", async () => {
     // @ts-ignore
@@ -205,42 +199,42 @@ function addAllListeners() {
   formCssSelector.addEventListener("change", () => {
     //@ts-ignore
     promiseSetKey({ cssSelectorStored: formCssSelector.value })
-    .then(() => sendMsgToOrsTabs("css")) // alert tabs that css sheet has changed
-    .catch((e) => {
-      console.log(e)
-    })
+      .then(() => sendMsgToOrsTabs("css")) // alert tabs that css sheet has changed
+      .catch((e) => {
+        console.log(e);
+      });
   });
   orLawSelector.addEventListener("change", () => {
     //@ts-ignore
     promiseSetKey({ lawsReaderStored: orLawSelector.value })
       .then(() => reloadORS())
-      .catch((e)=> console.log(e))
-    })
+      .catch((e) => console.warn(e));
+  });
   showBurntCheck.addEventListener("change", () => {
     //@ts-ignore
     promiseSetKey({ showBurntStored: showBurntCheck.checked })
-    //@ts-ignore
-    .then(() => sendMsgToOrsTabs({ burnt: showBurntCheck.checked }))
-    .catch((e) => console.log(e))
+      //@ts-ignore
+      .then(() => sendMsgToOrsTabs({ burnt: showBurntCheck.checked }))
+      .catch((e) => console.log(e));
   });
   showSNsCheck.addEventListener("change", () => {
     //@ts-ignore
     promiseSetKey({ showSNsStored: showSNsCheck.checked })
-    //@ts-ignore
-    .then(sendMsgToOrsTabs({ sn: showSNsCheck.checked }))
-    .catch((e)=>console.log(e))
+      //@ts-ignore
+      .then(sendMsgToOrsTabs({ sn: showSNsCheck.checked }))
+      .catch((e) => console.log(e));
   });
   collapseCheck.addEventListener("change", () => {
     //@ts-ignore
     promiseSetKey({ collapseDefaultStored: collapseCheck.checked })
-    .then(() => {})
-    .catch((e)=>console.log(e))
+      .then(() => {})
+      .catch((e) => console.log(e));
   });
   showMenuCheck.addEventListener("change", () => {
     //@ts-ignore
     promiseSetKey({ showMenuStored: showMenuCheck.checked })
       .then(() => reloadORS())
-      .catch((e)=>console.log(e))
+      .catch((e) => console.log(e));
   });
 }
 
@@ -275,9 +269,22 @@ const showSNsCheck = document.getElementById("showSNote");
 const collapseCheck = document.getElementById("collapseDefault");
 const showMenuCheck = document.getElementById("showMenu");
 
-displayUserOptions();
-addAllListeners();
-window.addEventListener("focus", () => {
-  infoLog("Refreshed user options", "window.addEventListener('focus')");
+//POPUP.JS MAIN
+let promiseSetKey;
+let promiseMsgResponse;
+let browser;
+//let chrome
+getBrowser().then((resolvedBrowser) => {
+  //@ts-ignore
+  if (resolvedBrowser == chrome) {
+    chromeSetup();
+  } else if (resolvedBrowser == browser) {
+    fireFoxSetup();
+  }
   displayUserOptions();
+  addAllListeners();
+  window.addEventListener("focus", () => {
+    infoLog("Refreshed user options", "window.addEventListener('focus')");
+    displayUserOptions();
+  });
 });

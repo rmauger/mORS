@@ -2,9 +2,10 @@
 //@ts-check
 
 //@ts-ignore
-const browser = chrome;
+browser=chrome
 
 function sendAwaitResponse(messageItem) {
+  console.log(`Request sent to background '${messageItem}'`)
   return new Promise((resolve, reject) => {
     try {
       browser.runtime.sendMessage({ message: messageItem }, (response) => {

@@ -1,12 +1,11 @@
 //navtotag.js
-//FIREFOX=CHROME
 //@ts-check
 
 const promiseGetTabURL = () => {
   return new Promise((resolve, reject) => {
     sendAwaitResponse("getCurrentTab")
     .then (response => {
-        const tab = response.response;
+        const tab = response.response[0];
         resolve(tab.url);
       }, e => {
         console.warn(`Error retrieving URL: ${e}`);

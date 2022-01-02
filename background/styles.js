@@ -12,7 +12,7 @@ const promiseGenerateCss = () => {
         if (userCss == "Custom") {
           cssOptions = await promiseGetFromStorage("userColors");
         } else {
-          cssOptions = (await promiseReadJsonFile("cssObject.json"))[userCss];
+          cssOptions = (await promiseReadJsonFile("cssObject.json"))[userCss]; 
         }
         resolve(
   `        /* background*/

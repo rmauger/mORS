@@ -1,9 +1,9 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "ORS Extension",
     "description": "Improves appearance of Oregon Revised Statutes on legisature's website and helps retrieve Oregon session laws.",
     "version": "1.4.11",
-    "browser_action": {
+    "action": {
         "default_icon": {
             "16": "/images/icon16.png",
             "24": "/images/icon24.png",
@@ -24,7 +24,7 @@
             ],
             "js": [
                 "/cscript/helper.js",
-                "/cscript/firefox/helpfox.js",
+                "/cscript/helpchrome.js",
                 "/cscript/collapsibles.js",
                 "/cscript/stylesheet.js",
                 "/cscript/navtotag.js",
@@ -39,22 +39,9 @@
         }
     ],
     "background": {
-        "scripts": [
-            "/background/helpfirefox.js",
-            "/background/storagefox.js",
-            "/background/webresources.js",
-            "/background/querytabs.js",
-            "/background/orlaws.js",
-            "/background/styles.js",
-            "/background/omnibox.js",
-            "/background/omnifox.js",
-            "/background/msgreceived.js"
-        ]
+        "service_worker": "bgloader.js"
     },
-    "options_ui": {
-        "page": "/options/firefox/options.html",
-        "browser_style": true
-    },
+    "options_page": "options/chrome/options.html",
     "icons": {
         "16": "/images/icon16.png",
         "24": "/images/icon24.png",
@@ -63,20 +50,23 @@
         "128": "/images/icon128.png"
     },
     "permissions": [
-        "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html*",
         "storage",
         "activeTab",
         "tabs",
-        "management",
-        "notifications"
+        "notifications",
+        "scripting"
     ],
     "web_accessible_resources": [
-        "/data/*"
-    ],
-    "browser_specific_settings": {
-        "gecko": {
-            "id": "morFox@TestVersion",
-            "strict_min_version": "42.0"
+        {
+            "resources": [
+                "/data/*"
+            ],
+            "matches": [],
+            "extension_ids": []
         }
-    }
+    ],
+    "host_permissions": [
+        "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html*"
+    ],
+    "minimum_chrome_version": "92"
 }
