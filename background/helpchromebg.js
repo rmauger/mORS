@@ -52,11 +52,10 @@ browser.runtime.onInstalled.addListener((details) => {
       {
         cssSelectorStored: "Dark",
         lawsReaderStored: "OrLeg",
-        collapseDefaultStored: false,
-        showSNsStored: true,
         showBurntStored: true,
-        showMenuCheck: true,
-        getShowMenu: true,
+        showSNsStored: true,
+        collapseDefaultStored: false,
+        showMenuStored: true,
       },
       () => {}
     );

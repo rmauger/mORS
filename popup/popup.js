@@ -3,70 +3,85 @@
 
 "use strict";
 
-function getBrowser() {
-  return new Promise((resolve) => {
-    try {
-      //@ts-ignore
-      let manifest = chrome.runtime.getManifest();
-      if (manifest.manifest_version == "3") {
-        //@ts-ignore
-        resolve(chrome);
-      } else {
-        //@ts-ignore
-        resolve(browser);
-      }
-    } catch (error) {
-      //@ts-ignore
-      resolve(browser);
+const getBrowserPopup = () => {
+  try {
+    //@ts-ignore
+    let manifest = chrome.runtime.getManifest();
+    if (manifest.manifest_version == "3") {
+      return "chrome";
+    } else {
+      return "firefox";
     }
-  });
-}
+  } catch (error) {
+    return "firefox";
+  }
+};
 
-function chromeSetup() {
-  //@ts-ignore
-  browser = chrome;
-  promiseSetKey = (keyAndValueObj) => {
-    return new Promise((resolve, reject) => {
-      try {
-        browser.storage.sync.set({ keyAndValueObj }, () => resolve());
-      } catch (e) {
-        reject(e);
-      }
-    });
-  };
-  promiseMsgResponse = (messageObj) => {
-    return new Promise((resolve, reject) => {
-      try {
-        browser.runtime.sendMessage(messageObj, (response) =>
-          resolve(response)
-        );
-      } catch (e) {
-        reject(e);
-      }
-    });
-  };
-}
-function fireFoxSetup() {
-  promiseSetKey = (keyAndValueObj) => {
-    return browser.storage.sync.set({ keyAndValueObj });
-  };
-  promiseMsgResponse = (messageObj) => {
-    return browser.runtime.sendMessage(messageObj);
-  };
-}
+const setPromiseSetter = (/** @type {string} */ browserName) => {
+  if (browserName == "chrome") {
+    return (keyAndValueObj) => {
+      new Promise((resolve, reject) => {
+        console.log(keyAndValueObj);        
+        try {
+          browser.storage.sync.set(keyAndValueObj, () => {
+            console.log("success")
+            resolve(true)
+          });
+        } catch (e) {
+          reject(e);
+        }
+      });
+    };
+  } else {
+    return (keyAndValueObj) => {
+      return new Promise((resolve) => {
+        resolve(browser.storage.sync.set(keyAndValueObj))
+      });
+    };
+  }
+};
+
+const setMsgResponse = (browserName) => {
+  if (browserName == "chrome") {
+    return (messageObj) => {
+      return new Promise((resolve, reject) => {
+        try {
+          browser.runtime.sendMessage(messageObj, (response) =>
+            resolve(response)
+          );
+        } catch (e) {
+          reject(e);
+        }
+      });
+    };
+  } else {
+    return (messageObj) => {
+      return new Promise((resolve) => {
+        resolve(browser.runtime.sendMessage(messageObj))
+      });
+    };
+  }
+};
+
 
 /** Message passing to background.js (send message & resolves response)
  * @param {string|object} requestMsg
  */
-function promiseBackgroundRequest(requestMsg) {
+const promiseBGMessage = (requestMsg) => {
   return new Promise((resolve, reject) => {
     promiseMsgResponse({ message: requestMsg })
       .then((response) => {
-        infoLog(
-          `Received response to ${requestMsg} : ${response.response}`,
-          `promiseReqBackgroundJs(${requestMsg})`
-        );
-        resolve(response.response);
+        if (typeof response.response==='string'){
+          infoLog(
+            `Received response to ${requestMsg} : ${response.response}:`,
+            `promiseReqBackgroundJs(${requestMsg})`
+          );
+
+        } else {
+          console.log(`Received response to ${requestMsg}: <next line>`)
+          console.log(response.response)
+        }
+       resolve(response.response);
       })
       .catch((e) => {
         reject(
@@ -74,13 +89,14 @@ function promiseBackgroundRequest(requestMsg) {
         );
       });
   });
-}
+};
+
 // Message passing to ORS tabs (no response requested)
 function sendMsgToOrsTabs(message) {
   //@ts-ignore
-  promiseBackgroundRequest("getOrsTabs")
+  promiseBGMessage("getOrsTabs")
     .then((response) => {
-      const orsTabs = response.response;
+      const orsTabs = response;
       for (const aTab of orsTabs) {
         browser.tabs.sendMessage(aTab.id, { toMORS: message });
       }
@@ -88,20 +104,21 @@ function sendMsgToOrsTabs(message) {
     .catch((e) => console.warn(e));
 }
 
-//Retrieves data from storage.sync & puts it in userform
+//Retrieves list of options from background & puts it in userform
 function promiseRefreshOptions() {
   return new Promise((resolve, reject) => {
     //@ts-ignore
-    promiseBackgroundRequest("getCssObjectJson")
+    promiseBGMessage("getCssObjectJson")
       .then((response) => {
-        const css = response.response;
+        console.log(response)
+        const css = response;
         //@ts-ignore
-        formCssSelector.options.length = 0;
+        cssDropDown.options.length = 0;
         for (var i = 0; i < Object.keys(css).length; i++) {
           var newOption = document.createElement("option");
           newOption.value = Object.keys(css)[i];
           newOption.innerHTML = Object.keys(css)[i];
-          formCssSelector.appendChild(newOption);
+          cssDropDown.appendChild(newOption);
         }
         resolve(css);
       })
@@ -113,38 +130,35 @@ function promiseRefreshOptions() {
 async function displayUserOptions() {
   function storedDataFinder() {
     return Promise.all([
-      promiseBackgroundRequest("getCssUserOption"),
-      promiseBackgroundRequest("getOrLaw"),
-      promiseBackgroundRequest("getShowBurnt"),
-      promiseBackgroundRequest("getShowSNs"),
-      promiseBackgroundRequest("getCollapsed"),
-      promiseBackgroundRequest("getShowMenu"),
+      promiseBGMessage("getCssUserOption"),
+      promiseBGMessage("getOrLaw"),
+      promiseBGMessage("getShowBurnt"),
+      promiseBGMessage("getShowSNs"),
+      promiseBGMessage("getCollapsed"),
+      promiseBGMessage("getShowMenu"),
       promiseRefreshOptions(),
     ]);
   }
   // MAIN displayUserOptions
   try {
-    const data = await storedDataFinder();
     console.groupCollapsed("Stored data retrieved -->");
-    for (let i = 0; i < data.length; i++) {
-      console.info(data[i]);
-    }
+    const data = await storedDataFinder();
     console.groupEnd();
     // @ts-ignore
-    for (let i = 0; i < formCssSelector.options.length; i++) {
+    for (let i = 0; i < cssDropDown.options.length; i++) {
       // @ts-ignore
-      if (formCssSelector.options[i].value == data[0]) {
+      if (cssDropDown.options[i].value == data[0]) {
         // @ts-ignore
-        formCssSelector.selectedIndex = i;
+        cssDropDown.selectedIndex = i;
         break;
       }
     }
     // @ts-ignore
-    for (let i = 0; i < orLawSelector.options.length; i++) {
+    for (let i = 0; i < orLawDropDown.options.length; i++) {
       // @ts-ignore
-      if (orLawSelector.options[i].value == data[1]) {
+      if (orLawDropDown.options[i].value == data[1]) {
         // @ts-ignore
-        orLawSelector.selectedIndex = i;
+        orLawDropDown.selectedIndex = i;
         break;
       }
     }
@@ -165,9 +179,7 @@ async function displayUserOptions() {
 function addAllListeners() {
   orsLaunchButton.addEventListener("click", () => {
     // @ts-ignore
-    promiseBackgroundRequest({
-      navToOrs: document.getElementById("orsChapter").value,
-    });
+    promiseBGMessage({ navToOrs: document.getElementById("orsChapter").value });
   });
   orLawsLaunchButton.addEventListener("click", async () => {
     // @ts-ignore
@@ -175,13 +187,13 @@ function addAllListeners() {
     // @ts-ignore
     const orLawsChp = document.getElementById("orLawsChapter").value;
     try {
-      const orLawsReader = await promiseBackgroundRequest("getOrLaw");
+      const orLawsReader = await promiseBGMessage("getOrLaw");
       const orLawObj = {
         year: orLawsYear,
         chap: orLawsChp,
         reader: orLawsReader,
       };
-      const orLawUrl = await promiseBackgroundRequest({ orLawObj });
+      const orLawUrl = await promiseBGMessage({ orLawObj });
       if (/(oregonlegislature\.gov|heinonline)/.test(orLawUrl)) {
         infoLog(
           `Creating new tab for ${orLawUrl}`,
@@ -196,53 +208,47 @@ function addAllListeners() {
       errorMsg.innerHTML = e;
     }
   });
-  formCssSelector.addEventListener("change", () => {
+  cssDropDown.addEventListener("change", () => {
     //@ts-ignore
-    promiseSetKey({ cssSelectorStored: formCssSelector.value })
-      .then(() => sendMsgToOrsTabs("css")) // alert tabs that css sheet has changed
-      .catch((e) => {
-        console.log(e);
-      });
+    promiseSetKey({ cssSelectorStored: cssDropDown.value }).then(() => sendMsgToOrsTabs("css")) // alert tabs that css sheet has changed
+    .catch((e) => console.log(e))
   });
-  orLawSelector.addEventListener("change", () => {
+  orLawDropDown.addEventListener("change", () => {
     //@ts-ignore
-    promiseSetKey({ lawsReaderStored: orLawSelector.value })
-      .then(() => reloadORS())
-      .catch((e) => console.warn(e));
+    promiseSetKey({ lawsReaderStored: orLawDropDown.value }).then(() => reloadORS())
+    .catch((e) => console.warn(e));
   });
-  showBurntCheck.addEventListener("change", () => {
+  showBurntCheck.addEventListener("change", async () => {
     //@ts-ignore
     promiseSetKey({ showBurntStored: showBurntCheck.checked })
-      //@ts-ignore
-      .then(() => sendMsgToOrsTabs({ burnt: showBurntCheck.checked }))
-      .catch((e) => console.log(e));
+    //.then(() => 
+    const resolution = await getAllStorageSyncData();
+    console.log(resolution)
+    sendMsgToOrsTabs({ burnt: showBurntCheck.checked })
+    //.catch((e) => console.warn(e));
   });
   showSNsCheck.addEventListener("change", () => {
     //@ts-ignore
-    promiseSetKey({ showSNsStored: showSNsCheck.checked })
-      //@ts-ignore
-      .then(sendMsgToOrsTabs({ sn: showSNsCheck.checked }))
-      .catch((e) => console.log(e));
+    promiseSetKey({ showSNsStored: showSNsCheck.checked }).then(sendMsgToOrsTabs({ sn: showSNsCheck.checked }))
+    .catch((e) => console.warn(e));
   });
   collapseCheck.addEventListener("change", () => {
     //@ts-ignore
-    promiseSetKey({ collapseDefaultStored: collapseCheck.checked })
-      .then(() => {})
-      .catch((e) => console.log(e));
+    promiseSetKey({ collapseDefaultStored: collapseCheck.checked }).then(() => {})
+    .catch((e) => console.warn(e));
   });
   showMenuCheck.addEventListener("change", () => {
     //@ts-ignore
-    promiseSetKey({ showMenuStored: showMenuCheck.checked })
-      .then(() => reloadORS())
-      .catch((e) => console.log(e));
+    promiseSetKey({ showMenuStored: showMenuCheck.checked }).then(() => reloadORS())
+    .catch((e) => console.warn(e));
   });
 }
 
 //reloading ORS tabs
 function reloadORS() {
-  promiseBackgroundRequest("getOrsTabs")
+  promiseBGMessage("getOrsTabs")
     .then((response) => {
-      const orsTabs = response.response;
+      const orsTabs = response;
       for (const aTab of orsTabs) {
         browser.tabs.reload(aTab.id);
       }
@@ -258,33 +264,60 @@ function infoLog(infoTxt, aFunction) {
   console.info(`%cpopup.js/${aFunction}: ${infoTxt}`, "color:orange");
 }
 
-// popup.js MAIN
+//TEMP GET ALL FROM STORAGE -->
+
+// Where we will expose all the data we retrieve from storage.sync.
+const storageCache = {};
+const initStorageCache = getAllStorageSyncData().then(items => {
+  // Copy the data retrieved from storage into storageCache.
+  console.log(storageCache)
+  Object.assign(storageCache, items);
+});
+
+// Reads all data out of storage.sync and exposes it via a promise.
+//
+// Note: Once the Storage API gains promise support, this function
+// can be greatly simplified.
+function getAllStorageSyncData() {
+  // Immediately return a promise and start asynchronous work
+  return new Promise((resolve, reject) => {
+    // Asynchronously fetch all data from storage.sync.
+    browser.storage.sync.get(null, (items) => {
+      // Pass any observed errors down the promise chain.
+      if (browser.runtime.lastError) {
+        return reject(browser.runtime.lastError);
+      }
+      // Pass the data retrieved from storage down the promise chain.
+      resolve(items);
+    });
+  });
+}
+
+// < END
+
+
+// POPUP.js MAIN
 const errorMsg = document.getElementById("errorMsg");
-const formCssSelector = document.getElementById("cssSelector");
-const orLawSelector = document.getElementById("OrLaws");
 const orsLaunchButton = document.getElementById("chapterLaunch");
 const orLawsLaunchButton = document.getElementById("orLawsLaunch");
+const cssDropDown = document.getElementById("cssSelector");
+const orLawDropDown = document.getElementById("OrLaws");
 const showBurntCheck = document.getElementById("showRSec");
 const showSNsCheck = document.getElementById("showSNote");
 const collapseCheck = document.getElementById("collapseDefault");
 const showMenuCheck = document.getElementById("showMenu");
 
-//POPUP.JS MAIN
-let promiseSetKey;
-let promiseMsgResponse;
+//@ts-ignore
 let browser;
-//let chrome
-getBrowser().then((resolvedBrowser) => {
+if (getBrowserPopup() == "chrome") {
   //@ts-ignore
-  if (resolvedBrowser == chrome) {
-    chromeSetup();
-  } else if (resolvedBrowser == browser) {
-    fireFoxSetup();
-  }
-  displayUserOptions();
-  addAllListeners();
-  window.addEventListener("focus", () => {
-    infoLog("Refreshed user options", "window.addEventListener('focus')");
-    displayUserOptions();
-  });
-});
+  browser = chrome;
+}
+
+const promiseMsgResponse = setMsgResponse(getBrowserPopup());
+const promiseSetKey = setPromiseSetter(getBrowserPopup());
+console.log(promiseMsgResponse);
+console.log(promiseSetKey);
+
+addAllListeners();
+displayUserOptions();

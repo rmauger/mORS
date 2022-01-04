@@ -44,6 +44,8 @@ const scriptListFireFox = [
   "/background/omnifox.js",
   "/background/msgreceived.js",
 ];
+
+//@ts-ignore (duplicated in popup & content script & maybe options)
 let browser
 function loadScripts() {
   getBrowser().then((resolve) => {
@@ -55,6 +57,7 @@ function loadScripts() {
     } else {
       scriptList = scriptListFireFox;
     }
+    console.groupCollapsed("Background Scripts Loading [>status]...")
     for (let i = 0; i < scriptList.length; i++) {
       const aScript = scriptList[i];
       try {
@@ -64,6 +67,7 @@ function loadScripts() {
         console.warn(`${aScript} err: ${e}`);
       }
     }
+    console.groupEnd()
   });
 }
 loadScripts()

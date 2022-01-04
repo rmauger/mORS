@@ -3,10 +3,12 @@
 const promiseReadJsonFile = (filename) => {
   return new Promise((resolve, reject) => {
     const cssObjectFile = browser.runtime.getURL(`/data/${filename}`);
-    console.info(`Unpacking ${cssObjectFile}...`);
+    console.info(`Unpacking ${cssObjectFile}`);
     fetch(cssObjectFile)
       .then((fetchResponse) => fetchResponse.json())
-      .then((data) => resolve(data))
+      .then((data) => {
+        resolve(data)
+      })
       .catch((e) => {
         reject(`File ${filename} not loaded: ${e}`);
       });
