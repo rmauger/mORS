@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
     "name": "ORS Extension",
-    "description": "Alters appearance of Oregon Revised Statutes on Oregon State Legisature website and allows for easier retrieval of Oregon session law.",
-    "version": "1.4.10",
+    "description": "Improves appearance of Oregon Revised Statutes on legisature's website and helps retrieve Oregon session laws.",
+    "version": "1.4.11",
     "action": {
         "default_icon": {
             "16": "/images/icon16.png",
@@ -12,7 +12,7 @@
             "128": "/images/icon128.png"
         },
         "default_title": "mORS",
-        "default_popup": "/popup/chrome/popup.html"
+        "default_popup": "/popup/popup.html"
     },
     "omnibox": {
         "keyword": "mors"
@@ -24,7 +24,7 @@
             ],
             "js": [
                 "/cscript/helper.js",
-                "cscript/chrome/helpchrome.js",
+                "/cscript/helpchrome.js",
                 "/cscript/collapsibles.js",
                 "/cscript/stylesheet.js",
                 "/cscript/navtotag.js",
@@ -39,7 +39,7 @@
         }
     ],
     "background": {
-        "service_worker": "background.js"
+        "service_worker": "bgloader.js"
     },
     "options_page": "options/chrome/options.html",
     "icons": {
@@ -67,5 +67,6 @@
     ],
     "host_permissions": [
         "*://www.oregonlegislature.gov/bills_laws/ors/ors*.html*"
-    ]
+    ],
+    "minimum_chrome_version": "92"
 }

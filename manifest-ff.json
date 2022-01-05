@@ -1,12 +1,8 @@
 {
     "manifest_version": 2,
     "name": "ORS Extension",
-    "description": "Alters appearance of Oregon Revised Statutes on Oregon State Legisature website and allows for easier retrieval of Oregon session law.",
-    "version": "1.4.10",
-    "developer": {
-        "name": "Robert Mauger",
-        "url": "https://github.com/rmauger"
-    },
+    "description": "Improves appearance of Oregon Revised Statutes on legisature's website and helps retrieve Oregon session laws.",
+    "version": "1.4.11",
     "browser_action": {
         "default_icon": {
             "16": "/images/icon16.png",
@@ -16,7 +12,7 @@
             "128": "/images/icon128.png"
         },
         "default_title": "mORS",
-        "default_popup": "/popup/firefox/popup.html"
+        "default_popup": "/popup/popup.html"
     },
     "omnibox": {
         "keyword": "mors"
@@ -44,7 +40,7 @@
     ],
     "background": {
         "scripts": [
-            "background.js"
+            "bgloader.js"
         ]
     },
     "options_ui": {

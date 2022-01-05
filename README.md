@@ -23,11 +23,12 @@ Extension (Google Chrome/Firefox) that alters appearance of Oregon Revised Statu
 
 ## To use:
   * Navigate to [ORS website](https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx) and select a chapter;
-  * Enter chapter into extension popup (puzzle piece in upper right of browser); or
+  * Enter chapter into extension popup; or
   * Type 'mors' in the Chrome Omnibox (search bar) then type:
     * An ORS chapter (e.g., '659A')
     * An ORS section ('174.020')
-    * An Oregon Session Law ('2015 c.614') 
+    * An Oregon Session Law ('2015 c.614')
+  * Options window is available to customize colors (right click extension popup in Chrome) 
 
 ## Disclaimers:
 * Chrome Manifest version 3
@@ -36,6 +37,11 @@ Extension (Google Chrome/Firefox) that alters appearance of Oregon Revised Statu
 See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx)
 
 ## Updates:
+  ### Version 1.4.11 - 1/4/2022
+   * Coordinated differences between firefox & chrome versions to maximize overlap
+   * Updated error & info logging
+   * Debugged various issues
+   
   ### Version 1.4.10 - 12/12/2021
    * Merged back Firefox branch so extension can work on Firefox or Chrome
 
@@ -98,4 +104,3 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 ## Planned features/fixes:
   * TODO: #42 Version for MS Edge (should be easier than Firefox was)?
   * TODO: #40 Resolve handling of additional styles not yet on custom sheet.
-  * TODO: #39 Update and synthesize error handling, logging issues to console and popup messaging to user

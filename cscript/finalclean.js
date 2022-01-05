@@ -22,7 +22,10 @@
     for (let elem of allElements) {
       //@ts-ignore
       if (/^(\s|\&nbsp)+$ /.test(elem.innerText)) {
-        console.info(`deleting ${elem.innerHTML}`);
+        infoCS(`Deleting ${elem.innerHTML}`,
+        'finalclean.js',
+        'cleanUpBreaks'
+        );
         elem.remove();
       }
     }

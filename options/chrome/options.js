@@ -77,7 +77,6 @@ window.addEventListener("load", async () => {
                   { message: "getOrsTabs" },
                   (response) => {
                     const orsTabs = response.response
-                    console.log(orsTabs)
                     for (const aTab of orsTabs) {
                       //@ts-ignore
                       chrome.tabs.sendMessage(aTab.id, { toMORS: "css" });
@@ -87,7 +86,7 @@ window.addEventListener("load", async () => {
               } catch (e) {
                 console.warn(e);
               }
-              console.log("Successful save");
+              console.info("Successful save");
             }
           )
         )

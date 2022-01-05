@@ -1,12 +1,11 @@
 //navtotag.js
-//FIREFOX=CHROME
 //@ts-check
 
 const promiseGetTabURL = () => {
   return new Promise((resolve, reject) => {
     sendAwaitResponse("getCurrentTab")
     .then (response => {
-        const tab = response.response;
+        const tab = response.response[0];
         resolve(tab.url);
       }, e => {
         console.warn(`Error retrieving URL: ${e}`);
@@ -43,11 +42,15 @@ const navigateToTag = async (tabUrl) => {
   try {
     const navID = await promiseGetNavID(tabUrl);
     if (navID) {
-      console.info(`navigating to ${navID.innerText}`);
+      infoCS(`navigating to ${navID.innerText}`,
+      'navtotag.js',
+      'navigateToTag');
       expandSingle(navID);
       navID.scrollIntoView();
     } else {
-      console.info("No ORS section found in URL");
+      infoCS("No ORS section found in content URL",
+      'navtotag.js',
+      'navigateToTag');
     }
   } catch (error) {
     console.warn(`Error getting tabURL: ${error}`);
