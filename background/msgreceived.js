@@ -1,5 +1,5 @@
 //@ts-check
-  browser.runtime.onMessage.addListener((message, sender, response) => {
+  browser.runtime.onMessage.addListener((message, _sender, response) => {
     const received = message.message;
     if (typeof received == "string") {
       switch (received) {
@@ -62,9 +62,11 @@
     } else if (received.navToOrs) {
       newTabOrs(received["navToOrs"])
     }else if (received.info) {
-
+      const infoMsg=received.info
+      infoLog(infoMsg.txt, infoMsg.script, infoMsg.aCaller, infoMsg.color)
     } else if (received.warn) {
-    
+      const warnMsg=received.warn
+      console.warn(`%c${warnMsg.script}%c:${warnMsg.aCaller} ${warnMsg.txt}`, warnMsg.color, "color:yellow");
     } else if (received) {
         console.group("Unidentified message");
         console.warn(`Received unidentified message`);

@@ -34,9 +34,6 @@ browser.omnibox.onInputEntered.addListener((omniText) => {
   }
   const orlawRegExp =
     /[^]*((?:19|20)\d{2})\s*?([/|&]|\s|c\.)\s*?(\d{1,4}$)[^]*/g;
-  console.info(orlawRegExp);
-  console.info(orsRegExp);
-  console.info(omniText);
   if (orlawRegExp.test(omniText)) {
     getOrLaw();
     return;

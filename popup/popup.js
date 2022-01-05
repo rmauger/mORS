@@ -1,8 +1,8 @@
 //popup.js
 //@ts-check
 
-"use strict";
-
+//@ts-ignore
+let browser;
 const getBrowserPopup = () => {
   try {
     //@ts-ignore
@@ -17,15 +17,14 @@ const getBrowserPopup = () => {
   }
 };
 
-const setPromiseSetter = (/** @type {string} */ browserName) => {
+const setPromiseStorage = (/** @type {string} */ browserName) => {
   if (browserName == "chrome") {
     return (keyAndValueObj) => {
-      new Promise((resolve, reject) => {
-        console.log(keyAndValueObj);        
+      return new Promise((resolve, reject) => {
+        infoPU(`storing: ${Object.keys(keyAndValueObj)}`);
         try {
           browser.storage.sync.set(keyAndValueObj, () => {
-            console.log("success")
-            resolve(true)
+            resolve(true);
           });
         } catch (e) {
           reject(e);
@@ -35,13 +34,14 @@ const setPromiseSetter = (/** @type {string} */ browserName) => {
   } else {
     return (keyAndValueObj) => {
       return new Promise((resolve) => {
-        resolve(browser.storage.sync.set(keyAndValueObj))
+        infoPU(`seeking: ${keyAndValueObj}`);
+        resolve(browser.storage.sync.set(keyAndValueObj));
       });
     };
   }
 };
 
-const setMsgResponse = (browserName) => {
+const setMsgResponse = (/** @type {string} */ browserName) => {
   if (browserName == "chrome") {
     return (messageObj) => {
       return new Promise((resolve, reject) => {
@@ -57,12 +57,11 @@ const setMsgResponse = (browserName) => {
   } else {
     return (messageObj) => {
       return new Promise((resolve) => {
-        resolve(browser.runtime.sendMessage(messageObj))
+        resolve(browser.runtime.sendMessage(messageObj));
       });
     };
   }
 };
-
 
 /** Message passing to background.js (send message & resolves response)
  * @param {string|object} requestMsg
@@ -71,21 +70,13 @@ const promiseBGMessage = (requestMsg) => {
   return new Promise((resolve, reject) => {
     promiseMsgResponse({ message: requestMsg })
       .then((response) => {
-        if (typeof response.response==='string'){
-          infoLog(
-            `Received response to ${requestMsg} : ${response.response}:`,
-            `promiseReqBackgroundJs(${requestMsg})`
-          );
-
-        } else {
-          console.log(`Received response to ${requestMsg}: <next line>`)
-          console.log(response.response)
-        }
-       resolve(response.response);
+        infoPU(`Response to ${requestMsg} : ${response.response}`);
+        resolve(response.response);
       })
       .catch((e) => {
+        console.log(requestMsg);
         reject(
-          `Failed sending {message: ${requestMsg}} to background.js. Error: ${e}`
+          `Failed msg:{message: ${requestMsg}} to background.js. Error: ${e}`
         );
       });
   });
@@ -93,37 +84,40 @@ const promiseBGMessage = (requestMsg) => {
 
 // Message passing to ORS tabs (no response requested)
 function sendMsgToOrsTabs(message) {
-  //@ts-ignore
   promiseBGMessage("getOrsTabs")
     .then((response) => {
       const orsTabs = response;
       for (const aTab of orsTabs) {
         browser.tabs.sendMessage(aTab.id, { toMORS: message });
+        infoPU(`sent '${message}' to tab #${aTab.id}`);
       }
     })
-    .catch((e) => console.warn(e));
+    .catch((e) => errorLog(`getOrsTabs ${e}`));
 }
 
 //Retrieves list of options from background & puts it in userform
 function promiseRefreshOptions() {
   return new Promise((resolve, reject) => {
-    //@ts-ignore
     promiseBGMessage("getCssObjectJson")
       .then((response) => {
-        console.log(response)
-        const css = response;
-        //@ts-ignore
-        cssDropDown.options.length = 0;
-        for (var i = 0; i < Object.keys(css).length; i++) {
-          var newOption = document.createElement("option");
-          newOption.value = Object.keys(css)[i];
-          newOption.innerHTML = Object.keys(css)[i];
-          cssDropDown.appendChild(newOption);
+        let css;
+        try {
+          css = response;
+          //@ts-ignore
+          cssDropDown.options.length = 0;
+          for (var i = 0; i < Object.keys(css).length; i++) {
+            var newOption = document.createElement("option");
+            newOption.value = Object.keys(css)[i];
+            newOption.innerHTML = Object.keys(css)[i];
+            cssDropDown.appendChild(newOption);
+          }
+        } catch (e) {
+          reject(`getCssObjectJson => ${e}`);
         }
         resolve(css);
       })
       .catch((e) => {
-        reject(e);
+        reject(`promiseRefreshOptions ${e}`);
       });
   });
 }
@@ -141,9 +135,7 @@ async function displayUserOptions() {
   }
   // MAIN displayUserOptions
   try {
-    console.groupCollapsed("Stored data retrieved -->");
     const data = await storedDataFinder();
-    console.groupEnd();
     // @ts-ignore
     for (let i = 0; i < cssDropDown.options.length; i++) {
       // @ts-ignore
@@ -171,7 +163,7 @@ async function displayUserOptions() {
     // @ts-ignore
     showMenuCheck.checked = data[5];
   } catch (e) {
-    alert(e);
+    errorLog(e);
   }
 }
 
@@ -179,7 +171,9 @@ async function displayUserOptions() {
 function addAllListeners() {
   orsLaunchButton.addEventListener("click", () => {
     // @ts-ignore
-    promiseBGMessage({ navToOrs: document.getElementById("orsChapter").value });
+    infoPU(`launching ORS for '${orsSearch.value}`)
+    //@ts-ignore
+    promiseBGMessage({ navToOrs: orsSearch.value });
   });
   orLawsLaunchButton.addEventListener("click", async () => {
     // @ts-ignore
@@ -195,7 +189,7 @@ function addAllListeners() {
       };
       const orLawUrl = await promiseBGMessage({ orLawObj });
       if (/(oregonlegislature\.gov|heinonline)/.test(orLawUrl)) {
-        infoLog(
+        infoPU(
           `Creating new tab for ${orLawUrl}`,
           `orLawsLaunch.EventListener`
         );
@@ -210,37 +204,63 @@ function addAllListeners() {
   });
   cssDropDown.addEventListener("change", () => {
     //@ts-ignore
-    promiseSetKey({ cssSelectorStored: cssDropDown.value }).then(() => sendMsgToOrsTabs("css")) // alert tabs that css sheet has changed
-    .catch((e) => console.log(e))
+    promiseStoreKey({ cssSelectorStored: cssDropDown.value })
+      .then(() => {
+        sendMsgToOrsTabs("css"); // alert tabs that css sheet has changed
+      })
+      .catch((e) => {
+        errorLog(`store css dropdown ${e}`);
+      });
   });
   orLawDropDown.addEventListener("change", () => {
     //@ts-ignore
-    promiseSetKey({ lawsReaderStored: orLawDropDown.value }).then(() => reloadORS())
-    .catch((e) => console.warn(e));
+    promiseStoreKey({ lawsReaderStored: orLawDropDown.value })
+      .then(() => {
+        reloadORS(); // reload all the pages looking at ORS sites using new reader
+      })
+      .catch((e) => {
+        errorLog(`store lawReader dropdown: ${e}`);
+      });
   });
   showBurntCheck.addEventListener("change", async () => {
     //@ts-ignore
-    promiseSetKey({ showBurntStored: showBurntCheck.checked })
-    //.then(() => 
-    const resolution = await getAllStorageSyncData();
-    console.log(resolution)
-    sendMsgToOrsTabs({ burnt: showBurntCheck.checked })
-    //.catch((e) => console.warn(e));
+    promiseStoreKey({ showBurntStored: showBurntCheck.checked })
+      .then(() => {
+        //@ts-ignore
+        sendMsgToOrsTabs({ burnt: showBurntCheck.checked }); // alert tabs that visibility of rsecs has changed
+      })
+      .catch((e) => {
+        errorLog(`store burnt sec check ${e}`);
+      });
   });
   showSNsCheck.addEventListener("change", () => {
     //@ts-ignore
-    promiseSetKey({ showSNsStored: showSNsCheck.checked }).then(sendMsgToOrsTabs({ sn: showSNsCheck.checked }))
-    .catch((e) => console.warn(e));
+    promiseStoreKey({ showSNsStored: showSNsCheck.checked })
+      .then(() => {
+        //@ts-ignore
+        sendMsgToOrsTabs({ sn: showSNsCheck.checked }); // alert tabs that visibility of source notes has changed
+      })
+      .catch((e) => {
+        errorLog(`store source note checkbox: ${e}`);
+      });
   });
   collapseCheck.addEventListener("change", () => {
     //@ts-ignore
-    promiseSetKey({ collapseDefaultStored: collapseCheck.checked }).then(() => {})
-    .catch((e) => console.warn(e));
+    promiseStoreKey({ collapseDefaultStored: collapseCheck.checked })
+      .then(() => {}) // nothing changes immediately when initial collapse state is changed; only when ORS reloaded
+      .catch((e) => {
+        errorLog(`store collapse checkbox: ${e}`);
+      });
   });
   showMenuCheck.addEventListener("change", () => {
     //@ts-ignore
-    promiseSetKey({ showMenuStored: showMenuCheck.checked }).then(() => reloadORS())
-    .catch((e) => console.warn(e));
+    promiseStoreKey({ showMenuStored: showMenuCheck.checked })
+      .then(() => {
+        reloadORS(); // reload all the ORS tab using new state of menu
+      })
+      .catch((e) => {
+        errorLog(`store Menu checkbox: ${e}`);
+      });
   });
 }
 
@@ -253,51 +273,52 @@ function reloadORS() {
         browser.tabs.reload(aTab.id);
       }
     })
-    .catch((e) => console.warn(e));
+    .catch((e) => {
+      errorLog(`get ORS tab list ${e}`);
+    });
 }
 
+// Info and error message handling (msg sent to background, logged to console)
 /**
  * @param {string} infoTxt
- * @param {string} aFunction
+ * @param {string} [calledBy]
  */
-function infoLog(infoTxt, aFunction) {
-  console.info(`%cpopup.js/${aFunction}: ${infoTxt}`, "color:orange");
-}
-
-//TEMP GET ALL FROM STORAGE -->
-
-// Where we will expose all the data we retrieve from storage.sync.
-const storageCache = {};
-const initStorageCache = getAllStorageSyncData().then(items => {
-  // Copy the data retrieved from storage into storageCache.
-  console.log(storageCache)
-  Object.assign(storageCache, items);
-});
-
-// Reads all data out of storage.sync and exposes it via a promise.
-//
-// Note: Once the Storage API gains promise support, this function
-// can be greatly simplified.
-function getAllStorageSyncData() {
-  // Immediately return a promise and start asynchronous work
-  return new Promise((resolve, reject) => {
-    // Asynchronously fetch all data from storage.sync.
-    browser.storage.sync.get(null, (items) => {
-      // Pass any observed errors down the promise chain.
-      if (browser.runtime.lastError) {
-        return reject(browser.runtime.lastError);
-      }
-      // Pass the data retrieved from storage down the promise chain.
-      resolve(items);
-    });
+function infoPU(infoTxt, calledBy) {
+  if (calledBy == undefined) {
+    calledBy = infoPU.caller.name;
+  }
+  promiseBGMessage({
+    info: { 
+      script: "popup.js",
+      txt: infoTxt, 
+      aCaller: calledBy, 
+      color: "orange" },
   });
 }
 
-// < END
-
+/**
+ * @param {string} errTxt
+ */
+function errorLog(errTxt, calledBy) {
+  if (calledBy == undefined) {
+    calledBy = infoPU.caller.name;
+  }
+  if (calledBy != undefined) {
+    calledBy = calledBy + ":"
+  }
+  promiseBGMessage({
+    warn: { 
+      script: "popup.js",
+      txt: errTxt, 
+      aCaller: calledBy,
+      color: "color:orange" },
+  });
+}
 
 // POPUP.js MAIN
+// set variables to match elements on popup.html document
 const errorMsg = document.getElementById("errorMsg");
+const orsSearch = document.getElementById("orsChapter")
 const orsLaunchButton = document.getElementById("chapterLaunch");
 const orLawsLaunchButton = document.getElementById("orLawsLaunch");
 const cssDropDown = document.getElementById("cssSelector");
@@ -307,17 +328,19 @@ const showSNsCheck = document.getElementById("showSNote");
 const collapseCheck = document.getElementById("collapseDefault");
 const showMenuCheck = document.getElementById("showMenu");
 
-//@ts-ignore
-let browser;
+
+// determine browser
 if (getBrowserPopup() == "chrome") {
   //@ts-ignore
   browser = chrome;
 }
 
+// set message response & storage sync set function based on browser
 const promiseMsgResponse = setMsgResponse(getBrowserPopup());
-const promiseSetKey = setPromiseSetter(getBrowserPopup());
-console.log(promiseMsgResponse);
-console.log(promiseSetKey);
+const promiseStoreKey = setPromiseStorage(getBrowserPopup());
 
-addAllListeners();
-displayUserOptions();
+setTimeout(() => {
+  infoPU(getBrowserPopup());
+  addAllListeners(); // set up logic for buttons, dropdowns & checkboxes
+  displayUserOptions(); // display saved info
+}, 100);

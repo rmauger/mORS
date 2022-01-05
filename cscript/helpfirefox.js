@@ -1,14 +1,14 @@
 //foxhelp.js
 //@ts-check
 
-function sendAwaitResponse(messageItem) {
+const sendAwaitResponse = (messageItem) => {
   return browser.runtime.sendMessage({ message: messageItem });
 }
 
-function createStyleSheet (){
+const createStyleSheet = () => {
   window.addEventListener("load", styleSheetCreate());
 }
 
-function startUp() {
+const startUp = () => {
   window.addEventListener("DOMContentLoaded", runMain());
 }

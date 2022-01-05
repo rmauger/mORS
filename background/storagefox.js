@@ -10,8 +10,10 @@ function promiseGetFromStorage(objKey) {
     browser.storage.sync.get(objKey)
       .then((storedObj) => {
         if (storedObj) {
-          console.info(
-            `/PromiseGetFromStorage : Retrieved from ${objKey} : ${storedObj[objKey]}`
+          infoLog(
+            `Fetched ${objKey} : ${storedObj[objKey]}`,
+            'storagefox.js',
+            'promiseGetFromStorage (firefox)'
           );
           resolve(storedObj[objKey]);
         } else {

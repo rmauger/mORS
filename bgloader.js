@@ -1,7 +1,12 @@
 //bgloader.js
 //@ts-check
 
-"use strict";
+const infoLog = (infoTxt, script, calledBy, color) => {
+  if (color==undefined) color = "green"
+  if (calledBy==undefined) calledBy = ""
+  if (script==undefined) script = "bgloader.js"
+  console.info(`%c${script}%c:${calledBy} ${infoTxt}`, `color:${color}`, "color:default")
+}
 
 function getBrowser() {
   return new Promise((resolve) => {
@@ -62,9 +67,9 @@ function loadScripts() {
       const aScript = scriptList[i];
       try {
         importScripts(aScript);
-        console.info(`${aScript} successfully loaded.`)
+        infoLog(`$'{aScript}' successfully loaded.`)
       } catch (e) {
-        console.warn(`${aScript} err: ${e}`);
+        console.warn(`$'{aScript}' loading error: ${e}`);
       }
     }
     console.groupEnd()

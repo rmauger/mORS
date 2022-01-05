@@ -42,11 +42,15 @@ const navigateToTag = async (tabUrl) => {
   try {
     const navID = await promiseGetNavID(tabUrl);
     if (navID) {
-      console.info(`navigating to ${navID.innerText}`);
+      infoCS(`navigating to ${navID.innerText}`,
+      'navtotag.js',
+      'navigateToTag');
       expandSingle(navID);
       navID.scrollIntoView();
     } else {
-      console.info("No ORS section found in URL");
+      infoCS("No ORS section found in content URL",
+      'navtotag.js',
+      'navigateToTag');
     }
   } catch (error) {
     console.warn(`Error getting tabURL: ${error}`);

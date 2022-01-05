@@ -1,4 +1,4 @@
-//addlisteners.js
+//cscript/addlisteners.js
 //FIREFOX=CHROME
 //@ts-check
 
@@ -7,15 +7,21 @@ function listenToPopup() {
   browser.runtime.onMessage.addListener((msg, _sender, _reponse) => {
     const msgText = msg.toMORS;
     try {
-      console.info(
-        `Info on displaying ${Object.keys(msgText)} received from popup`
+      infoCS(
+        `Received query from popup on ${Object.keys(msgText)}`,
+        'addlisteners.js',
+        'listenToPopup'
       );
       if (msgText["burnt"] != undefined) {
-        doShowRSecs(msgText["burnt"]); //helper.js
+        doShowRSecs(msgText["burnt"]);   //helper.js
       } else if (msgText["sn"] != undefined) {
-        doShowSourceNotes(msgText["sn"]); //helper.js
+        doShowSourceNotes(msgText["sn"]);   //helper.js
       } else if (msgText == "css") {
-        console.info("refresh stylesheet");
+        infoCS(
+          "Refreshing Stylesheet",
+          "addlisteners.js",
+          "listenToPopUp"
+          );
         styleSheetRefresh(); //stylesheet.js
       } else {
         console.warn("Error unidentified message received from popup.html");
@@ -44,20 +50,23 @@ function windowResizeEvent() {
         //@ts-ignore
         sectionList[j].style.maxHeight = maxHeightList[j];
       }
+      infoCS(
+        "Resized section title boxes",
+        'addlisteners.js',
+        "resizedFinished");
     } catch (error) {
       console.warn(`Error in Resizing collapsed divs: ${error}`);
     }
   };
 
-  let resizedFinished;
+ let resizedFinished;
   window.addEventListener("resize", () => {
     clearTimeout(resizedFinished);
     resizedFinished = setTimeout(resizeSectionDivs, 500); // waits 1/2 sec after resize ends to execute
-    console.info("Resized section title boxes.");
   });
 }
 
 //MAIN ADD LISTENERS:
 windowResizeEvent();
-createStyleSheet();
+createStyleSheet() // on helperchrome.js or helperfox.js
 listenToPopup();

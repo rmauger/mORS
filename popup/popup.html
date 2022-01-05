@@ -1,47 +1,46 @@
 <!DOCTYPE html>
 <!-- FIREFOX = CHROME -->
 <html>
-  <head> 
-    <title>mORS</title>
-    <link href="popup.css" rel="stylesheet">
-  <head>
-  <body>
-    <div>
-      <h2>mORS Oregon State Laws</h2>
-      <h3>Oregon Revised Statutes</h3>
-        <form>
-          <p>Chapter/section:         
-            <input type='text' name="orsChapter" id="orsChapter" maxlength="8" size="4">
-          </p>
-          <p>
-            <button type='button' id='chapterLaunch'>Launch</button>
-          </p>
-        </form>
-      <h3>Oregon Session Laws</h3>
-        <form>
-          <p>Chap.
-          <input type='text' name="orLawsChapter" id="orLawsChapter" maxlength="4" size="3">
-          , Or. Laws
-          <input type='text' name="orLawsYear" id="orLawsYear" maxlength="4" size="3">
-          [year]
-          </p><p>
-            <button type='button' id='orLawsLaunch'>Launch</button>
-          </p>
-          <p class="error" id="errorMsg">
-          </p>
-        </form>
-    </div>
-    <div>
-      <h2>Extension Options</h2>
-      <p>
-        Display mode:&nbsp;&nbsp;
-        <select id="cssSelector">
-        </select>
+
+<head>
+  <title>mORS</title>
+  <link href="popup.css" rel="stylesheet">
+</head>
+
+<body>
+  <div>
+    <h2>mORS Oregon State Laws</h2>
+    <h3>Oregon Revised Statutes</h3>
+    <p>Chapter/section:
+      <input type='text' name="orsChapter" id="orsChapter" maxlength="8" size="4">
+    </p>
+    <p>
+      <button type='button' id='chapterLaunch'>Launch</button>
+    </p>
+    <h3>Oregon Session Laws</h3>
+    <p>Chap.
+      <input type='text' name="orLawsChapter" id="orLawsChapter" maxlength="4" size="3">
+      , Or. Laws
+      <input type='text' name="orLawsYear" id="orLawsYear" maxlength="4" size="3">
+      [year]
+    </p>
+    <p>
+      <button type='button' id='orLawsLaunch'>Launch</button>
+    </p>
+    <p class="error" id="errorMsg">
+    </p>
+  </div>
+  <div>
+    <h2>Extension Options</h2>
+    <p>
+      Display mode:&nbsp;&nbsp;
+      <select id="cssSelector">
+      </select>
       <p>
         Oregon Session Law Lookup Source:
       </p>
       <p>
-        <select id="OrLaws" onchange="StoreOrLaws()">
+        <select id="OrLaws">
           <option selected value="OrLeg">Ore. Legislature (1999-)</option>
           <option value="Hein">HeinOnline (1859-; account required)</option>
           <option value="None">None</option>
@@ -63,7 +62,8 @@
         <input type="checkbox" id="showMenu">
         <label for="collapseDefault">Show menu button on ORS pages</label>
       </p>
-    </div>
-  </body>
-  <script src="popup.js"></script>
+  </div>
+</body>
+<script src="popup.js"></script>
+
 </html>
