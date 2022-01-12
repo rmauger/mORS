@@ -5,6 +5,7 @@
 function OrLawLinking(html) {
   return new Promise((resolve, reject) => {
     function HeinLinks() {
+      infoCS("building HeinOnline Links", 'orlink.js, "HeinLinks');
       const heinURL =
         "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$1&chapter=$2&sgo=Search&collection=ssl&search=go";
       const orLawH1 = /((?:20|19)\d{2})\W*c\.\W*(\d+)/g; // is replaced by:
@@ -22,6 +23,7 @@ function OrLawLinking(html) {
        * @param {string} years
        * @param {string} strFormat
        */
+      infoCS("building OrLeg links", "orlink.js", "OrLeg");
       function orLawReplacer(years, strFormat) {
         let orLawSourceNote = new RegExp(years + orLawSourceNoteTail, "g");
         let yearOrLawChp = new RegExp(yearOrLawChpHead + years, "g");
@@ -70,7 +72,7 @@ function OrLawLinking(html) {
       },
       (e) => {
         const warning = `Error attempting to generate OrLaws links: ${e}`;
-        console.warn(warning);
+        warnCS(warning, "orlawlink.js", "OrLawLinking");
         reject(warning);
       }
     );

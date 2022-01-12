@@ -39,6 +39,7 @@ function javaDOM() {
   // add floating div menu with version info & buttons
   function buildFloatingMenuDiv() {
     function addMenuBody() {
+      infoCS('creating menu', 'javadom.js', 'buildFloatingMenuDiv')
       menuPanel.classList.add("fixed");
       let versionPar = document.createElement("p");
       //@ts-ignore

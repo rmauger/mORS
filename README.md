@@ -37,6 +37,11 @@ Extension (Google Chrome/Firefox) that alters appearance of Oregon Revised Statu
 See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx)
 
 ## Updates:
+  ### Version 1.4.12 - 1/12/2022
+   * Began tweaks on 2021 ORS Edition
+   * Finished service worker handling of info/warning logs
+   * Fixed bug with leadlines ending in quotation marks
+
   ### Version 1.4.11 - 1/4/2022
    * Coordinated differences between firefox & chrome versions to maximize overlap
    * Updated error & info logging

@@ -2,19 +2,22 @@
 //CHROME = FIREFOX
 //@ts-check
 
+const htmlStyleSheet = document.head.getElementsByTagName("style")[0];
+
+//ran first time sheet is loaded
 const styleSheetCreate = () => {
   //@ts-ignore
   sendAwaitResponse("getCssTemplateFile").then (
     response => {
-      document.head.getElementsByTagName("style")[0].innerHTML =
+      htmlStyleSheet.innerHTML =
         response.response;
       styleSheetRefresh();
     }
   );
 };
 
+//ran if message to update stylesheet is sent from popup.js
 const styleSheetRefresh = () => {
-  const htmlStyleSheet = document.head.getElementsByTagName("style")[0];
   const root = /(:root {)[^}]+}/;
   //@ts-ignore
   sendAwaitResponse("generateCssString").then(
@@ -29,7 +32,7 @@ const styleSheetRefresh = () => {
     }
   ).catch(
     (e) => {
-      console.warn(`Error applying stylesheet ${e}.`);
+      warnCS(`Error applying stylesheet ${e}.`, "stylesheet.js", 'styleSheetRefresh');
     }
   )
 }

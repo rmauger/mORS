@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "ORS Extension",
     "description": "Improves appearance of Oregon Revised Statutes on legisature's website and helps retrieve Oregon session laws.",
-    "version": "1.4.11",
+    "version": "1.4.12",
     "browser_action": {
         "default_icon": {
             "16": "/images/icon16.png",
@@ -24,7 +24,7 @@
             ],
             "js": [
                 "/cscript/helper.js",
-                "/cscript/firefox/helpfox.js",
+                "/cscript/helpfirefox.js",
                 "/cscript/collapsibles.js",
                 "/cscript/stylesheet.js",
                 "/cscript/navtotag.js",
@@ -40,7 +40,16 @@
     ],
     "background": {
         "scripts": [
-            "bgloader.js"
+            "/background/helperbg.js",
+            "/background/helpfirefoxbg.js",
+            "/background/storagefox.js",
+            "/background/webresources.js",
+            "/background/querytabs.js",
+            "/background/orlaws.js",
+            "/background/styles.js",
+            "/background/omnibox.js",
+            "/background/omnifox.js",
+            "/background/msgreceived.js"
         ]
     },
     "options_ui": {

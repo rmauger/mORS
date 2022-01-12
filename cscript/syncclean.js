@@ -18,28 +18,44 @@ function SyncReplaceText() {
       bodyHtml = bodyHtml.replace(emptyTags, "");
     }
     function chapterHeadRepl() {
+      const edYearMatch = "20\\d{2}(?=\\sEDITION)";
+      const thisEdYear = ifRegExMatch(new RegExp(edYearMatch), bodyHtml);
+      const endOfHead = new RegExp(`[^]*?${edYearMatch}[^.]*?<p[^.]*?<p[^.]*?<p`); // end of head is 3 paragraphs before edition "(20XX Edition)"
+      const chapterMatch = new RegExp(`Chapter\\s(${orsChapter})\\s—([^<]*)`, 'u')
+      thisChapterNum = ifRegExMatch(chapterMatch, bodyHtml, 0, 1);
+      const thisChapterName = ifRegExMatch(chapterMatch, bodyHtml, 0, 2)
+      
+      /* DEPRECIATED FOR 2021 VERSION      
       const headHTML = document.head.innerHTML;
       const msoVolumeTag = /(?<=\<mso:Volume[^>]*\>0?)([^<]*)(?=\<)/;
       const msoChaperTag = /(?<=\<mso:[^>]*Chapter[^>]*\>0?)([^<]*)(?=\<)/g;
-      const edYearMatch = "20\\d{2}(?=\\sEDITION)";
       const chapterMatch = new RegExp(`(?<=Chapter\\s0{0,2})${orsChapter}`);
       const thisVolume = ifRegExMatch(msoVolumeTag, headHTML);
       const thisTitle = ifRegExMatch(msoChaperTag, headHTML);
-      const thisChapterTitle = ifRegExMatch(msoChaperTag, headHTML, 1);
-      const thisEdYear = ifRegExMatch(new RegExp(edYearMatch), bodyHtml);
-      thisChapterNum = ifRegExMatch(chapterMatch, headHTML);
-      const endOfHead = new RegExp(`[^]*?${edYearMatch}[^.]*?<p[^.]*?<p[^.]*?<p`); // end of head is 3 paragraphs > edition "(2019 Edition)"
       const preTitleMatch = new RegExp(`[^]*?Chapter\\s${thisChapterNum}`);
       const preTitle = ifRegExMatch(
         new RegExp(`[^]*?(?=Chapter\\s${thisChapterNum})`),
         ifRegExMatch(preTitleMatch, bodyHtml)
       );
-      document.head.getElementsByTagName('title')[0].innerHTML = `${thisChapterNum}: ${thisChapterTitle}`;
+      htmlTitle.innerHTML = `${thisChapterNum}: ${thisChapterTitle}`;
+
+      */
+      let htmlTitle
+        htmlTitle = document.head.getElementsByTagName('title')[0]
+      if (htmlTitle == undefined) {
+        htmlTitle = document.createElement('title')
+        document.head.appendChild(htmlTitle)
+      }
+      
+      htmlTitle.innerHTML = `${thisChapterNum} : ${thisChapterName}`;
       bodyHtml = bodyHtml.replace(endOfHead, "<p"); //deleting existing heading in text
-      return `<div class=mainHead>${preTitle}<h3>Volume ${thisVolume}</h3><h2>Title ${thisTitle}</h2>
-      <h1>Chapter ${thisChapterNum} - ${thisChapterTitle}</h1><h3>${thisEdYear} EDITION</h3></div>`;
+      return `<div class=mainHead><h1>Chapter ${thisChapterNum} - ${thisChapterName}</h1><h3>${thisEdYear} EDITION</h3></div>`
+
+      // 2019 VERSION, WITH VOLUME & TITLE
+      // return `<div class=mainHead>${preTitle}<h3>Volume ${thisVolume}</h3><h2>Title ${thisTitle}</h2>
+      // <h1>Chapter ${thisChapterNum} - ${thisChapterTitle}</h1><h3>${thisEdYear} EDITION</h3></div>`;
     }
-    function createTOC() {
+    const createTOC = () => {
       const tocFind = /(<p[^>]*?>[^]*?<\/p>)([^]*?)(?=\1|<p class=default><b>)/; // is replaced by:
       const tocRepl = `<div id=toc><h1>Table of Contents</h1><div class=tocItems>\$1\$2</div></div>${tocBreak}`;
       bodyHtml = bodyHtml.replace(tocFind, tocRepl);
@@ -53,7 +69,7 @@ function SyncReplaceText() {
       bodyHtml = bodyHtml.replace(orsFind, orsRepl);
     }
     function classLeadlines() {
-      const orsSecLead = `(?:<span class=ors>)(${thisChapterNum}\\.\\d{3,4}\\b)\\s?</span>([^\\.][^\\]]+?\\.\\s?)`;
+      const orsSecLead = `(?:<span class=ors>)(${thisChapterNum}\\.\\d{3,4}\\b)\\s?</span>([^\\.][^<\\]]+?)`;
       const leadFind = new RegExp(
         `<p class=default><b>${tabs}${orsSecLead}</b>`,
         "g"
@@ -66,7 +82,7 @@ function SyncReplaceText() {
       const startForm = new RegExp(
         `(form[^]*?:)<\\/p>${tabs}(<p[^>]*>)_{78}`,
         "g"
-      ); // finds start of form
+      ); // finds starts of form
       const startFormRepl = "$1</p><div class=orsForm break='`'>$2"; //inserts it as a new div
       const endForm = /(`([^~`]*_{78}|[^`~]*?(?=<div class=orsForm)))/g; // finds ends of form
       const endFormRepl = "$1</div break='`'>"; // closes div
@@ -100,7 +116,7 @@ function SyncReplaceText() {
         headAndToc = bodyHtml.match(new RegExp(`[^]*?(?=${tocBreak})`))[0]; // copy TOC to own variable
         bodyHtml = bodyHtml.replace(new RegExp(`[^]*?${tocBreak}`), ""); // and remove it from the editing document
       } else {
-        console.warn("No table of contents found");
+        warnCS("No table of contents found", 'syncclean.js', 'separateTOC');
       }
     }
     function classifySubunits() {
@@ -297,7 +313,7 @@ function SyncReplaceText() {
     let thisChapterNum = "";
     const tocBreak = "!@%";
     const tabs = "(?:&nbsp;|\\s){0,8}";
-    const orsChapter = "[1-9]\\d{0,2}[A-C]?\\b";
+    const orsChapter = "\\b[1-9]\\d{0,2}[A-C]?\\b";
     const orsSection = `(?:${orsChapter}\\.\\d{3}\\b|\\b7\\dA?\\.\\d{4}\\b)`;
     htmlCleanup(); // delete span syntex & msoClasses & existing divs & empty tags from HTML
     const mainHead = chapterHeadRepl(); // Replace heading at top of page.

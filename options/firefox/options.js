@@ -121,15 +121,15 @@ const optionsScript = async () => {
   }
   // MAIN variables
   const optionsFrame = window.document;
-  const background = <HTMLInputElement>optionsFrame.getElementById("background")</HTMLInputElement>;
-  const altBack = <HTMLInputElement>optionsFrame.getElementById("altBack")</HTMLInputElement>;
-  const formBack = <HTMLInputElement>optionsFrame.getElementById("formBack")</HTMLInputElement>;
-  const buttonColor = <HTMLInputElement>optionsFrame.getElementById("buttonColor")</HTMLInputElement>;
-  const maintext = <HTMLInputElement>optionsFrame.getElementById("maintext")</HTMLInputElement>;
-  const heading = <HTMLInputElement>optionsFrame.getElementById("heading")</HTMLInputElement>;
-  const linkExt = <HTMLInputElement>optionsFrame.getElementById("linkExt")</HTMLInputElement>;
-  const saveButton = <HTMLInputElement>optionsFrame.getElementById("save")</HTMLInputElement>;
-  const refreshButton = <HTMLInputElement>optionsFrame.getElementById("refresh")</HTMLInputElement>;
+  const background = optionsFrame.getElementById("background");
+  const altBack = optionsFrame.getElementById("altBack");
+  const formBack = optionsFrame.getElementById("formBack");
+  const buttonColor = optionsFrame.getElementById("buttonColor");
+  const maintext = optionsFrame.getElementById("maintext");
+  const heading = optionsFrame.getElementById("heading");
+  const linkExt = optionsFrame.getElementById("linkExt");
+  const saveButton = optionsFrame.getElementById("save");
+  const refreshButton = optionsFrame.getElementById("refresh");
   // MAIN program  
   await refreshOrCancel()
   addListeners();

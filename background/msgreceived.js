@@ -66,11 +66,11 @@
       infoLog(infoMsg.txt, infoMsg.script, infoMsg.aCaller, infoMsg.color)
     } else if (received.warn) {
       const warnMsg=received.warn
-      console.warn(`%c${warnMsg.script}%c:${warnMsg.aCaller} ${warnMsg.txt}`, warnMsg.color, "color:yellow");
+      warnLog(warnMsg.script, warnMsg.aCaller, warnMsg.txt, "yellow");
     } else if (received) {
         console.group("Unidentified message");
-        console.warn(`Received unidentified message`);
-        console.warn(received);
+        warnLog(`Received unidentified message`);
+        warnLog(received);
         console.groupEnd();
         response(`Error: Received unidentified message ${received}`);
     }

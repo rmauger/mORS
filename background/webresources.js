@@ -25,13 +25,18 @@ const promiseGetCssTemplate = () => {
     const cssTemplateFile = browser.runtime.getURL("/data/cssTemplate.css");
     infoLog(
       `Unpacking CSS: ${cssTemplateFile}`,
-      'webresources.js',
-      'promiseGetCssTemplate');
+      "webresources.js",
+      "promiseGetCssTemplate"
+    );
     fetch(cssTemplateFile)
       .then((response) => response.text())
       .then((text) => resolve(text))
       .catch((e) => {
-        console.warn(`cssTemplate.css not loaded. ${e}`);
+        warnLog(
+          `cssTemplate.css not loaded. ${e}`,
+          "webresources.js",
+          "promiseGetCssTemplate"
+        );
         reject(e);
       });
   });

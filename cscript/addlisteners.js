@@ -24,10 +24,10 @@ function listenToPopup() {
           );
         styleSheetRefresh(); //stylesheet.js
       } else {
-        console.warn("Error unidentified message received from popup.html");
+        warnCS(`Error unidentified message from popup.html: ${msgText}`, "addlisteners.js");
       }
     } catch (e) {
-      console.warn(`Error w/ display rSecs or sourceNotes: ${e}`);
+      warnCS(`Error w/ display rSecs or sourceNotes: ${e}`, "addlisteners.js");
     }
   });
 }
@@ -55,7 +55,7 @@ function windowResizeEvent() {
         'addlisteners.js',
         "resizedFinished");
     } catch (error) {
-      console.warn(`Error in Resizing collapsed divs: ${error}`);
+      warnCS(`Error in Resizing collapsed divs: ${error}`, "addlisteners.js");
     }
   };
 

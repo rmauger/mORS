@@ -28,7 +28,7 @@ function findCollapseHeight(buttonElement) {
  */
 function collapseSingle(collapseObj) {
   if (!collapseObj) {
-    console.warn("No button found in object!?");
+    warnCS("No button found in object!?", "collapseSingle");
   } else {
     collapseObj.anElement.style.maxHeight = collapseObj.height;
   }
@@ -43,12 +43,13 @@ function expandSingle(buttonElement) {
       buttonElement.classList.add("expanded");
       sectionDiv.style.maxHeight = "none";
     } else {
-      console.warn(
-        `Target ${buttonElement.innerHTML} is not an expanded section`
+      warnCS(
+        `Target ${buttonElement.innerHTML} is not an expanded section`,
+        'collapsibles.js'
       );
     }
   } else {
-    console.warn("No button element found.");
+    warnCS("No button element found.", "collapslibles.js");
   }
 }
 // Expands all ORS sections to full height

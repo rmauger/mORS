@@ -11,13 +11,22 @@ const implementUserParameters = () => {
         }
       },
       (e) => {
-        console.warn(`Error in getCollapsed(): ${e}`);
+        warnCS(
+          `Error in getCollapsed(): ${e}`,
+          "storeddata.js",
+          "implementUserParameters"
+        );
       }
     );
   }
   function getShowRSec() {
     sendAwaitResponse("getShowBurnt").then((response) => {
       const doShow = response.response;
+      infoCS(
+        `showing repealed sections=${doShow}`,
+        "storeddata.js",
+        "getShowBurnt"
+      );
       doShowRSecs(doShow); //helper.js
     });
   }
@@ -25,6 +34,7 @@ const implementUserParameters = () => {
     //@ts-ignore
     sendAwaitResponse("getShowSNs").then((response) => {
       const doShow = response.response;
+      infoCS(`showing sourcenotes=${doShow}`, "storeddata.js", "getShowSNs");
       doShowSourceNotes(doShow); //helper.js
     });
   }

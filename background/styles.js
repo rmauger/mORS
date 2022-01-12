@@ -33,7 +33,7 @@ const promiseGenerateCss = () => {
     --linkVisited: ${cssOptions["linkVisited"]};
     --highContrast: ${cssOptions["highContrast"]};`);
       } catch (e) {
-        console.warn(e);
+        warnLog(e, 'styles.js', 'promiseGenerateCss');
         reject(e);
       }
     });

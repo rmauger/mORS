@@ -1,3 +1,4 @@
+//@ts-check
 
 // @ts-ignore
 browser.omnibox.onInputChanged.addListener((_text, suggest) => {
@@ -22,5 +23,5 @@ browser.omnibox.onInputEntered.addListener((text) => {
 
 //@ts-ignore
 browser.omnibox.onInputCancelled.addListener(function () {
-  //resetDefaultSuggestion();
+    //resetDefaultSuggestion();
 });

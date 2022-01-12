@@ -8,31 +8,11 @@ function sendAwaitResponseBG(messageItem) {
           resolve(response);
         });
       } catch (error) {
-        console.warn(error);
+        warnCS(error, "helpfirefox.js", "sendAwaitResponseBG");
         reject(error);
       }
     });
   }
-
-  /**
- * @param {string} warningId
- * @param {string} msgTxt
- */
-function logOrWarn(msgTxt, warningId = "") {
-  console.warn(`%cNotification: ${msgTxt}`, "color:pink");
-  if (warningId != "") {
-    const newDate = new Date();
-    const myId =
-      warningId +
-      newDate.getHours() +
-      newDate.getMinutes +
-      newDate.getMilliseconds;
-    // @ts-ignore
-    const newNotice = new Notification(`Warning! ${warningId}`, {
-      body: msgTxt,
-    });
-  }
-}
 
 //Set initial variables on installation
 browser.management.onInstalled.addListener((details) => {
@@ -64,4 +44,3 @@ async function msgHandler(referencedPromise, response) {
     response({ response: `Error: ${e}` });
   }
 }
-
