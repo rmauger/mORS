@@ -1,6 +1,5 @@
 //background/helpchrome.js
 //@ts-check
-"use strict";
 
 function sendAwaitResponseBG(messageItem) {
   return new Promise((resolve, reject) => {

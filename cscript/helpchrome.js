@@ -6,7 +6,7 @@ const browser = chrome;
 
 const sendAwaitResponse = (messageItem) => {
   if (typeof messageItem=="string") {
-    console.log(`Request sent to background '${messageItem}'`);
+    console.log(`Sent request to background: '${messageItem}'`);
   }
   return new Promise((resolve, reject) => {
     try {

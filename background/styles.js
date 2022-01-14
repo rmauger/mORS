@@ -1,8 +1,6 @@
 //background/style.js
 // @ts-check
 
-"use strict";
-
 const promiseGenerateCss = () => {
     return new Promise(async (resolve, reject) => {
       try {

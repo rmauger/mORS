@@ -1,6 +1,6 @@
 # mORS
 
-Extension (Google Chrome/Firefox) that alters appearance of Oregon Revised Statutes on Oregon State Legisature website and allows for easier retrieval of Oregon session law. The Oregon Revised Statutes are the codified laws of the State of Oregon.
+Extension (Google Chrome/Firefox) that alters appearance of Oregon Revised Statutes on Oregon State Legisature website and allows for easier retrieval of Oregon session law from the Oregon Legislative Assembly. The Oregon Revised Statutes are the codified laws of the State of Oregon.
 
 ## Installation instructions (Chrome):
   * Navigate to https://github.com/rmauger/mORS
@@ -14,7 +14,8 @@ Extension (Google Chrome/Firefox) that alters appearance of Oregon Revised Statu
   * Navigate to https://github.com/rmauger/mORS
   * From green "Code" button > "Download Zip"
   * Unzip to a folder
-  * Copy 2 files from /firefox/ to main folder & overwrite (manifest.json, backgroud.js)
+  * delete (or rename) existing "manifest.json" (Chrome version)
+  * rename "manifest-ff.json" -> "manifest.json"
   * Temporary installation (single session; removed when Firefox restarts):
     * Enter "about:debugging" in the URL bar
     * Click "This Firefox"
@@ -37,6 +38,11 @@ Extension (Google Chrome/Firefox) that alters appearance of Oregon Revised Statu
 See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx)
 
 ## Updates:
+  ### Version 1.4.13 - 1/14/2022
+   * Finished ORS 2021 tweaks
+   * Redid replacement text functionality
+   * Fixed bug with neighboring note sections
+
   ### Version 1.4.12 - 1/12/2022
    * Began tweaks on 2021 ORS Edition
    * Finished service worker handling of info/warning logs
