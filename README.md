@@ -38,6 +38,9 @@ Extension (Google Chrome/Firefox) that alters appearance of Oregon Revised Statu
 See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx)
 
 ## Updates:
+  ### Version 1.4.14 - 1/16/2022
+   * Issues fixed with options.js & custom colors (for Chrome, not Firefox)
+
   ### Version 1.4.13 - 1/14/2022
    * Finished ORS 2021 tweaks
    * Redid replacement text functionality
@@ -114,4 +117,6 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 
 ## Planned features/fixes:
   * TODO: #42 Version for MS Edge (should be easier than Firefox was)?
-  * TODO: #40 Resolve handling of additional styles not yet on custom sheet.
+  * TODO: #40 Resolve handling of additional styles not yet on options sheet.
+  * TODO: #45 Bugfix - processing of forms not working well for 2021 versions
+  * TODO: #44 Update - figure out way to link 2020 special sessions from sourcenote & omnibox

@@ -57,12 +57,11 @@ const setMsgResponse = (/** @type {string} */ browserName) => {
   } else {
     return (messageObj) => {
       return new Promise((resolve, reject) => {
-        browser.runtime
-          .sendMessage((messageObj), (result) => {
-            resolve(result);
-          })
-        })
-    }
+        browser.runtime.sendMessage(messageObj, (result) => {
+          resolve(result);
+        });
+      });
+    };
   }
 };
 /** Message passing to background.js (send message & resolves response)
@@ -91,7 +90,7 @@ function sendMsgToOrsTabs(message) {
     .then((response) => {
       const orsTabs = response;
       for (const aTab of orsTabs) {
-        browser.tabs.sendMessage(aTab.id, { toMORS: message });
+        browser.tabs.sendMessage(aTab.id, { toMORS: message }); // no callback so chrome and firefox commands same
         infoPU(`sent '${message}' to tab #${aTab.id}`);
       }
     })
@@ -138,33 +137,33 @@ async function displayUserOptions() {
   }
   // MAIN displayUserOptions
   try {
-    const data = await storedDataFinder();
+    const storedData = await storedDataFinder();
     // @ts-ignore
     for (let i = 0; i < cssDropDown.options.length; i++) {
       // @ts-ignore
-      if (cssDropDown.options[i].value == data[0]) {
+      if (cssDropDown.options[i].value == storedData[0]) {
         // @ts-ignore
         cssDropDown.selectedIndex = i;
         break;
       }
     }
-    // @ts-ignore
+    // @ts-ignore  (property exists)
     for (let i = 0; i < orLawDropDown.options.length; i++) {
-      // @ts-ignore
-      if (orLawDropDown.options[i].value == data[1]) {
-        // @ts-ignore
+      // @ts-ignore  (value exists)
+      if (orLawDropDown.options[i].value == storedData[1]) {
+        // @ts-ignore  (property exists)
         orLawDropDown.selectedIndex = i;
         break;
       }
     }
-    // @ts-ignore
-    showBurntCheck.checked = data[2];
-    // @ts-ignore
-    showSNsCheck.checked = data[3];
-    // @ts-ignore
-    collapseCheck.checked = data[4];
-    // @ts-ignore
-    showMenuCheck.checked = data[5];
+    // @ts-ignore (value exists)
+    showBurntCheck.checked = storedData[2];
+    // @ts-ignore (value exists)
+    showSNsCheck.checked = storedData[3];
+    // @ts-ignore (value exists)
+    collapseCheck.checked = storedData[4];
+    // @ts-ignore (value exists)
+    showMenuCheck.checked = storedData[5];
   } catch (e) {
     warnPU(e);
   }
@@ -173,15 +172,15 @@ async function displayUserOptions() {
 //setup event listeners for form dropdowns & buttons
 function addAllListeners() {
   orsLaunchButton.addEventListener("click", () => {
-    // @ts-ignore
+    //@ts-ignore (value exists)
     infoPU(`launching ORS for '${orsSearch.value}`);
-    //@ts-ignore
+    //@ts-ignore (value exists)
     promiseBGMessage({ navToOrs: orsSearch.value });
   });
   orLawsLaunchButton.addEventListener("click", async () => {
-    // @ts-ignore
+    //@ts-ignore (value exists)
     const orLawsYear = document.getElementById("orLawsYear").value;
-    // @ts-ignore
+    //@ts-ignore (value exists)
     const orLawsChp = document.getElementById("orLawsChapter").value;
     try {
       const orLawsReader = await promiseBGMessage("getOrLaw");
@@ -205,18 +204,28 @@ function addAllListeners() {
       errorMsg.innerHTML = e;
     }
   });
+  colorOptions.addEventListener("click", () => {
+    if (getBrowserPopup() == "chrome") {
+      browser.tabs.create({
+        url: browser.runtime.getURL(`/options/chrome/options.html`),
+      });
+    } else {
+      errorMsg.innerHTML =
+        "Custom colors don't work in firefox (as of 1/15/22)";
+    }
+  });
   cssDropDown.addEventListener("change", () => {
-    //@ts-ignore
+    //@ts-ignore (value exists)
     promiseStoreKey({ cssSelectorStored: cssDropDown.value })
       .then(() => {
         sendMsgToOrsTabs("css"); // alert tabs that css sheet has changed
       })
       .catch((e) => {
-        warnPU(`store css dropdown ${e}`);
+        warnPU(`error storing css from dropdown ${e}`);
       });
   });
   orLawDropDown.addEventListener("change", () => {
-    //@ts-ignore
+    //@ts-ignore (value exists)
     promiseStoreKey({ lawsReaderStored: orLawDropDown.value })
       .then(() => {
         reloadORS(); // reload all the pages looking at ORS sites using new reader
@@ -226,10 +235,10 @@ function addAllListeners() {
       });
   });
   showBurntCheck.addEventListener("change", async () => {
-    //@ts-ignore
+    //@ts-ignore (checked value exists)
     promiseStoreKey({ showBurntStored: showBurntCheck.checked })
       .then(() => {
-        //@ts-ignore
+        //@ts-ignore (checked value exists)
         sendMsgToOrsTabs({ burnt: showBurntCheck.checked }); // alert tabs that visibility of rsecs has changed
       })
       .catch((e) => {
@@ -237,10 +246,10 @@ function addAllListeners() {
       });
   });
   showSNsCheck.addEventListener("change", () => {
-    //@ts-ignore
+    //@ts-ignore (checked value exists)
     promiseStoreKey({ showSNsStored: showSNsCheck.checked })
       .then(() => {
-        //@ts-ignore
+        //@ts-ignore (checked value exists)
         sendMsgToOrsTabs({ sn: showSNsCheck.checked }); // alert tabs that visibility of source notes has changed
       })
       .catch((e) => {
@@ -248,7 +257,7 @@ function addAllListeners() {
       });
   });
   collapseCheck.addEventListener("change", () => {
-    //@ts-ignore
+    //@ts-ignore (checked value exists)
     promiseStoreKey({ collapseDefaultStored: collapseCheck.checked })
       .then(() => {}) // nothing changes immediately when initial collapse state is changed; only when ORS reloaded
       .catch((e) => {
@@ -256,7 +265,7 @@ function addAllListeners() {
       });
   });
   showMenuCheck.addEventListener("change", () => {
-    //@ts-ignore
+    //@ts-ignore (checked value exists)
     promiseStoreKey({ showMenuStored: showMenuCheck.checked })
       .then(() => {
         reloadORS(); // reload all the ORS tab using new state of menu
@@ -329,39 +338,30 @@ function warnPU(warnTxt, calledBy) {
 }
 
 // POPUP.js MAIN
-console.clear()
+console.clear();
 
-// set variables to match elements on popup.html document
+// set variables to match elements on popup.html
 const errorMsg = document.getElementById("errorMsg");
 const orsSearch = document.getElementById("orsChapter");
 const orsLaunchButton = document.getElementById("chapterLaunch");
 const orLawsLaunchButton = document.getElementById("orLawsLaunch");
 const cssDropDown = document.getElementById("cssSelector");
+const colorOptions = document.getElementById("colorOptions");
 const orLawDropDown = document.getElementById("OrLaws");
 const showBurntCheck = document.getElementById("showRSec");
 const showSNsCheck = document.getElementById("showSNote");
 const collapseCheck = document.getElementById("collapseDefault");
 const showMenuCheck = document.getElementById("showMenu");
 
-// determine browser (depreciated, firefox is okay with naming browser chrome)
-// if (getBrowserPopup() == "chrome") {
-//   //@ts-ignore
-//   browser = chrome;
-// } else {
-//   //@ts-ignore
-//   browser = chrome;
-// }
-//@ts-ignore
-browser=chrome
+//@ts-ignore (chrome undefined)
+browser = chrome;
 
 // set message response & storage sync set function based on browser
 const promiseMsgResponse = setMsgResponse(getBrowserPopup());
 const promiseStoreKey = setPromiseStorage(getBrowserPopup());
 
-//slight lag, to make sure that promises have resolved
-//TODO - rewrite using "promiseAll"
-setTimeout(async () => {
-  //  infoPU(await getBrowserPopup());
+// making sure ready to go first
+Promise.all([promiseMsgResponse, promiseStoreKey]).then(() => {
   addAllListeners(); // set up logic for buttons, dropdowns & checkboxes
   displayUserOptions(); // display saved info
-}, 200);
+});

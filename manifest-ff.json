@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "ORS Extension",
     "description": "Improves appearance of Oregon Revised Statutes on legisature's website and helps retrieve Oregon session laws.",
-    "version": "1.4.13",
+    "version": "1.4.14",
     "browser_action": {
         "default_icon": {
             "16": "/images/icon16.png",

@@ -79,7 +79,8 @@ a.ors:link,
 a.ors:visited {
   color: var(--linkInt);
 }
-a:visited {
+a:visited,
+.visited {
   color: var(--linkVisited);
 }
 a:hover {

@@ -26,6 +26,21 @@ browser.runtime.onInstalled.addListener((details) => {
         showSNsStored: true,
         collapseDefaultStored: false,
         showMenuStored: true,
+        userColors : {
+          background: '#39667f',
+          altBack: '#192d38',
+          formBack: '#1e333e',
+          buttonColor: '#335b70',
+          buttonHover: '#2d4f62',
+          maintext: '#f1d6d0',
+          heading: '#fde849',
+          subheading: '#cab302',
+          sourceNote: '#c77543',
+          linkExt: '#37d2d2',
+          linkInt: '#9be8e8',
+          linkVisited: '#d68472',
+          highContrast: undefined,
+        }
       },
       () => {}
     );

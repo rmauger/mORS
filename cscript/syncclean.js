@@ -196,13 +196,12 @@ function SyncReplaceText() {
       /(=orsForm break=\'\`\'[^`~]*)#sclose#[^`~]*?<p[^`~>]*>([^`~]*?)<div>/g; //Used to count subheadings
     // replaces headings found within forms (which probably aren't actual headings):
     while (headInForm.test(body.aHtml) || subheadInForm.test(body.aHtml)) {
-      // TODO - double check why we're not just using replace all here (probably due to overlaps)
+      // TODO - Probably (maybe) this is source of bug? Maybe needs to run 2x? Or running form thing twice? Ugh.
       body.replacerOne(headInForm, "$1<p class=formHeading>$2");
       body.replacerOne(subheadInForm, "$1<p class=default>$2");
     }
-    headingDivs(); // makes sure that all headings & subheading <divs> are closed exactly once. Ensure no subheading w/o heading
+    headingDivs(); // makes sure all headings & subheading <divs> are closed exactly once. Ensure no subheading w/o heading
   }
-  // #TODO debug notes replacement to see why divisions are sometimes not closing for consecutive notes
   function notesRepl() {
     body.replacerAll(
       "<p[^>]*>\\s?<b>" + tabs + "(Note(\\s\\d)?:\\s?<\\/b>[^]*?<\\/p>)", // "Note:" or "Note #:" paragrph

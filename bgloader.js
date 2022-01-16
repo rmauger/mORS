@@ -19,9 +19,9 @@ for (let i = 0; i < scriptList.length; i++) {
   const aScript = scriptList[i];
   try {
     importScripts(aScript);
-    infoLog(`$'{aScript}' successfully loaded.`);
+    infoLog(`'${aScript}' successfully loaded.`);
   } catch (e) {
-    warnCS(`$'{aScript}' loading error: ${e}`);
+    warnCS(`'${aScript}' loading error: ${e}`);
   }
 }
 console.groupEnd();

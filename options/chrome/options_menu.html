@@ -1,50 +1,48 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-    <title>Custom Color Options</title>
-    <link href="options.css" rel="stylesheet" />
-  </head>
-    <h2>Custom Color Options:</h2>
-    <div id="status">
-    <p>
-      Main Background Color:
-    </p><p>
-      <input type="color" id="background" style="width: 175px; max-width: 80%"/>
-    </p>
-    <p>
-      Secondary Background Color:
-      <input type="color" id="altBack" style="width: 175px; max-width: 80%"/>
-    </p>
-    <p>
-      Form Background Color:
-      <input type="color" id="formBack" style="width: 175px; max-width: 80%"/>
-    </p>
-    <p>
-      Button Background Color:
-      <input type="color" id="buttonColor" style="width: 175px; max-width: 80%"/>
-    </p>
-    <p>
-      Main Text Color:
-    </p>
-    <p>
-      <input type="color" id="maintext" style="width: 175px; max-width: 80%"/>
-    </p>
-    <p>
-      Heading Text Color:
-    </p>
-    <p>
-      <input type="color" id="heading" style="width: 175px; max-width: 80%"/>
-    </p>
-    <p>
-      Link Text Color:
-    </p>
-    <p>
-      <input type="color" id="linkExt" style="width: 175px; max-width: 80%" />
-    </p>
-    <p></p>
-    </div>
-    <button id="save" style="visibility: hidden; font-size: 16pt; color:#fb6">Save</button>
-    <button id="refresh" style="visibility: hidden; font-size: 16pt; color:#fb6">Refresh/Cancel</button>
-  </body>
+
+<head>
+  <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+  <title>Custom Color Options</title>
+  <link href="options.css" rel="stylesheet" />
+  <style>
+    .colorInput {
+      width: "175px";
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Custom Color Options:</h2>
+  <div id="status">
+    <p>Main Background Color:</p>
+    <p class="colorInput"> <input type="color" id="background" /> </p>
+    <p> Secondary Background Color: </p>
+    <p class="colorInput"> <input type="color" id="altBack" /> </p>
+    <p>Form Background Color:</p>
+    <p class="colorInput"> <input type="color" id="formBack" /> </p>
+    <p> Button Background Color: </p>
+    <p class="colorInput"> <input type="color" id="buttonColor" /> </p>
+    <p>Button Hover Color:</p>
+    <p class="colorInput"> <input type="color" id="buttonHover" /> </p>
+    <p style="text-align: center;"> ---------- </p>
+    <p>Main Text Color:</p>
+    <p class="colorInput"> <input type="color" id="maintext" /> </p>
+    <p>Heading Text Color:</p>
+    <p class="colorInput"> <input type="color" id="heading" /> </p>
+    <p>Subheading Text Color:</p>
+    <p class="colorInput"> <input type="color" id="subheading" /> </p>
+    <p>Source Note Text Color:</p>
+    <p class="colorInput"> <input type="color" id="sourceNote" /> </p>
+    <p>Link (within page) Text Color:</p>
+    <p class="colorInput"> <input type="color" id="linkInt" /> </p>
+    <p>Link (external) Text Color:</p>
+    <p class="colorInput"> <input type="color" id="linkExt" /> </p>
+    <p>Visited Link Color:</p>
+    <p class="colorInput"> <input type="color" id="linkVisited" /> </p>
+  </div>
+  <button id="save" style="visibility: hidden; font-size: 16pt; color:#fb6">Save</button>
+  <button id="refresh" style="visibility: hidden; font-size: 16pt; color:#fb6">Refresh/Cancel</button>
+</body>
+
 </html>

@@ -1,45 +1,62 @@
 <!DOCTYPE html>
 <!-- FIREFOX = CHROME -->
 <html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>mORS</title>
+    <link href="popup.css" rel="stylesheet" />
+  </head>
 
-<head>
-  <meta charset="UTF-8"/>
-  <title>mORS</title>
-  <link href="popup.css" rel="stylesheet">
-</head>
-
-<body>
-  <div>
-    <h2>mORS Oregon State Laws</h2>
-    <h3>Oregon Revised Statutes</h3>
-    <p>Chapter/section:
-      <input type='text' name="orsChapter" id="orsChapter" maxlength="8" size="4">
-    </p>
-    <p>
-      <button type='button' id='chapterLaunch'>Launch</button>
-    </p>
-    <h3>Oregon Session Laws</h3>
-    <p>Chap.
-      <input type='text' name="orLawsChapter" id="orLawsChapter" maxlength="4" size="3">
-      , Or. Laws
-      <input type='text' name="orLawsYear" id="orLawsYear" maxlength="4" size="3">
-      [year]
-    </p>
-    <p>
-      <button type='button' id='orLawsLaunch'>Launch</button>
-    </p>
-    <p class="error" id="errorMsg">
-    </p>
-  </div>
-  <div>
-    <h2>Extension Options</h2>
-    <p>
-      Display mode:&nbsp;&nbsp;
-      <select id="cssSelector">
-      </select>
+  <body>
+    <div>
+      <h2>mORS Oregon State Laws</h2>
+      <h3>Oregon Revised Statutes</h3>
       <p>
-        Oregon Session Law Lookup Source:
+        Chapter/section:
+        <input
+          type="text"
+          name="orsChapter"
+          id="orsChapter"
+          maxlength="8"
+          size="4"
+        />
       </p>
+      <p>
+        <button type="button" id="chapterLaunch">Launch</button>
+      </p>
+      <h3>Oregon Session Laws</h3>
+      <p>
+        Chap.
+        <input
+          type="text"
+          name="orLawsChapter"
+          id="orLawsChapter"
+          maxlength="4"
+          size="3"
+        />
+        , Or. Laws
+        <input
+          type="text"
+          name="orLawsYear"
+          id="orLawsYear"
+          maxlength="4"
+          size="3"
+        />
+        [year]
+      </p>
+      <p>
+        <button type="button" id="orLawsLaunch">Launch</button>
+      </p>
+      <p class="error" id="errorMsg"></p>
+    </div>
+    <div>
+      <h2>Extension Options</h2>
+      <p>
+        Display mode:&nbsp;&nbsp;
+        <select id="cssSelector"></select>
+        <button type="button" id="colorOptions">Set Custom Colors</button>
+      </p>
+      <p>Oregon Session Law Lookup Source:</p>
       <p>
         <select id="OrLaws">
           <option selected value="OrLeg">Ore. Legislature (1999-)</option>
@@ -47,24 +64,25 @@
           <option value="None">None</option>
         </select>
       </p>
-      <p style="text-align:left; margin-left: 8px">
-        <input type="checkbox" id="showRSec">
+      <p style="text-align: left; margin-left: 8px">
+        <input type="checkbox" id="showRSec" />
         <label for="showRSec">Show repealed/renumbered sections</label>
       </p>
-      <p style="text-align:left; margin-left: 8px">
-        <input type="checkbox" id="showSNote">
+      <p style="text-align: left; margin-left: 8px">
+        <input type="checkbox" id="showSNote" />
         <label for="showSNote">Show ORS section source notes</label>
       </p>
-      <p style="text-align:left; margin-left: 8px">
-        <input type="checkbox" id="collapseDefault">
-        <label for="collapseDefault">Collapse all ORS sections by default</label>
+      <p style="text-align: left; margin-left: 8px">
+        <input type="checkbox" id="collapseDefault" />
+        <label for="collapseDefault"
+          >Collapse all ORS sections by default</label
+        >
       </p>
-      <p style="text-align:left; margin-left: 8px">
-        <input type="checkbox" id="showMenu">
+      <p style="text-align: left; margin-left: 8px">
+        <input type="checkbox" id="showMenu" />
         <label for="collapseDefault">Show menu button on ORS pages</label>
       </p>
-  </div>
-</body>
-<script src="popup.js"></script>
-
+    </div>
+  </body>
+  <script src="popup.js"></script>
 </html>
