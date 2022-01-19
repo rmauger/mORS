@@ -1,73 +1,124 @@
 //orlawlinking.js
-//FIREFOX = CHROME
 //@ts-check
 
-function OrLawLinking(html) {
+/**
+ * @param {string} htmlTxt
+ */
+function OrLawLinking(htmlTxt) {
+  const html = wordObj(htmlTxt);
   return new Promise((resolve, reject) => {
-    function HeinLinks() {
-      infoCS("building HeinOnline Links", 'orlink.js, "HeinLinks');
-      const heinURL =
-        "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$1&chapter=$2&sgo=Search&collection=ssl&search=go";
-      const orLawH1 = /((?:20|19)\d{2})\W*c\.\W*(\d+)/g; // is replaced by:
-      const orLawH1Repl = "<a href=" + heinURL + ">$&</a>";
-      const heinURL2 =
-        "https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=$2&chapter=$1&sgo=Search&collection=ssl&search=go";
-      const orLawH2 = /(?:C|c)hapter\s(\d{1,4}),\sOregon\sLaws\s(\d{4})/g;
-      const orLawH2Repl = "<a href=" + heinURL2 + ">$&</a>";
-      html = html.replace(orLawH1, orLawH1Repl);
-      html = html.replace(orLawH2, orLawH2Repl);
-      resolve(html);
+    function heinLinks() {
+      infoCS("Building HeinOnline Links", 'orlink.js, "HeinLinks');
+      const heinURL = (
+        /** @type {string} */ year, 
+        /** @type {string} */ chapter
+      ) => {
+        return `https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=${year}&chapter=${chapter}&sgo=Search&collection=ssl&search=go`
+      }
+      html.replacerAll(
+        /((?:20|19)\d{2})\W*c\.\W*(\d+)/, 
+        `<a href="${heinURL('$1','$2')}" target="_blank">$&</a>`
+      );
+      html.replacerAll("(?:C|c)hapters(d{1,4}),sOregonsLawss(d{4})",
+      `<a href="${heinURL('$2','$1')}" target="_blank">$&</a>`);
+      resolve(html.aHtml); // send finished product back to mORS.js
     }
-    function OrLeg() {
+    function orLeg() {
+      infoCS("building OrLeg links", "orlink.js", "OrLeg");
+      // uses lookup to find url type by year
       /**
        * @param {string} years
        * @param {string} strFormat
        */
-      infoCS("building OrLeg links", "orlink.js", "OrLeg");
       function orLawReplacer(years, strFormat) {
-        let orLawSourceNote = new RegExp(years + orLawSourceNoteTail, "g");
-        let yearOrLawChp = new RegExp(yearOrLawChpHead + years, "g");
-        let orLawRepl = orLegURL + strFormat + urlTail;
-        html = html.replace(orLawSourceNote, orLawRepl);
-        html = html.replace(
-          yearOrLawChp,
-          orLawRepl.replace(/(\$1)([^]*?)(\$2)/, "$3$2$1")
-        );
+        const snRepl = `<a href="${strFormat}" target="_blank">$&</a>`; //wrap replacement url in href link
+        html.replacerAll(`(${years})\\W+c\\.\\W*(\\d{1,4})`, snRepl);
+        chapterYear: {
+          // figure out replacement string (order of chapter & year flipped, different calc for lookup values)
+          const chapLawsRepl = (() => {
+            if (ifRegExMatch(/\$1/, snRepl).length > 1) {
+              return snRepl.replace(
+                new RegExp(`(\\$1|${years})([^]*?)(\\$2)`, ""),
+                "$3$2$1"
+              );
+            } else {
+              return snRepl.replace(/\$2/, "$1"); // chapter is now 1st match group (year is already include)
+            }
+          })();
+          // figure out search string (different for special sessions)
+          //e.g. '2020 s.s.3, c.3' => 'chapter 3, Oregon Laws 2020 (third special sesssion)'
+          const chapLawsSearch = (() => {
+            if (/s\.s\./.test(years)) {
+              const year = parseInt(years);
+              const session = ifRegExMatch(/s\.s\.(\d)/, years, 0, 1);
+              const sessPos =
+                (session == "1" && "first") ||
+                (session == "2" && "second") ||
+                (session == "3" && "third");
+              return `(?:C|c)hapter\\s(\\d{1,4}),\\sOregon\\sLaws\\s${year}\\s\\(${sessPos} special session\\)`;
+            } else {
+              return `(?:C|c)hapter\\s(\\d{1,4}),\\sOregon\\sLaws\\s(${years})(?=[.,])`;
+            }
+          })();
+          html.replacerAll(chapLawsSearch, chapLawsRepl); // finally execute replacement
+        }
       }
-      function removeExtraZeros() {
-        const xtraZeros = /(aw|adv)\d+(\d{4})/g;
-        const xtraZerosRepl = "$1$2";
-        html = html.replace(xtraZeros, xtraZerosRepl);
-      }
-      // OrLeg MAIN:
-      const orLegURL =
-        '<a href="https://www.oregonlegislature.gov/bills_laws/lawsstatutes/';
-      const urlTail = '">$&</a>';
-      const orLawSourceNoteTail = "\\W+c\\.\\W*(\\d{1,4})";
-      const yearOrLawChpHead = "(?:C|c)hapter\\s(\\d{1,4}),\\sOregon\\sLaws\\s";
+      // build replacement text for recent years
       orLawReplacer(
-        "(202[\\d]|2019|2018|2017|2016|2015|2013)",
-        "$1orlaw000$2.pdf"
+        "(?:202[\\d]|2019|2018|2017|2016|2015|2013)",
+        "https://www.oregonlegislature.gov/bills_laws/lawsstatutes/$1orlaw000$2.pdf"
       );
-      orLawReplacer("(2011|2010|2009|2008|2007|1999)", "$1orlaw000$2.html");
-      orLawReplacer("(2003|2001)", "$1orlaw000$2ses.html");
-      orLawReplacer("(2014)", "$1R1orlaw000$2ses.html");
-      orLawReplacer("(2012)", "$1adv000$2ss.pdf");
-      orLawReplacer("(2006)", "$1orLaw000$2ss1.pdf");
-      orLawReplacer("(2005)", "$1orLaw000$2ses.html");
-      removeExtraZeros(); // Make sure chapter is padded to exactly 4 digits
-      resolve(html);
+      // replacement text for various years saved with same file name
+      orLawReplacer(
+        "(?:2011|2010|2009|2008|2007|1999)",
+        "https://www.oregonlegislature.gov/bills_laws/lawsstatutes/$1orlaw000$2.html"
+      ); // others looked up individually from background.js
+      let promiseGetAllLinks = [];
+      [
+        "2014",
+        "2012",
+        "2006",
+        "2005",
+        "2003",
+        "2001",
+        "2020 s.s.1",
+        "2020 s.s.2",
+        "2020 s.s.3",
+        "2021 s.s.1",
+        "2021 s.s.2",
+      ].forEach((aYear) => {
+        // use list to create promises (background msg & lookup is async)
+        promiseGetAllLinks.push(
+          new Promise((resolve, reject) => {
+            try {
+              sendAwaitResponse({
+                orLawObj: { year: aYear, chap: "$2", reader: "OrLeg" },
+              }).then((response) => {
+                // call back
+                resolve(orLawReplacer(aYear, response.response));
+              });
+            } catch (e) {
+              reject(e);
+            }
+          })
+        );
+      });
+      Promise.all(promiseGetAllLinks).then(() => {
+        // await background queries and match replacements (async), then...
+        html.replacerAll(/(aw|adv)s?0+(\d{4})/, "$1$2"); // remove extra zeros throughout document (pad to exactly 4 digits)
+        resolve(html.aHtml); // send finished product back to mORS.js
+      });
     }
     // OrLawLinking MAIN
     sendAwaitResponse("getOrLaw").then(
       (response) => {
         const orLaw = response.response;
         if (orLaw == "Hein") {
-          HeinLinks(); // replace with URL to HeinOnline search link through SOLL
+          heinLinks(); // replace with URL to HeinOnline search link through SOLL
         } else if (orLaw == "OrLeg") {
-          OrLeg(); // replace with URL to Or.Leg.
+          orLeg(); // replace with URL to Or.Leg.
         } else {
-          resolve(html);
+          resolve(html.aHtml);
         }
       },
       (e) => {

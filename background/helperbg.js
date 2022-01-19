@@ -15,7 +15,7 @@ const infoLog = (infoTxt, script, calledBy, color) => {
 };
 
 const warnLog = (warnTxt, script="bgloader.js", calledBy="", color="green") => {
-  console.info(
+  console.warn(
     `%c${script}%c:${calledBy} ${warnTxt}`,
     `color:${color}`,
     "color:default"

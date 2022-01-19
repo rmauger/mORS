@@ -103,6 +103,19 @@ a:hover {
   color: var(--heading);
   break-inside: avoid;
 }
+.tocSub, .tocTemp {
+  font-size: 11pt;
+  font-weight: normal;
+  text-align: center;
+  color: var(--subheading);
+  break-inside: avoid;
+}
+.tocSub {
+  font-style: normal;
+}
+.tocTemp {
+  font-style: italic;
+}
 .toc.default {
   color: var(--heading);
   padding-left: 20%;
@@ -126,9 +139,16 @@ a:hover {
 .tempHead {
   font: 13pt "Times New Roman", Times, serif;
   font-weight: bold;
-  text-align: left;
   color: var(--subheading);
   margin: 0.6em 0;
+}
+.tempHead {
+  text-align: center;
+  font-style: italic;
+}
+.leadline {
+  text-align: left;
+  font-style: normal;
 }
 .collapsible {
   cursor: pointer;

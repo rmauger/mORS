@@ -44,7 +44,7 @@ const ifRegExMatch = (
 ) => {
   const aRegExp = (() => {
     if (typeof searchFor == "string") {
-      return new RegExp(searchFor, "g");
+      return new RegExp(searchFor, ((index!=0) && "g"|| "")); // search for all only if index > 0
     } else {
       return searchFor;
     }
@@ -55,11 +55,16 @@ const ifRegExMatch = (
       const resultsList = initialText.match(aRegExp);
       if (resultsList.length > index) {
         const ans = initialText.match(aRegExp)[myIndex];
-        infoCS(
-          `Search for ${searchFor} at ${index}:${matchPos} returned ${ans.slice(0,300)}`,
-          "helper.js",
-          "ifRegExMatch"
-        );
+        if (typeof ans == "string") {
+          infoCS(
+            `Search for ${searchFor} at ${index}:${matchPos} returned ${ans.slice(0,300)}`,
+            "helper.js",
+            "ifRegExMatch"
+          )
+        } else {
+          console.log (ans)
+          console.log (aRegExp)
+        }
         return ans;
       }
     } else {
@@ -75,7 +80,7 @@ const ifRegExMatch = (
     }
   }
   warnCS(
-    `Search for ${searchFor} at [${index}:${matchPos} failed`,
+    `Search for ${searchFor} at ${index}:${matchPos} failed`,
     "helper.js",
     "ifRegExMatch"
   );

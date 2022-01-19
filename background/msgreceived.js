@@ -70,7 +70,7 @@
     } else if (received) {
         console.group("Unidentified message");
         warnLog(`Received unidentified message`);
-        warnLog(received);
+        console.warn(received);
         console.groupEnd();
         response(`Error: Received unidentified message ${received}`);
     }
