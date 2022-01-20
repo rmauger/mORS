@@ -16,10 +16,10 @@ function OrLawLinking(htmlTxt) {
         return `https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=${year}&chapter=${chapter}&sgo=Search&collection=ssl&search=go`
       }
       html.replacerAll(
-        /((?:20|19)\d{2})\W*c\.\W*(\d+)/, 
+        /((?:20|19)\d{2})\W*c\.\W*(\d+)/,
         `<a href="${heinURL('$1','$2')}" target="_blank">$&</a>`
       );
-      html.replacerAll("(?:C|c)hapters(d{1,4}),sOregonsLawss(d{4})",
+      html.replacerAll(/(?:C|c)hapter\s(\d{1,4}),\sOregon\sLaws\s(\d{4})/,
       `<a href="${heinURL('$2','$1')}" target="_blank">$&</a>`);
       resolve(html.aHtml); // send finished product back to mORS.js
     }

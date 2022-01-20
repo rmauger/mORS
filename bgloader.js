@@ -21,7 +21,7 @@ for (let i = 0; i < scriptList.length; i++) {
     importScripts(aScript);
     infoLog(`'${aScript}' successfully loaded.`);
   } catch (e) {
-    warnCS(`'${aScript}' loading error: ${e}`);
+    console.warn(`'${aScript}' loading error: ${e}`);
   }
 }
 console.groupEnd();

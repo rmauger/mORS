@@ -15,7 +15,7 @@ function orLawErrorCheck(yearStr, chpStr, reader) {
   if (isNaN(chapter)) {
     chapter = 1;
   }
-  infoLog(chapter)
+  infoLog(`Validating "${reader}:${year} c.${chapter}"`, 'orlaws.js', 'orLawErrorCheck')
   if ((year > 1859 && year < 2030) == false) {
     errMsg += "Oregon Laws volume must be a year after 1859.\n";
     // @ts-ignore
@@ -38,10 +38,11 @@ function orLawErrorCheck(yearStr, chpStr, reader) {
  * @param {string} chapter
  * @param {string} reader
  */
-function promiseGetOrLegUrl(year = "2021", chapter = "$1", reader = "OrLeg") {
+const promiseGetOrLegUrl = (year = "2019", chapter = "1", reader = "OrLeg") => {
   return new Promise((resolve, reject) => {
     const errorMessage = orLawErrorCheck(year, chapter, reader); // returns errors if Oregon Laws not available from redaer
     if (errorMessage.length > 1) {
+      warnLog(errorMessage, 'orlaws.js', 'promiseGetOrLegUrl')
       reject(errorMessage); // data not valid
     } else {
       try {
@@ -63,10 +64,15 @@ const heinUrl = (year, chapter) => {
 
 const orLegUrl = async (year, chapter) => {
   const orLawOrLegLookup = await promiseReadJsonFile("orLawLegLookup.json");
-  let orLawFileName = orLawOrLegLookup[year].replace(/~/, "000" + chapter);
-  orLawFileName = orLawFileName.replace(
-    /([^]*?\w)\d*(\d{4}(?:\.|\w)*)/,
-    "$1$2"
-  );
-  return `https://www.oregonlegislature.gov/bills_laws/lawsstatutes/${orLawFileName}`;
+  if (orLawOrLegLookup[year] !=undefined) {
+    let orLawFileName = orLawOrLegLookup[year].replace(/~/, "000" + chapter);
+    orLawFileName = orLawFileName.replace(
+      /([^]*?\w)\d*(\d{4}(?:\.|\w)*)/,
+      "$1$2"
+    );
+    return `https://www.oregonlegislature.gov/bills_laws/lawsstatutes/${orLawFileName}`;
+  } else {
+    warnLog(`Cannot find [${year}] in ORS lookup.`, 'orlaws.js', 'orLegUrl')
+    return ""
+  }
 };

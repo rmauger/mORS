@@ -40,7 +40,7 @@
           msgHandler(promiseReadJsonFile("cssObject.json"), response);
           break;
         default:
-          logOrWarn(
+          warnLog(
             `Received message "${received}"made no sense.`,
             "Invalid message to script; no response sent."
           );
@@ -57,7 +57,7 @@
           response
         );
       } catch (e) {
-        logOrWarn(e)
+        warnLog(e)
       }
     } else if (received.navToOrs) {
       newTabOrs(received["navToOrs"])

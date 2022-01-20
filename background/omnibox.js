@@ -4,44 +4,77 @@
  * @param {string} aUrl
  */
 
-const orsRegExp = /\b(\d{1,3}[A-C]?)(?:\.\d{3,4}|\b)/g;
+browser.omnibox.onInputEntered.addListener((omniText) => parseUrls(omniText));
 
-const newUrlTab = (aUrl) => browser.tabs.create({ url: aUrl });
+const orsRegExp = /\b(\d{1,3}[A-C]?)(?:\.\d{3,4})?/g;
+
+const newUrlTab = (/** @type {string} */ aUrl) => {
+  if (aUrl == "") aUrl = "https://github.com/rmauger/mORS/mORSerror.md";
+  infoLog(`Creating new tab for ${aUrl}`, "omnibox.js", "newUrlTab");
+  browser.tabs.create({ url: aUrl });
+};
 
 const newTabOrs = (/** @type {string} */ requestStr) => {
   const orsSearch = requestStr.toUpperCase();
   const orsList = orsSearch.match(orsRegExp);
   orsList.forEach((/** @type {string} */ orsSec) => {
     let urlBuild = orsSec.replace(orsRegExp, "00$1.html#$&");
-    urlBuild = urlBuild.replace(/\d{1,2}(\d{3}[A-C]?\.html)/, "$1");
+    urlBuild = urlBuild.replace(/0{1,2}(\d{3})/, "$1"); // trim any excess leading 0s to 3 digits
     newUrlTab(
       `https://www.oregonlegislature.gov/bills_laws/ors/ors${urlBuild}`
     );
   });
 };
 
-browser.omnibox.onInputEntered.addListener((omniText) => {
+const parseUrls = (omniText) => {
   async function getOrLaw() {
-    const year = omniText.match(/(19|20)\d{2}/)[0];
+    let reader = "";
+    // let year = "";
+    let readerArray = omniText.match(/(hein|or\s?\.?\s?leg)/i); // checks to see if reader specified in text
+    if (readerArray != null) {
+      reader = readerArray[0];
+    }
+    let year = omniText.match(
+      new RegExp(`${yearSearch}\\s?${specialSession}?`, "")
+    )[0]; // year (+ special session if any)
+    year = year.trim();
+    console.log(year);
+
+    year = year.replace(/\s*?s.?s.?\s?(\d)/, " s.s.$1"); // reformats various attempts at special session to work with lookup
     const chap = omniText.match(/\d{1,4}$/)[0];
+    if (reader == "") reader = await promiseGetFromStorage("lawsReaderStored"); // if user didn't request reader, use stored default
     try {
-      const reader = await promiseGetFromStorage("lawsReaderStored");
       const orsLawUrl = await promiseGetOrLegUrl(year, chap, reader);
-      newUrlTab(orsLawUrl);
+      if (orsLawUrl.length > 1) {
+        return orsLawUrl;
+      } else {
+        return "";
+      }
     } catch (e) {
-      logOrWarn(e, "Invalid OrLaw Request");
+      warnLog(e, "omnibox.js", "getOrLaw");
+      return;
     }
   }
-  const orlawRegExp =
-    /[^]*((?:19|20)\d{2})\s*?([/|&]|\s|c\.)\s*?(\d{1,4}$)[^]*/g;
+  // MAIN
+  const yearSearch = "((?:19|20)\\d{2})";
+  const specialSession = "(s.?s.?\\s?\\d\\s?)";
+  const orLawDivider = "(?:[/|&]|\\s|c\\.)";
+  const chapterSearch = "(\\d{1,4})";
+  const orlawRegExp = new RegExp(
+    `${yearSearch}\\s?${specialSession}?${orLawDivider}\\s?${chapterSearch}$[^]*`,
+    "g"
+  ); // special session is optional
+  infoLog(`Received ${omniText} from omnibar`, "omnibox.js", "parseUrls");
+  //console.log(orlawRegExp);
+  //console.log(omniText);
   if (orlawRegExp.test(omniText)) {
-    getOrLaw();
+    getOrLaw().then((/** @type {string} */ theUrl) => newUrlTab(theUrl));
     return;
   }
   if (orsRegExp.test(omniText)) {
     newTabOrs(omniText);
     return;
   }
-  logOrWarn(`Type 'mORS' + ORS '{chapter}' or '{section}' or '{year} c.{chapter#}\n
-    (E.g., '659A', '174.010', or '2015 c.614')`);
-});
+  warnLog(`Type ORS '{chapter}' or '{section}' or '{year} c.{chap#} or 'hein/orlaw '\n
+    (E.g., '659A', '174.010', '2015 c.614' or 'Hein 2020 s.s.3 c.3)`);
+};

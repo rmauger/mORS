@@ -17,12 +17,12 @@ function promiseGetFromStorage(objKey) {
           );
           resolve(storedObj[objKey]);
         } else {
-          logOrWarn("Unable to retrieve stored user preference");
+          warnLog("Unable to retrieve stored user preference");
           reject("Unable to retrieve stored user preference");
         }
       })
       .catch((e) => {
-        logOrWarn(`Error: ${e}`, "Storage Retrieval");
+        warnLog(`Error: ${e}`, "Storage Retrieval");
         reject(`Storage retrieval error. Error: ${e}`);
       });
   });
