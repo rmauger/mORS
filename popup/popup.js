@@ -1,25 +1,22 @@
 //popup.js
 //@ts-check
 
-//@ts-ignore
 let browser;
+/** Determine if Chrome or Firefox, based on manifest version */
 const getBrowserPopup = () => {
   try {
-    //@ts-ignore
+    //@ts-ignore (chrome undefined)
     let manifest = chrome.runtime.getManifest();
-    if (manifest.manifest_version == "3") {
-      return "chrome";
-    } else {
-      return "firefox";
-    }
+    return (manifest.manifest_version == "3" && "chrome") || "firefox";
   } catch (error) {
     return "firefox";
   }
 };
-
-const setPromiseStorage = (/** @type {string} */ browserName) => {
+/** Sets up sync setting based on browser
+ * @param browserName {string}  */
+const setPromiseStorage = (browserName) => {
   if (browserName == "chrome") {
-    return (keyAndValueObj) => {
+    return (/** @type {{}} */ keyAndValueObj) => {
       return new Promise((resolve, reject) => {
         infoPU(`storing: ${Object.keys(keyAndValueObj)}`);
         try {
@@ -32,7 +29,7 @@ const setPromiseStorage = (/** @type {string} */ browserName) => {
       });
     };
   } else {
-    return (keyAndValueObj) => {
+    return (/** @type {{}} */ keyAndValueObj) => {
       return new Promise((resolve) => {
         infoPU(`seeking: ${keyAndValueObj}`);
         resolve(browser.storage.sync.set(keyAndValueObj));
@@ -41,7 +38,10 @@ const setPromiseStorage = (/** @type {string} */ browserName) => {
   }
 };
 
-const setMsgResponse = (/** @type {string} */ browserName) => {
+/** Sets up sending messages based on browser
+ * @param browserName {string}
+ */
+const setMsgResponse = (browserName) => {
   if (browserName == "chrome") {
     return (messageObj) => {
       return new Promise((resolve, reject) => {
@@ -71,33 +71,35 @@ const promiseBGMessage = (requestMsg) => {
   return new Promise((resolve, reject) => {
     promiseMsgResponse({ message: requestMsg })
       .then((response) => {
-        //  infoPU(`Response to ${requestMsg} : ${response.response}`);
         resolve(response.response);
       })
       .catch((e) => {
         warnPU(requestMsg);
         warnPU(e);
         reject(
-          `Failed msg:{message: ${requestMsg}} to background.js. Error: ${e}`
+          `Failed msg:{message: ${requestMsg}} sent to background.js. ${e}`
         );
       });
   });
 };
 
-// Message passing to ORS tabs (no response requested)
+/** Message passing to ORS tabs (string only, no response requested)
+ * @param {string} message
+ */
 function sendMsgToOrsTabs(message) {
   promiseBGMessage("getOrsTabs")
     .then((response) => {
       const orsTabs = response;
       for (const aTab of orsTabs) {
         browser.tabs.sendMessage(aTab.id, { toMORS: message }); // no callback so chrome and firefox commands same
-        infoPU(`sent '${message}' to tab #${aTab.id}`);
+        infoPU(`Sent '${message}' to tab #${aTab.id}`, "sendMsgToOrsTabs");
       }
     })
     .catch((e) => warnPU(`getOrsTabs ${e}`));
 }
 
-//Retrieves list of options from background & puts it in userform
+/**Retrieves list of options from background (webresources.js) & puts it in userform
+ */
 function promiseRefreshOptions() {
   return new Promise((resolve, reject) => {
     promiseBGMessage("getCssObjectJson")
@@ -114,11 +116,13 @@ function promiseRefreshOptions() {
             cssDropDown.appendChild(newOption);
           }
         } catch (e) {
+          warnPU(`Error displaying css options: ${e}`, "promiseRefreshOptions");
           reject(`getCssObjectJson => ${e}`);
         }
         resolve(css);
       })
       .catch((e) => {
+        warnPU(`Error retrieving css options: ${e}`, "promiseRefreshOptions");
         reject(`promiseRefreshOptions ${e}`);
       });
   });
@@ -168,50 +172,28 @@ async function displayUserOptions() {
     warnPU(e);
   }
 }
-
-//setup event listeners for form dropdowns & buttons
+const userMsg=(text, color='default') => {
+  htmlMsgBox.innerHTML=`<span style='color:${color}'>${text}</span>`
+}
+/**setup event listeners for form dropdowns & buttons*/
 function addAllListeners() {
-  orsLaunchButton.addEventListener("click", () => {
+  launchButton.addEventListener("click", () => {
     //@ts-ignore (value exists)
-    infoPU(`launching ORS for '${orsSearch.value}`);
+    infoPU(`Search for '${orsSearch.value}`);
     //@ts-ignore (value exists)
     promiseBGMessage({ navToOrs: orsSearch.value });
   });
-  orLawsLaunchButton.addEventListener("click", async () => {
-    //@ts-ignore (value exists)
-    const orLawsYear = document.getElementById("orLawsYear").value;
-    //@ts-ignore (value exists)
-    const orLawsChp = document.getElementById("orLawsChapter").value;
-    try {
-      const orLawsReader = await promiseBGMessage("getOrLaw");
-      const orLawObj = {
-        year: orLawsYear,
-        chap: orLawsChp,
-        reader: orLawsReader,
-      };
-      const orLawUrl = await promiseBGMessage({ orLawObj });
-      if (/(oregonlegislature\.gov|heinonline)/.test(orLawUrl)) {
-        infoPU(
-          `Creating new tab for ${orLawUrl}`,
-          `orLawsLaunch.EventListener`
-        );
-        errorMsg.innerHTML = "";
-        browser.tabs.create({ url: orLawUrl }), 2000;
-      } else {
-        errorMsg.innerHTML = orLawUrl;
-      }
-    } catch (e) {
-      errorMsg.innerHTML = e;
-    }
-  });
+  helpButton.addEventListener("click", () => {
+    htmlMsgBox 
+  })
   colorOptions.addEventListener("click", () => {
     if (getBrowserPopup() == "chrome") {
       browser.tabs.create({
         url: browser.runtime.getURL(`/options/chrome/options.html`),
       });
     } else {
-      errorMsg.innerHTML =
-        "Custom colors don't work in firefox (as of 1/15/22)";
+      htmlMsgBox.innerHTML = 
+        "<span style='color:red'>Custom colors don't work in firefox (as of 1/15/22)</span>";
     }
   });
   cssDropDown.addEventListener("change", () => {
@@ -259,7 +241,10 @@ function addAllListeners() {
   collapseCheck.addEventListener("change", () => {
     //@ts-ignore (checked value exists)
     promiseStoreKey({ collapseDefaultStored: collapseCheck.checked })
-      .then(() => {}) // nothing changes immediately when initial collapse state is changed; only when ORS reloaded
+      .then(() => {
+        htmlMsgBox.innerHTML =
+          '"Collapse all" change will display only for new or reloaded ORS tabs';
+      })
       .catch((e) => {
         warnPU(`store collapse checkbox: ${e}`);
       });
@@ -268,7 +253,7 @@ function addAllListeners() {
     //@ts-ignore (checked value exists)
     promiseStoreKey({ showMenuStored: showMenuCheck.checked })
       .then(() => {
-        reloadORS(); // reload all the ORS tab using new state of menu
+        reloadORS(); // reload ORS tabs using new state of menu
       })
       .catch((e) => {
         warnPU(`store Menu checkbox: ${e}`);
@@ -276,7 +261,7 @@ function addAllListeners() {
   });
 }
 
-//reloading ORS tabs
+/**Send command to tabs displaying ORS to reload (after setting update)*/
 function reloadORS() {
   promiseBGMessage("getOrsTabs")
     .then((response) => {
@@ -290,8 +275,7 @@ function reloadORS() {
     });
 }
 
-// Info and error message handling (msg sent to background, logged to console)
-/**
+/** Info message handling (Log to service worker inspection)
  * @param {string} infoTxt
  * @param {string} [calledBy]
  */
@@ -313,7 +297,7 @@ function infoPU(infoTxt, calledBy) {
   });
 }
 
-/**
+/**  Warning message handling (Log to service worker inspection)
  * @param {string} warnTxt
  */
 function warnPU(warnTxt, calledBy) {
@@ -338,13 +322,13 @@ function warnPU(warnTxt, calledBy) {
 }
 
 // POPUP.js MAIN
-console.clear();
 
 // set variables to match elements on popup.html
-const errorMsg = document.getElementById("errorMsg");
-const orsSearch = document.getElementById("orsChapter");
-const orsLaunchButton = document.getElementById("chapterLaunch");
-const orLawsLaunchButton = document.getElementById("orLawsLaunch");
+const htmlMsgBox = document.getElementById("userMsg");
+const orsSearch = document.getElementById("mORSnavigate");
+const launchButton = document.getElementById("launchButton");
+const helpButton = document.getElementById("helpButton");
+const exampleButton = document.getElementById("exampleButton");
 const cssDropDown = document.getElementById("cssSelector");
 const colorOptions = document.getElementById("colorOptions");
 const orLawDropDown = document.getElementById("OrLaws");
@@ -352,16 +336,14 @@ const showBurntCheck = document.getElementById("showRSec");
 const showSNsCheck = document.getElementById("showSNote");
 const collapseCheck = document.getElementById("collapseDefault");
 const showMenuCheck = document.getElementById("showMenu");
-
 //@ts-ignore (chrome undefined)
 browser = chrome;
-
+console.clear();
 // set message response & storage sync set function based on browser
 const promiseMsgResponse = setMsgResponse(getBrowserPopup());
 const promiseStoreKey = setPromiseStorage(getBrowserPopup());
-
-// making sure ready to go first
+// then set up popup displays and functions
 Promise.all([promiseMsgResponse, promiseStoreKey]).then(() => {
-  addAllListeners(); // set up logic for buttons, dropdowns & checkboxes
   displayUserOptions(); // display saved info
+  addAllListeners(); // set up logic for buttons, dropdowns & checkboxes
 });

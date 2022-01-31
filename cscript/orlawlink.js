@@ -16,7 +16,7 @@ function OrLawLinking(htmlTxt) {
         return `https://heinonline-org.soll.idm.oclc.org/HOL/SSLSearchCitation?journal=ssor&yearhi=${year}&chapter=${chapter}&sgo=Search&collection=ssl&search=go`
       }
       html.replacerAll(
-        /((?:20|19)\d{2})\W*c\.\W*(\d+)/,
+        /((?:20|19)\d{2})(?:\W*s\.s\.\d)?\W*c\.\W*(\d+)/,
         `<a href="${heinURL('$1','$2')}" target="_blank">$&</a>`
       );
       html.replacerAll(/(?:C|c)hapter\s(\d{1,4}),\sOregon\sLaws\s(\d{4})/,
@@ -105,7 +105,7 @@ function OrLawLinking(htmlTxt) {
       });
       Promise.all(promiseGetAllLinks).then(() => {
         // await background queries and match replacements (async), then...
-        html.replacerAll(/(aw|adv)s?0+(\d{4})/, "$1$2"); // remove extra zeros throughout document (pad to exactly 4 digits)
+        html.replacerAll(/((?:aw|adv)s?)0+(\d{4})/, "$1$2"); // remove extra zeros throughout document (pad to exactly 4 digits)
         resolve(html.aHtml); // send finished product back to mORS.js
       });
     }

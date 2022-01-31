@@ -1,14 +1,45 @@
 //@ts-check
 
-/**
- * @param {string} aUrl
- */
-
-browser.omnibox.onInputEntered.addListener((omniText) => parseUrls(omniText));
+browser.omnibox.onInputEntered.addListener((omniText) => parseUrls(sanitize(omniText)));
 
 const orsRegExp = /\b(\d{1,3}[A-C]?)(?:\.\d{3,4})?/g;
 
-const newUrlTab = (/** @type {string} */ aUrl) => {
+/** removes characters other than letters, numbers, hyphen and period from omnibox input
+ * @param {string} omniText */ 
+const sanitize=(omniText) => {
+  return omniText.replace(/[\\\(\)\{\}\]\[\,\`\~\$\%\#\@\!\^\&\*\_\+\=\"\'\?\<\>\|]/g, '-') 
+}
+
+const parseUrls = (omniText) => {
+  async function getOrLaw() {
+    let reader = "";
+    // let year = "";
+    let readerArray = omniText.match(/(hein|or\s?\.?\s?leg)/i); // checks if reader specified in omnibox text
+    if (readerArray != null) {
+      reader = readerArray[0];
+    }
+    let year = omniText
+      .match(new RegExp(`${yearSearch}\\s?${specialSession}?`, ""))[0] // year (+ special session if any)
+      .trim();
+    year = year.replace(/\s*?s.?s.?\s?(\d)/, " s.s.$1"); // reformats various attempts at special session to work with lookup
+    const chap = omniText.match(/\d{1,4}$/)[0];
+    if (reader == "") reader = await promiseGetFromStorage("lawsReaderStored"); // if user didn't request reader, use stored default
+    try {
+      const orsLawUrl = await promiseGetOrLegUrl(year, chap, reader);
+      if (orsLawUrl.length > 1) {
+        return orsLawUrl;
+      } else {
+        return "";
+      }
+    } catch (e) {
+      warnLog(e, "omnibox.js", "getOrLaw");
+      return;
+    }
+  }
+
+/** creates new tab based on search
+ * @param {string} aUrl */
+ const newUrlTab = (aUrl) => {
   if (aUrl == "") aUrl = "https://github.com/rmauger/mORS/mORSerror.md";
   infoLog(`Creating new tab for ${aUrl}`, "omnibox.js", "newUrlTab");
   browser.tabs.create({ url: aUrl });
@@ -25,48 +56,16 @@ const newTabOrs = (/** @type {string} */ requestStr) => {
     );
   });
 };
-
-const parseUrls = (omniText) => {
-  async function getOrLaw() {
-    let reader = "";
-    // let year = "";
-    let readerArray = omniText.match(/(hein|or\s?\.?\s?leg)/i); // checks to see if reader specified in text
-    if (readerArray != null) {
-      reader = readerArray[0];
-    }
-    let year = omniText.match(
-      new RegExp(`${yearSearch}\\s?${specialSession}?`, "")
-    )[0]; // year (+ special session if any)
-    year = year.trim();
-    console.log(year);
-
-    year = year.replace(/\s*?s.?s.?\s?(\d)/, " s.s.$1"); // reformats various attempts at special session to work with lookup
-    const chap = omniText.match(/\d{1,4}$/)[0];
-    if (reader == "") reader = await promiseGetFromStorage("lawsReaderStored"); // if user didn't request reader, use stored default
-    try {
-      const orsLawUrl = await promiseGetOrLegUrl(year, chap, reader);
-      if (orsLawUrl.length > 1) {
-        return orsLawUrl;
-      } else {
-        return "";
-      }
-    } catch (e) {
-      warnLog(e, "omnibox.js", "getOrLaw");
-      return;
-    }
-  }
   // MAIN
   const yearSearch = "((?:19|20)\\d{2})";
   const specialSession = "(s.?s.?\\s?\\d\\s?)";
-  const orLawDivider = "(?:[/|&]|\\s|c\\.)";
+  const orLawDivider = "(?:[-\.]|\\s|c\\.)";
   const chapterSearch = "(\\d{1,4})";
   const orlawRegExp = new RegExp(
     `${yearSearch}\\s?${specialSession}?${orLawDivider}\\s?${chapterSearch}$[^]*`,
     "g"
   ); // special session is optional
-  infoLog(`Received ${omniText} from omnibar`, "omnibox.js", "parseUrls");
-  //console.log(orlawRegExp);
-  //console.log(omniText);
+  infoLog(`Received '${omniText}' from omnibar`, "omnibox.js", "parseUrls");
   if (orlawRegExp.test(omniText)) {
     getOrLaw().then((/** @type {string} */ theUrl) => newUrlTab(theUrl));
     return;

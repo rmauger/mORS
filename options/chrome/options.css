@@ -1,5 +1,5 @@
 /* options.css */
-
+/* TODO: #47 Eliminate this and import everything from css file (not just colors)*/
 :root {
   /* dark / background*/
   --background: #221;

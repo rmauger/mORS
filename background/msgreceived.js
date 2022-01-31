@@ -60,7 +60,7 @@
         warnLog(e)
       }
     } else if (received.navToOrs) {
-      newTabOrs(received["navToOrs"])
+      parseUrls(sanitize(received["navToOrs"]))
     }else if (received.info) {
       const infoMsg=received.info
       infoLog(infoMsg.txt, infoMsg.script, infoMsg.aCaller, infoMsg.color)
