@@ -1,3 +1,5 @@
+Uninstall existing version and 
+
 1. Load Extension.
 1. Inspect service worker:
     * Nine files successfully loaded
@@ -14,11 +16,11 @@
     * Dark theme
 1. Check Heading: 
     * Title: `Property Rights and Transactions`
-    * Chapter: `90: Residential Landlord and Tenant`
-    * Edition: `2021`
+    * Chapter: `Chapter 90: Residential Landlord and Tenant`
+    * Edition: `Oregon Revised Statutes (2021 Edition)`
 1. Check Table of Contents:
     * Two/three columns
-    * 12pt `MANUFACTURED DWELLING PARKS AND MARINAS`
+    * 12pt `MANUFACTURED DWELLING PARKS AND MARINAS` followed by:
     * 11pt `(General Provisions)`
     * 11pt ***Italic*** `(Temporary provisions relating to COVID-19)`
     * End of TOC div followed by `GENERAL PROVISIONS` div
@@ -52,8 +54,9 @@
         * Chapter xx, Oregon Laws YYYY link
     * Under Color scheme test "Custom", "Dark Grey" & "Light"
     * Select non-custom option and select `Set Custom Colors`
-    
-    * 
+    * Select a few colors and save.
+1. Repeat steps above in Firefox; then Edge.
+
         
 
     

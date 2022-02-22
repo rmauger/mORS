@@ -168,6 +168,8 @@ async function displayUserOptions() {
     collapseCheck.checked = storedData[4];
     // @ts-ignore (value exists)
     showMenuCheck.checked = storedData[5];
+    let manifest = browser.runtime.getManifest();
+    versionID.innerHTML = `v.${manifest.version}`      
   } catch (e) {
     warnPU(e);
   }
@@ -336,6 +338,7 @@ const showBurntCheck = document.getElementById("showRSec");
 const showSNsCheck = document.getElementById("showSNote");
 const collapseCheck = document.getElementById("collapseDefault");
 const showMenuCheck = document.getElementById("showMenu");
+const versionID = document.getElementById("version");
 //@ts-ignore (chrome undefined)
 browser = chrome;
 console.clear();

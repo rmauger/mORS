@@ -1,6 +1,7 @@
 //syncclean.js
 //@ts-check
 
+console.log("Hello World")
 function SyncReplaceText() {
   /** Strip existing html garbage (span syntex & msoClasses & existing divs & empty tags() */
   const htmlCleanup = () => {
@@ -162,7 +163,9 @@ function SyncReplaceText() {
       body.replacerAll(subheadFind, "#sclose#</div><div class=subhead><p class=subheadLabel>$1</p><div>") // wrap with div after #sclose tag
     }
     replaceTOCHeadings:{
-      body.replacerAll(tempHeadFind, '<p class=tocTemp>$1</p>');
+      console.log(tempHeadFind)
+      console.log(theTOC)
+      theTOC.replacerAll(tempHeadFind, '<p class=tocTemp>$1</p>');
       theTOC.replacerAll(headFind, "<p class=tocHeading>$1</p>"); // wrap with tocHeading div
       theTOC.replacerAll(subheadFind, "<p class=tocSub>$1</p>"); // wrap with tocSubheading div
     }

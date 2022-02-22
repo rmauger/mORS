@@ -38,6 +38,8 @@ Extension (Google Chrome/Firefox) that alters appearance of Oregon Revised Statu
 See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx)
 
 ## Updates:
+  ### Version 1.4.18 - 2/17/2022
+
   ### Version 1.4.17 - 1/31/2022
    * Various debugging & starting to create an error checking list for possible publication
 
@@ -128,4 +130,7 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
   * Omnibox does not yet work for special sessions
 
 ## Planned features/fixes:
-  * TODO: #42 Version for MS Edge
+  * TODO: #42 Verify functionality for MS Edge
+  * TODO: #49 Address issues with delayed repeal note sections. E.g., 403.415. #debug
+  * TODO: #48 Address issues with rsecs beginning of chapter, e.g., 458.005. #debug
+  
