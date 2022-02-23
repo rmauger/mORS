@@ -63,7 +63,7 @@ function SyncReplaceText() {
       // use to start collapsible section div with button in leadline:
       '</div><div class=section break="~"><button id="$1" class="collapsible"><p class=leadline>$1$2</p></button><p class=default>' 
     );
-  }
+  } 
   const createFormDivs = () => {
     const endFormCleanup = body.replacerAll(
       `(form[^]*?:)<\\/p>${tabs}<p[^>]*>_{78}<\\/p>`, // finds starts of form);

@@ -10,8 +10,8 @@ body {
 }
 div {
   display: block;
-  padding: 0.1em;
-  margin: 0.3rem 0;
+  padding: 0.1rem .3rem;
+  margin: 0.2rem 0;
 }
 p {
   font-family: Arial, sans-serif;
@@ -222,6 +222,10 @@ button:hover {
 }
 
 /* Section Subunits */
+.default {
+  margin-block: 0;
+}
+
 .subsec,
 .para,
 .subpara,
