@@ -1,7 +1,6 @@
 //syncclean.js
 //@ts-check
 
-console.log("Hello World")
 function SyncReplaceText() {
   /** Strip existing html garbage (span syntex & msoClasses & existing divs & empty tags() */
   const htmlCleanup = () => {
@@ -45,9 +44,8 @@ function SyncReplaceText() {
   }
   /** create & label new division for table of contents */
   const createTOC = () => {
-    const tocEndSearch= `(${para})([^]*?)(?=\\2<\\/p>|<p class=default><b>Note:)`
     body.replacerOne(
-      tocEndSearch, // Table of contents (ends with first repeated paragraph or first "Note:")
+      `(${para})([^]*?)(?=\\2<\\/p>|<p class=default><b>(Note:|${tabs}))`, // Table of contents (ends with first repeated paragraph, first "Note:" or first rsec)
       `<div id=toc><h1>Table of Contents</h1><div class=tocItems>\$1\$3</div></div>${tocBreak}` // replaced with new TOC div & end tagged "tocBreak"
     );
   };
@@ -163,8 +161,6 @@ function SyncReplaceText() {
       body.replacerAll(subheadFind, "#sclose#</div><div class=subhead><p class=subheadLabel>$1</p><div>") // wrap with div after #sclose tag
     }
     replaceTOCHeadings:{
-      console.log(tempHeadFind)
-      console.log(theTOC)
       theTOC.replacerAll(tempHeadFind, '<p class=tocTemp>$1</p>');
       theTOC.replacerAll(headFind, "<p class=tocHeading>$1</p>"); // wrap with tocHeading div
       theTOC.replacerAll(subheadFind, "<p class=tocSub>$1</p>"); // wrap with tocSubheading div
@@ -182,37 +178,20 @@ function SyncReplaceText() {
         body.replacerAll(subheadInForm, "$1<p class=default>$2"); // "subheadings" turned to default text
       }
     }
-    /** makes sure all headings & subheading divs close exactly once & no subheading w/o heading 
-     * by replacing #hclose & #sclose tags with appropriate number of closing divs */
-    headingDivs: {
-      const closeHeadTags = /(#hclose#|#sclose#)/;
-      let hCount = 0;
-      let divHeadClose="";
-      while (closeHeadTags.test(body.aHtml)) {
-        // checks second character for "h" or "s"
-        if (ifRegExMatch(closeHeadTags, body.aHtml)[1] == "s") {
-          // for new heading before second+ subheading - single div close (otherwise none)
-          divHeadClose = ((hCount==2) && "</div>"||"") 
-          hCount = 2; // state = after 1st subheading
-        } else {
-          // for new heading close after subheading close both; if after 1st just close heading; & if very first heading: none
-          divHeadClose = (((hCount==2) && "</div></div>"||(hCount==1)&& "</div>") || "") 
-          hCount = 1; // state = before 1st (if any) subheading; but after 1st heading
-        }
-        body.replacerOne(closeHeadTags, divHeadClose);
-      }
-    }
   }
   function notesRepl() {
     body.replacerAll(
-      "<p[^>]*>\\s?<b>" + tabs + "(Note(\\s\\d)?:\\s?<\\/b>[^]*?<\\/p>)", // Notes pargraphs ("Note:", "Note #:")
+      `<p[^>]*>\\s?<b>${tabs}(Note(\\s\\d)?:\\s?<\\/b>[^]*?<\\/p>)`, // Notes pargraphs ("Note:", "Note #:")
       "<div class=note><b>$1</div>" // Wrap in new bold note div
     );
+    const tempThing= `(s\\sconvenience.</p>)<\\/div>${tabs}<p[^>]*?><b>${tabs}(<a[^>]*?>[^]{5,8}<\\/a>)([^~]*?)<\\/b>([^~]*?)<div`
+    console.log(tempThing)
+    console.log(body.aHtml)
     body.replacerAll(
-      // Bold ORS links w/o leadline (i.e. note sections)
-      `<\\/div>${tabs}<p[^>]*?><b>${tabs}(<a[^>]*?>[\\S]{5,8}<\\/a>)\\.<\\/b>([^~]*?)<div`,
+      // Bold ORS links following div ending with "user's convenience" (i.e. note sections)
+      tempThing, 
       // Notify that it's note section; move <div> close to end
-      "<p class=default><b>Note section for ORS $1:</b></p><p class=default>$2</div><div"
+      "$1<p class=default><b>Note section for ORS $2:</b></p><p class=default><b>$2$3</b></p><p class=default>$4</div><div"
     );
     // running twice to deal with issue of neighboring temp sections ending w/ div that starts next
     for (let i = 0; i < 2; i++) {
@@ -249,6 +228,26 @@ function SyncReplaceText() {
       /<p class=default><b>[^>\[]*?<a[^>\[]+?>([^<\[]+?)\s?<\/a>\s?<\/b>\s?<p class=sourceNote>/, // source notes renumbered or repealed (rsecs)
       "</div><div class='burnt' id='$1'><b>$1:</b> " // wrap in div labeled as burnt
     );
+        /** makes sure all headings & subheading divs close exactly once & no subheading w/o heading 
+     * by replacing #hclose & #sclose tags with appropriate number of closing divs */
+    headingDivs: {
+    const closeHeadTags = /(#hclose#|#sclose#)/;
+    let hCount = 0;
+    let divHeadClose="";
+    while (closeHeadTags.test(body.aHtml)) {
+      // checks second character for "h" or "s"
+      if (ifRegExMatch(closeHeadTags, body.aHtml)[1] == "s") {
+        // for new heading before second+ subheading - single div close (otherwise none)
+        divHeadClose = ((hCount==2) && "</div>"||"") 
+        hCount = 2; // state = after 1st subheading
+      } else {
+        // for new heading close after subheading close both; if after 1st just close heading; & if very first heading: none
+        divHeadClose = (((hCount==2) && "</div></div>"||(hCount==1)&& "</div>") || "") 
+        hCount = 1; // state = before 1st (if any) subheading; but after 1st heading
+      }
+      body.replacerOne(closeHeadTags, divHeadClose);
+      }
+    }
   }
   // MAIN sync Clean
   // Global variables

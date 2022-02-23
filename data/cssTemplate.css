@@ -7,65 +7,112 @@ html {
 body {
   background-color: var(--background);
   color: var(--maintext);
-  margin-top: 60px;
+}
+div {
+  display: block;
+  padding: 0.1em;
+  margin: 0.3rem 0;
 }
 p {
-  padding: 2px;
-  margin: 0.3em 0;
-  font: 12pt Arial, sans-serif;
+  font-family: Arial, sans-serif;
 }
 .fixed {
   position: fixed;
-  top: 3px;
-  right: 10px;
+  bottom: 0.2rem;
+  right: 0.7rem;
+  padding: .1rem;
   width: max-content;
   text-align: right;
-  border: 3px solid var(--maintext);
+  border: 2px solid var(--maintext);
   background-color: var(--background);
-  padding: 2px;
 }
 .version {
-  font: 9pt "Times New Roman", Times, serif;
+  font: 12px "Times New Roman", Times, serif;
   margin: 0;
-  padding: 0;
 }
 
-/* Headings */
+/* MainHead */
+.mainhead {
+  border: 2px solid var(--heading);
+  background-color: var(--altBack);
+}
+
 h1 {
   color: var(--heading);
-  font: 24pt Garamond, serif;
+  font: 2rem Garamond, serif;
   font-weight: bold;
   text-align: center;
 }
 h2 {
   color: var(--heading);
-  font: 18pt Garamond, serif;
+  font: 1.8rem Garamond, serif;
   font-weight: bold;
   text-align: center;
 }
 h3 {
   color: var(--heading);
-  font: 16pt Garamond, serif;
+  font: 1.4rem Garamond, serif;
   text-align: center;
 }
-.heading {
-  padding: 4px;
-  margin: 2px;
+
+/* Table of contents */
+#toc {
   border: 2px solid var(--heading);
+  background-color: var(--altBack);
+}
+.toc {
+  break-inside: avoid;
+}
+.tocHeading, .tocSub, .tocTemp {
+  text-align: center;
+  break-inside: avoid;
+}
+.tocHeading {
+  font-size: 12pt;
+  font-weight: bold;
+  color: var(--heading);
+}
+.tocSub, .tocTemp {
+  font-size: 11pt;
+  font-weight: normal;
+  color: var(--subheading);
+}
+.tocSub {
+  font-style: normal;
+}
+.tocTemp {
+  font-style: italic;
+}
+.toc.default {
+  color: var(--heading);
+  padding-left: 20%;
+  text-indent: -25%;
+  font-size: 10pt;
+}
+.tocItems {
+  columns: 250px 3;
+  column-gap: 5%;
+}
+
+/* Headings in Body */
+.heading {
+    border: 2px solid var(--heading);
+    padding: .3rem;
+    margin: .2rem;
 }
 .headingLabel {
-  font: 14pt "Times New Roman", Times, serif;
+  font: 1.4rem "Times New Roman", Times, serif;
   font-weight: bold;
   text-align: center;
   color: var(--heading);
 }
 .subhead {
   border: 2px solid var(--subheading);
-  padding: 8px;
-  margin: 2px;
+  padding: .3rem;
+  margin: .2rem;
 }
 .subheadLabel {
-  font: 14pt "Times New Roman", Times, serif;
+  font: 1.2rem "Times New Roman", Times, serif;
   font-style: italic;
   color: var(--subheading);
   text-align: center;
@@ -86,46 +133,6 @@ a:visited,
 a:hover {
   background-color: var(--altBack);
 }
-/* Table of contents */
-#toc {
-  margin: 2px;
-  padding: 4px;
-  border: 2px solid var(--heading);
-  background-color: var(--altBack);
-}
-.toc {
-  break-inside: avoid;
-}
-.tocHeading {
-  font-size: 12pt;
-  font-weight: bold;
-  text-align: center;
-  color: var(--heading);
-  break-inside: avoid;
-}
-.tocSub, .tocTemp {
-  font-size: 11pt;
-  font-weight: normal;
-  text-align: center;
-  color: var(--subheading);
-  break-inside: avoid;
-}
-.tocSub {
-  font-style: normal;
-}
-.tocTemp {
-  font-style: italic;
-}
-.toc.default {
-  color: var(--heading);
-  padding-left: 20%;
-  text-indent: -25%;
-  font-size: 10pt;
-}
-.tocItems {
-  columns: 250px 3;
-  column-gap: 5%;
-}
 
 /* Sections & parts of sections */
 .section {
@@ -140,7 +147,7 @@ a:hover {
   font: 13pt "Times New Roman", Times, serif;
   font-weight: bold;
   color: var(--subheading);
-  margin: 0.6em 0;
+  margin: 6pt 0;
 }
 .tempHead {
   text-align: center;
@@ -192,22 +199,21 @@ button:hover {
 /* Source notes & notes */
 .sourceNote,
 .burnt {
-  margin: 0;
   color: var(--sourceNote);
-  font: 11pt "Times New Roman", Times, serif;
-  padding: 0.4em 0 0.4em 10%;
+  font: 14px "Times New Roman", Times, serif;
+  font-style: italic
 }
 .burnt {
-  text-indent: -1em;
+  background-color:var(--altBack);
+  color: var(--highContrast)
 }
 .note {
-  font: 10pt, "Times New Roman", Times, serif;
+  font: 16px "Times New Roman", Times, serif;
   max-width: 800px;
-  min-width: 300px;
-  width: 75%;
-  margin: 0 auto;
-  border: 2px solid var(--subheading);
-  padding: 6px;
+  margin-left: 12%;
+  margin-right: 12%;
+  color:var(--maintext);
+  font-style: normal;
   background-color: var(--altBack);
 }
 .hideMe {
@@ -221,21 +227,21 @@ button:hover {
 .subpara,
 .subsubpara,
 .subsubsubpara {
-  text-indent: -1em;
-  margin: 0.2em auto 0 auto;
+  text-indent: -1.5rem;
+  margin: 0.2rem auto 0 auto;
 }
 .subsec {
-  padding-left: 3%;
+  padding-left: 2rem;
 }
 .para {
-  padding-left: 4.5%;
+  padding-left: 4rem;
 }
 .subpara {
-  padding-left: 6%;
+  padding-left: 6rem;
 }
 .subsubpara {
-  padding-left: 7.5%;
+  padding-left: 8rem;
 }
 .subsubsubpara {
-  padding-left: 9%;
+  padding-left: 10rem;
 }

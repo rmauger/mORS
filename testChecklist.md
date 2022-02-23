@@ -4,6 +4,7 @@ Uninstall existing version and
 1. Inspect service worker:
     * Nine files successfully loaded
 1. Open popup
+    * Version (should match manifest & \README.md)
     * Display mode: Dark
     * Sess lookup: Ore. Leg.
     * Checkboxes: true, true, false, true
@@ -20,27 +21,38 @@ Uninstall existing version and
     * Edition: `Oregon Revised Statutes (2021 Edition)`
 1. Check Table of Contents:
     * Two/three columns
-    * 12pt `MANUFACTURED DWELLING PARKS AND MARINAS` followed by:
-    * 11pt `(General Provisions)`
-    * 11pt ***Italic*** `(Temporary provisions relating to COVID-19)`
-    * End of TOC div followed by `GENERAL PROVISIONS` div
-1. Check Main Body:
+    * (Begins) 12pt `GENERAL PROVISIONS`
+    * (followed by) 11pt `90.100 Definitions`
+    * (followed by) 11pt ***italic `(Temporary provisions relating to COVID-19...)`***
+    * (later) 12pt `MANUFACTURED DWELLING PARKS AND MARINAS` 
+    * (followed by:) 11pt not italic `(General Provisions)`
+    * (TOC ends with) `90.875 Remedy for failure to give notice`
+    * (followed by) End of div box; new div box starting `GENERAL PROVISIONS`
+1. (Detour) Navigate to ORS chapter 458 
+    * (TOC ends with)  `458.740 Project Facilitation` 
+    * (followed by) close div & rsecs for 458.005 through 458.065
+    * (followed by) new div COMMUNITY-BASED HOUSING DEVELOPMENT
+1. (Back in ORS 90) Check Main Body:
     * From TOC, click `90.425`
     * Hover, collapse & expand via heading button
     * Check ORS 90.425 (10) indentation levels
     * Check source note in text & click source note for `2001 c.44`; confirm navigation in new window
     * In Popup, turn on rsec; confirm 90.426 exists & formattting
-    * Scroll to 90.453
-    * Confirm form in 90.453 (3) - top, bottom & headings & lack of subheadings for parens
-    * Click 90.100 in form
-    * Scroll to (Temporary provisions following ORS 90.100)
+    * Scroll to 90.453 (3)
+    * Confirm form - top, bottom & headings & lack of subheadings for parens
+    * Click `90.100` in form
+    * Scroll down to ***Italic `(Temporary provisions following ORS 90.100)`***
     * Confirm 5 separate, nonoverlapping note secions
     * In first note section, click `chapter 13, Oregon Laws 2020 (first special session)` confirm navigation in separate window
     * Click note for 2020 s.s.3 c.3, confirm navigation in separate window
+        * Close window
     * Scroll to ORS 90.394, confirm note section follows & ends before ORS 90.396
-    * Click on link to 105.105 confirm navigation & scroll in separate window
-    * Confirm indents for 90.510 (1)(L) (L is paragraph) and 90.643 (3)(b)(L) (L is subparagraph)
+    * Click on link to 105.105 confirm navigation & scroll to section in separate window
+        * Close window
+    * Confirm indentation for 90.510 (1)(L) (L is paragraph) and 90.643 (3)(b)(L) (L is subparagraph)
     * Check mend line at end
+1. (Detour) Navigate to ORS 403.415.
+    * Check to see if delayed repeal note fits box
 1. Go back to popup:
     * Turn source note off confirm they disappear from  page
     * Turn rsec off & back on & confirm that it works on page
