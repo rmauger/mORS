@@ -57,7 +57,7 @@
           response
         );
       } catch (e) {
-        warnLog(e)
+        warnLog(e, "msgreceived.js")
       }
     } else if (received.navToOrs) {
       parseUrls(sanitize(received["navToOrs"]))
@@ -66,13 +66,14 @@
       infoLog(infoMsg.txt, infoMsg.script, infoMsg.aCaller, infoMsg.color)
     } else if (received.warn) {
       const warnMsg=received.warn
-      warnLog(warnMsg.script, warnMsg.aCaller, warnMsg.txt, "yellow");
+      warnLog(warnMsg.txt, warnMsg.script, warnMsg.aCaller, "yellow");
     } else if (received) {
-        console.group("Unidentified message");
-        warnLog(`Received unidentified message`);
-        console.warn(received);
-        console.groupEnd();
-        response(`Error: Received unidentified message ${received}`);
+        let receivedString = received
+        if (typeof receivedString!="string") {
+          receivedString=JSON.stringify(receivedString)
+        }
+        warnLog((`Received unidentified message: ${receivedString}`), "msgreceived.js");
+        response(`Error: Received unidentified message ${receivedString}`);
     }
     return true;
   });

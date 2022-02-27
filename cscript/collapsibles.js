@@ -2,54 +2,41 @@
 //CHROME = FIREFOX
 //@ts-check
 
-// Collapses all ORS sections to button height
-function collapseAllSections() {
-  const collapsibles = document.getElementsByClassName("collapsible");
-  let collapseObjHeightList = [];
-  for (let i = 0; i < collapsibles.length; i++) {
-    const buttonElement = collapsibles[i];
-    collapseObjHeightList.push(findCollapseHeight(buttonElement));
-  }
-  for (let i = collapsibles.length - 1; i >= 0; i--) {
-    collapseSingle(collapseObjHeightList[i]);
-  }
-}
-/** returns object (HTML elements & their collapsed heights) (just one element, but may edit later)
- * @param {Element} buttonElement
+/**
+ * collapses single ORS section
+ * @param {Element} collapseElem
  */
-function findCollapseHeight(buttonElement) {
-  const thisElement = buttonElement.parentElement;
-  const thisHeight = `${buttonElement.scrollHeight}px`;
-  buttonElement.classList.remove("expanded");
-  return { anElement: thisElement, height: thisHeight };
-}
-/** collapses single ORS section
- * @param {{ anElement: HTMLElement; height: any; }} collapseObj
- */
-function collapseSingle(collapseObj) {
-  if (!collapseObj) {
-    warnCS("No button found in object!?", "collapseSingle");
+ function collapseSingle(collapseElem) {
+  if (!collapseElem) {
+    warnCS("No collapsible found?", "collapsibles.js", "collapseSingle");
   } else {
-    collapseObj.anElement.style.maxHeight = collapseObj.height;
+    collapseElem.style.maxHeight = "0px";
+    collapseElem.previousSibling.classList.remove("expanded")
   }
 }
 /** expands single ORS section
- * @param {Element} buttonElement
+ * @param {Element} collapseElem
  */
-function expandSingle(buttonElement) {
-  if (buttonElement) {
-    if (buttonElement.classList.contains("collapsible")) {
-      const sectionDiv = buttonElement.parentElement;
-      buttonElement.classList.add("expanded");
-      sectionDiv.style.maxHeight = "none";
+function expandSingle(collapseElem) {
+  if (collapseElem) {
+    if (collapseElem.classList.contains("collapsible")) {
+      collapseElem.previousSibling.classList.add("expanded");
+      collapseElem.style.maxHeight = "none";
     } else {
       warnCS(
-        `Target ${buttonElement.innerHTML} is not an expanded section`,
-        'collapsibles.js'
+        `Target ${collapseElem.innerHTML} is not an expanded section`,
+        "collapsibles.js"
       );
     }
-  } else {
-    warnCS("No button element found.", "collapslibles.js");
+  } else warnCS("No button element found.", "collapslibles.js");
+}
+
+
+// Collapses all ORS sections to 0 height
+function collapseAllSections() {
+  const collapsibles = document.getElementsByClassName("collapsible");
+  for (let i = collapsibles.length - 1; i >= 0; i--) {
+    collapseSingle(collapsibles[i]);
   }
 }
 // Expands all ORS sections to full height

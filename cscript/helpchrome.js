@@ -19,18 +19,18 @@ const sendAwaitResponse = (messageItem) => {
     }
   });
 }
-
+/** Loads in CSS style sheet from \data folder */
 const createStyleSheet =() => {
   window.addEventListener("load", () => {
     infoCS("loading CSS", 'helpchrome.js', 'createStyleSheet')
-    styleSheetCreate();
+    styleSheetCreate(); // stylesheet.js
   });
 }
 
 const startUp = () => {
   window.addEventListener("load", () => {
     infoCS("html loaded; running script", 'helpchrome.js', 'startup')
-    runMain();
+    runMain(); // mORS.js
   });
 }
 

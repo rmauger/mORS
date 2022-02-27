@@ -2,7 +2,8 @@
 //FIREFOX=CHROME
 //@ts-check
 
-function listenToPopup() {
+/**Receives information sent from popup.js - no response given */
+const listenToPopup = () => {
   //@ts-ignore
   browser.runtime.onMessage.addListener((msg, _sender, _reponse) => {
     const msgText = msg.toMORS;
@@ -32,41 +33,6 @@ function listenToPopup() {
   });
 }
 
-function windowResizeEvent() {
-  const resizeSectionDivs = () => {
-    try {
-      //@ts-ignore
-      const sectionList = document.body.getElementsByClassName("section");
-      let maxHeightList = [];
-      for (let i = 0; i < sectionList.length; i++) {
-        const aSection = sectionList[i];
-        //@ts-ignore
-        if (aSection.style.maxHeight != "none") {
-          maxHeightList.push(`${aSection.firstElementChild.scrollHeight}px`);
-          //@ts-ignore
-        } else maxHeightList.push("none");
-      }
-      for (let j = sectionList.length - 1; j >= 0; j--) {
-        //@ts-ignore
-        sectionList[j].style.maxHeight = maxHeightList[j];
-      }
-      infoCS(
-        "Resized section title boxes",
-        'addlisteners.js',
-        "resizedFinished");
-    } catch (error) {
-      warnCS(`Error in Resizing collapsed divs: ${error}`, "addlisteners.js");
-    }
-  };
-
- let resizedFinished;
-  window.addEventListener("resize", () => {
-    clearTimeout(resizedFinished);
-    resizedFinished = setTimeout(resizeSectionDivs, 500); // waits 1/2 sec after resize ends to execute
-  });
-}
-
-//MAIN ADD LISTENERS:
-windowResizeEvent();
-createStyleSheet() // on helperchrome.js or helperfox.js
+//MAIN ADD LISTENERS (button listeners in javadom.js):
+createStyleSheet() // on helpchrome.js or helperfox.js
 listenToPopup();

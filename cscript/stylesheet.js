@@ -1,5 +1,4 @@
 //stylesheet.js
-//CHROME = FIREFOX
 //@ts-check
 
 const htmlStyleSheet = document.head.getElementsByTagName("style")[0];

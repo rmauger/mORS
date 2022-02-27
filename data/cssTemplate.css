@@ -10,11 +10,13 @@ body {
 }
 div {
   display: block;
-  padding: 0.1rem .3rem;
-  margin: 0.2rem 0;
+  padding: 0.1rem 0.3rem;
+  margin-block: 0.2rem;
+  /* border: 1pt dotted red; */
 }
 p {
   font-family: Arial, sans-serif;
+  margin-block: 0.2rem;
 }
 .fixed {
   position: fixed;
@@ -35,6 +37,9 @@ p {
 .mainhead {
   border: 2px solid var(--heading);
   background-color: var(--altBack);
+  width: max-content;
+  padding: .5rem 3rem;
+  margin: auto;
 }
 
 h1 {
@@ -94,28 +99,35 @@ h3 {
   column-gap: 5%;
 }
 
+/* Main Content */
+#main {
+  max-width:85ch;
+  margin:auto;
+}
+
 /* Headings in Body */
-.heading {
-    border: 2px solid var(--heading);
-    padding: .3rem;
-    margin: .2rem;
+.headingLabel, .subheadLabel {
+  text-align: center;
+  position:sticky;
+  top:0pt;
+  padding: 0.5em;
+  background-color: var(--background);
 }
 .headingLabel {
   font: 1.4rem "Times New Roman", Times, serif;
   font-weight: bold;
-  text-align: center;
   color: var(--heading);
-}
-.subhead {
-  border: 2px solid var(--subheading);
-  padding: .3rem;
-  margin: .2rem;
 }
 .subheadLabel {
   font: 1.2rem "Times New Roman", Times, serif;
   font-style: italic;
   color: var(--subheading);
-  text-align: center;
+}
+.heading {
+    border: 2px solid var(--heading);
+}
+.subhead {
+  border: 2px solid var(--subheading);
 }
 
 /* Hyperlinks */
@@ -135,19 +147,12 @@ a:hover {
 }
 
 /* Sections & parts of sections */
-.section {
-  margin: 0;
-  padding: 2px 2px;
-  display: block;
-  overflow: hidden;
-  transition: max-height 0.25s ease-out;
-}
 .leadline,
 .tempHead {
   font: 13pt "Times New Roman", Times, serif;
   font-weight: bold;
   color: var(--subheading);
-  margin: 6pt 0;
+  margin: 0.3rem 0;
 }
 .tempHead {
   text-align: center;
@@ -157,30 +162,33 @@ a:hover {
   text-align: left;
   font-style: normal;
 }
-.collapsible {
-  cursor: pointer;
-  background-color: var(--buttonColor);
-  width: 100%;
-  border: none;
+.tempSec {
+  border: 2px solid var(--subheading);
 }
-.expanded {
-  background-color: var(--altBack);
-}
+
+/* Button Components */
 button {
-  color: var(--maintext);
   background-color: var(--buttonColor);
+  color:var(--maintext);
+  cursor: pointer;
 }
-.collapsible:hover,
 button:hover {
   background-color: var(--buttonHover);
 }
-:target {
-  color: var(--highContrast) !important;
+.collapser{
+  width: 100%;
+  border: none;
+  scroll-margin: 49px 0px 0px 0px;
 }
-.tempSec {
-  border: 2px solid var(--subheading);
-  margin: 0 2px;
-  padding: 0 2px;
+.collapsible {
+  /* margin: 0;
+  padding: 0; */
+  display: block;
+  overflow: hidden;
+  transition: max-height 0.5s ease-out;
+}
+.expanded {
+  background-color: var(--altBack);
 }
 
 /* Forms */
@@ -197,21 +205,19 @@ button:hover {
 }
 
 /* Source notes & notes */
-.sourceNote,
-.burnt {
+.sourceNote, .burnt {
   color: var(--sourceNote);
-  font: 14px "Times New Roman", Times, serif;
+  font: 15px "Times New Roman", Times, serif;
   font-style: italic
 }
 .burnt {
-  background-color:var(--altBack);
   color: var(--highContrast)
 }
 .note {
   font: 16px "Times New Roman", Times, serif;
-  max-width: 800px;
-  margin-left: 12%;
-  margin-right: 12%;
+  margin-left: 15%;
+  margin-right: 15%;
+  border: 2px solid var(--highContrast); 
   color:var(--maintext);
   font-style: normal;
   background-color: var(--altBack);
