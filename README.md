@@ -43,8 +43,10 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 
 ## Updates
 
-### Version 1.5.0 - 2/17/2022
+### Version 1.5.0 - 2/28/2022
 
+
+### Version 1.4.18 - 2/25/2022
 * Fixed burnt sections at beginning of chapter interfering with TOC (#48)
 * Made headings sticky to page
 * Redid collapsing/expanding of sections and links
