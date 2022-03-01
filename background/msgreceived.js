@@ -15,6 +15,9 @@
         case "getShowBurnt":
           msgHandler(promiseGetFromStorage("showBurntStored"), response);
           break;
+        case "getFullWidth":
+          msgHandler(promiseGetFromStorage("showFullWidth"), response);
+          break;
         case "getShowMenu":
           msgHandler(promiseGetFromStorage("showMenuStored"), response);
           break;

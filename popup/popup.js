@@ -240,12 +240,19 @@ function addAllListeners() {
         warnPU(`store source note checkbox: ${e}`);
       });
   });
+  showFWCheck.addEventListener("change", ()=> {
+    //@ts-ignore (checked value exists)
+    promiseStoreKey({ showFullWidth: showFWCheck.checked})
+    .then (() => {
+      htmlMsgBox.innerHTML = '"Full Width" changes will only display on new or reloaded tabs'
+    })
+  })
   collapseCheck.addEventListener("change", () => {
     //@ts-ignore (checked value exists)
     promiseStoreKey({ collapseDefaultStored: collapseCheck.checked })
       .then(() => {
         htmlMsgBox.innerHTML =
-          '"Collapse all" change will display only for new or reloaded ORS tabs';
+          '"Collapse all" changes will only display on new or reloaded tabs';
       })
       .catch((e) => {
         warnPU(`store collapse checkbox: ${e}`);
@@ -336,6 +343,7 @@ const colorOptions = document.getElementById("colorOptions");
 const orLawDropDown = document.getElementById("OrLaws");
 const showBurntCheck = document.getElementById("showRSec");
 const showSNsCheck = document.getElementById("showSNote");
+const showFWCheck = document.getElementById("showFullWidth")
 const collapseCheck = document.getElementById("collapseDefault");
 const showMenuCheck = document.getElementById("showMenu");
 const versionID = document.getElementById("version");

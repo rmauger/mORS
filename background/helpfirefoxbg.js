@@ -24,6 +24,7 @@ browser.management.onInstalled.addListener((details) => {
       { collapseDefaultStored: false },
       { showSNsStored: true },
       { showBurntStored: true },
+      { showFullWidth: false},
       { showMenuCheck: true },
     ]);
     browser.management.onInstalled.removeListener(details);

@@ -28,30 +28,27 @@ function javaDOM() {
     for (let i = 0; i < orsLinkList.length; i++) {
       const aLink = orsLinkList[i];
       const buttonElement = document.getElementById(aLink.innerHTML);
-      var collapsibleElement;
       if (buttonElement) {
         if (buttonElement.nextElementSibling) {
-          collapsibleElement = buttonElement.nextElementSibling;
-          if (collapsibleElement) {
-            if (collapsibleElement.classList.contains("collapsible")) {
-              aLink.addEventListener("click", () => {
-                expandSingle(collapsibleElement);
-              });
-            } else {
-              warnCS(
-                `target element of link to ${aLink.innerHTML}' has sibling that is not collapsible ${collapsibleElement.tagName}`,
-                "javadom.js",
-                "buildOrsLinkButton()"
-              );
-            }
+          const collapsibleElement = buttonElement.nextElementSibling;
+          if (collapsibleElement.classList.contains("collapsible")) {
+            aLink.addEventListener("click", () => {
+              infoCS(`scrolling to ${aLink.innerHTML}`);
+              expandSingle(collapsibleElement);
+            });
+            infoCS(
+              `${aLink.innerHTML}/${collapsibleElement.innerHTML.slice(0, 80)}`,
+              "syncclean.js",
+              "buildOrsLinkButton"
+            );
           } else {
             warnCS(
-              `Internal link to ORS ${aLink.innerHTML} may fail; ID not found.`,
-              `javaDOM.js`,
-              "buildORSLinkButton()"
+              `target element of link to ${aLink.innerHTML}' has sibling that is not collapsible ${collapsibleElement.tagName}`,
+              "javadom.js",
+              "buildOrsLinkButton()"
             );
           }
-        } else {          
+        } else {
           warnCS(
             `target element of link to ${aLink.innerHTML} lacks sibling to collapse`,
             "javadom.js",
@@ -94,6 +91,13 @@ function javaDOM() {
       menuPanel.appendChild(collapseAllButton);
       collapseAllButton.addEventListener("click", () => collapseAllSections());
     }
+    function addFullWidthButton() {
+      let fullWidthButton = document.createElement("button");
+      fullWidthButton.id = "fullWidth"
+      fullWidthButton.innerHTML="Full Width";
+      menuPanel.appendChild(fullWidthButton);
+      fullWidthButton.addEventListener("click", toggleFullWidth);
+    }
     // BuildFloatingMenuDiv MAIN
     let menuPanel = document.createElement("div");
     //@ts-ignore
@@ -102,6 +106,7 @@ function javaDOM() {
         addMenuBody();
         addExpandAllButton();
         addCollapseAllButton();
+        addFullWidthButton();
         document.body.appendChild(menuPanel);
       }
     });

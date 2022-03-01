@@ -107,6 +107,21 @@ const doShowSourceNotes = (doShow) => {
     note.classList.add(!doShow && "hideMe");
   }
 };
+/** toggle Full Width of ORS display*/
+const toggleFullWidth = () => {
+  const docStyle=document.documentElement.style
+  const fwButtonLabel=document.getElementById('fullWidth')
+  console.log(fwButtonLabel.innerText)
+  if (fwButtonLabel.innerText=="Full Width") {
+    infoCS("Turning on Full Width")
+    docStyle.setProperty('--SectionWidth', "100%")
+    fwButtonLabel.innerText="Reading Mode";
+  } else {
+    docStyle.setProperty('--SectionWidth', "85ch")
+    fwButtonLabel.innerText="Full Width";
+    infoCS("Turning off Full Width")
+  }
+}
 /** Toggles display of source notes when changed in popup or burnt (rsec) sections
  * @param {boolean} doShow */
 const doShowRSecs = (doShow) => {

@@ -24,6 +24,7 @@ browser.runtime.onInstalled.addListener((details) => {
         lawsReaderStored: "OrLeg",
         showBurntStored: true,
         showSNsStored: true,
+        showFullWidth: false,
         collapseDefaultStored: false,
         showMenuStored: true,
         userColors : {

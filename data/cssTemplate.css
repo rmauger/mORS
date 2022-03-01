@@ -1,6 +1,9 @@
 :root { 
   --temp:#000;
 }
+:root {
+  --SectionWidth:85ch
+}
 html {
   scroll-behavior: smooth;
 }
@@ -101,7 +104,7 @@ h3 {
 
 /* Main Content */
 #main {
-  max-width:85ch;
+  max-width:var(--SectionWidth);
   margin:auto;
 }
 

@@ -38,8 +38,16 @@ const implementUserParameters = () => {
       doShowSourceNotes(doShow); //helper.js
     });
   }
+  function getFullWidth() {
+    sendAwaitResponse("getFullWidth").then((response)=>{
+      const fullWidth = response.response;
+      infoCS(`Full Width=${fullWidth}`, "storeddata.js", "getFullWidth")
+      if (fullWidth) toggleFullWidth() //helper.js
+    })
+  }
   // MAIN Implement User Parameters
   getCollapsed();
   getShowRSec();
   getShowSNs();
+  getFullWidth();
 };

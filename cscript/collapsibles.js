@@ -20,12 +20,14 @@
 function expandSingle(collapseElem) {
   if (collapseElem) {
     if (collapseElem.classList.contains("collapsible")) {
+      infoCS(`Uncollapsing ${collapseElem.innerHTML.slice(0,90)}`, "collapsibles.js", "expandSingle")
       collapseElem.previousSibling.classList.add("expanded");
       collapseElem.style.maxHeight = "none";
     } else {
       warnCS(
         `Target ${collapseElem.innerHTML} is not an expanded section`,
-        "collapsibles.js"
+        "collapsibles.js", 
+        "expandSingle"
       );
     }
   } else warnCS("No button element found.", "collapslibles.js");

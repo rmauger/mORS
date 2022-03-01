@@ -55,9 +55,10 @@
     * Click on link to 105.105 confirm navigation & scroll to section in separate window
         * Close window
     * Confirm indentation for 90.510 (1)(L) (L is paragraph) and 90.643 (3)(b)(L) (L is subparagraph)
-    * Check mend line at end
-1. (Detour) Navigate to ORS 403.415 and 458.380.
+    * Check mend line at end (followed by close of both heading & subheading divs)
+1. (Detour) Navigate to ORS 403.415.
     * Check display of delayed repeal note
+    * Scroll down to check 403.435 as well (doesn't have period after section number)
     * Close
 1. Go back to popup:
     * Turn source note off confirm they disappear from  page
