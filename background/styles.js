@@ -11,7 +11,7 @@ const promiseGenerateCss = () => {
           'style.js',
           'promiseGenerateCss');
         if (userCss == "Custom") {
-          cssOptions = await promiseGetFromStorage("userColors"); // get css from sync
+          cssOptions = await promiseGetFromStorage("userColors"); // get css from synced user data
         } else {
           cssOptions = (await promiseReadJsonFile("cssObject.json"))[userCss]; // get css from json
         }

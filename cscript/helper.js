@@ -39,7 +39,8 @@ const wordObj = (aHtml = "") => {
   };
 };
 
-/** Searches for 'searchFor' in the 'initialText' and returns 'index'th place result; and can accept matchPos from RegExp
+/** Searches for 'searchFor' in the 'initialText' and returns 'index'th place result; and can accept matchPos from RegExp for multiple regEx groups.
+ * Example 'ifRegExMatch(/(a)(\d)/, "a3ba9ca2a8", 2, 1) => '2' (second parentheses of third 'a#' result counting from 0)
  * @param {string | RegExp} searchFor,
  * @param {string} initialText
  * @param {number} index 
@@ -69,8 +70,8 @@ const ifRegExMatch = (searchFor, initialText, index=0, matchPos=0) => {
             "ifRegExMatch"
           );
         } else {
-          console.log(ans);
-          console.log(aRegExp);
+          
+
         }
         return ans;
       }
@@ -111,7 +112,6 @@ const doShowSourceNotes = (doShow) => {
 const toggleFullWidth = () => {
   const docStyle=document.documentElement.style
   const fwButtonLabel=document.getElementById('fullWidth')
-  console.log(fwButtonLabel.innerText)
   if (fwButtonLabel.innerText=="Full Width") {
     infoCS("Turning on Full Width")
     docStyle.setProperty('--SectionWidth', "100%")
@@ -125,11 +125,13 @@ const toggleFullWidth = () => {
 /** Toggles display of source notes when changed in popup or burnt (rsec) sections
  * @param {boolean} doShow */
 const doShowRSecs = (doShow) => {
-  const rSecList = document.getElementsByClassName("burnt");
-  for (let i = 0; i < rSecList.length; i++) {
-    const note = rSecList[i];
-    note.classList.remove("hideMe");
-    note.classList.add(!doShow && "hideMe");
+  const docStyle=document.documentElement.style
+  if (doShow) {
+    docStyle.setProperty('--burntPos', "static")
+    docStyle.setProperty('--burntLeft', "inherit")
+  } else {
+    docStyle.setProperty('--burntPos', "absolute")
+    docStyle.setProperty('--burntLeft', "-9999px")
   }
 };
 

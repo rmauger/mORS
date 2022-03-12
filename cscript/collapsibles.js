@@ -20,7 +20,6 @@
 function expandSingle(collapseElem) {
   if (collapseElem) {
     if (collapseElem.classList.contains("collapsible")) {
-      infoCS(`Uncollapsing ${collapseElem.innerHTML.slice(0,90)}`, "collapsibles.js", "expandSingle")
       collapseElem.previousSibling.classList.add("expanded");
       collapseElem.style.maxHeight = "none";
     } else {

@@ -7,14 +7,14 @@
 1. Open popup
     * Version (should match manifest & \README.md)
     * Display mode: Dark
-    * Sess lookup: Ore. Leg.
-    * Checkboxes: true, true, false, true
+    * Session lookup: Ore. Leg.
+    * Checkboxes: true, true, false, false, true
 1. Inspect service worker:
     * No errors
     * Six calls returned from background
-    * Sucessful webresources call
+    * Successful webResources call
 1. Chapter/section input `90` -> `Launch`
-    * Popup in upper right
+    * Popup in lower right
     * Dark theme
 1. Inspect service worker:
     * No errors (other than warnings on failed searches)
@@ -34,41 +34,59 @@
     * (followed by) End of div box; new div box starting `GENERAL PROVISIONS`
 1. (Detour) Navigate to ORS chapter 458
     * (TOC ends with)  `458.740 Project Facilitation`
-    * (followed by) close div & rsecs for 458.005 through 458.065
+    * (followed by) close div & rsec for 458.005 through 458.065
     * (followed by) new div COMMUNITY-BASED HOUSING DEVELOPMENT
-    * Close window
+    * Close tab
 1. (Back in ORS 90) Check Main Body:
     * From TOC, click `90.425`
+    * Top Heading `LANDLORD REMEDIES`
     * Hover, collapse & expand via heading button
+    * Toggle full width/reading mode from hovered button
     * Check ORS 90.425 (10) indentation levels
-    * Check source note in text & click source note for `2001 c.44`; confirm navigation in new window
-    * In Popup, turn on rsec; confirm 90.426 exists & formattting
-    * Scroll to 90.453 (3)
-    * Confirm form - top, bottom & headings & lack of subheadings for parens
-    * Click `90.100` in form
-    * Scroll down to ***Italic `(Temporary provisions following ORS 90.100)`***
-    * Confirm 5 separate, nonoverlapping note secions
-    * In first note section, click `chapter 13, Oregon Laws 2020 (first special session)` confirm navigation in separate window
-    * Click note for 2020 s.s.3 c.3, confirm navigation in separate window
-        * Close window
-    * Scroll to ORS 90.394, confirm note section follows & ends before ORS 90.396
-    * Click on link to 105.105 confirm navigation & scroll to section in separate window
-        * Close window
-    * Confirm indentation for 90.510 (1)(L) (L is paragraph) and 90.643 (3)(b)(L) (L is subparagraph)
+    * Check source note in text & click source note for `2001 c.44`
+        * Confirm navigation in new tab
+        * Close tab
+    * Scroll to 90.453 (3) form
+        * Confirm form Div top & bottom (no form ending mend line)
+        * Confirm form headings are formatted bold & heading color
+        * Confirm text in parenthesis (Signature of party...) is normal/unformatted
+        * Click `90.100` in form
+1. Detour (navigate to `ors 105.124, 105.464` in omnibox)
+    * Scroll down to ***Italic `(Temporary provisions relating to COVID-19...)`***
+    * Confirm 5 separate, non-overlapping note sections
+    * In first note section, click button
+        * Confirm collapse
+        * Click again and confirm expands
+    * Click `chapter 13, Oregon Laws 2020 (first special session)` link in button
+        * Confirm navigation in separate tab
+        * Close tab
+    * Click source note for `2020 s.s.3 c.3`
+        * Confirm navigation in separate tab
+        * Close tab
+    * Scroll to ORS `90.394`
+        * Confirm note div follows
+        * Confirm div contains note and note section & ends before ORS 90.396
+    * Click on link to `105.105`
+        * Confirm navigation & auto scroll to section in separate tab
+        * Close tab
+    * Scroll to `90.510` and confirm proper indentation for `90.510 (1)(L)` (L is paragraph)
+    * Scroll to `90.643` and confirm proper indentation for `90.643 (3)(b)(L)` (L is subparagraph)
     * Check mend line at end (followed by close of both heading & subheading divs)
-1. (Detour) Navigate to ORS 403.415.
-    * Check display of delayed repeal note
-    * Scroll down to check 403.435 as well (doesn't have period after section number)
+1. In omnibox enter `mors 403.415`
+    * Confirm navigation and auto scroll
+    * Confirm display of delayed repeal note
+    * Collapse and expand rsec for ORS `403.415`
+    * Scroll down to check ORS `403.435` as well (doesn't have period after section number)
     * Close
 1. Go back to popup:
     * Turn source note off confirm they disappear from  page
     * Turn rsec off & back on & confirm that it works on page
     * Turn on collapse all - confirm note
-    * Turn off menu - confirm disappeared and sections are collapsed
-    * Expand and collapse a section
-    * Resize window to 1/2 width, confirm that leadline boxes resize
+    * Turn off menu - confirm auto-reload with menu gone and sections all collapsed
+    * Expand and re-collapse a section manually
+    * Navigate to section from TOC; confirm automatically expands upon scroll
     * Under Session Law Lookup, select HeinOnline; confirm link works for:
-        * Ordinary source note link
+        * Ordinary source note link (except 2021 not up as of 3/2/2022)
         * Special session source note link
         * Chapter xx, Oregon Laws YYYY link
     * Under Color scheme test "Custom", "Dark Grey" & "Light"

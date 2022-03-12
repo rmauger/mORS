@@ -1,4 +1,4 @@
-//javadom.js
+//javaDom.js
 //@ts-check
 
 function javaDOM() {
@@ -12,10 +12,8 @@ function javaDOM() {
       const buttonElement = collapserButtons[i];
       buttonElement.addEventListener("click", () => {
         if (buttonElement.nextElementSibling.style.maxHeight == "none") {
-          console.log("Collapse");
           collapseSingle(buttonElement.nextElementSibling);
         } else {
-          console.log("Expand");
           expandSingle(buttonElement.nextElementSibling);
         }
       });
@@ -33,32 +31,27 @@ function javaDOM() {
           const collapsibleElement = buttonElement.nextElementSibling;
           if (collapsibleElement.classList.contains("collapsible")) {
             aLink.addEventListener("click", () => {
-              infoCS(`scrolling to ${aLink.innerHTML}`);
+              infoCS(`scrolling to ${aLink.innerHTML}`, 'javaDom.js', 'buildORSLinkButton');
               expandSingle(collapsibleElement);
             });
-            infoCS(
-              `${aLink.innerHTML}/${collapsibleElement.innerHTML.slice(0, 80)}`,
-              "syncclean.js",
-              "buildOrsLinkButton"
-            );
           } else {
             warnCS(
               `target element of link to ${aLink.innerHTML}' has sibling that is not collapsible ${collapsibleElement.tagName}`,
-              "javadom.js",
+              "javaDom.js",
               "buildOrsLinkButton()"
             );
           }
         } else {
           warnCS(
             `target element of link to ${aLink.innerHTML} lacks sibling to collapse`,
-            "javadom.js",
+            "javaDom.js",
             "buildOrsLinkButton"
           );
         }
       } else
         warnCS(
           `target id# of link to ${aLink.innerHTML} does not exist`,
-          "javadom.js",
+          "javaDom.js",
           "buildOrsLinkButton"
         );
     }
@@ -67,7 +60,7 @@ function javaDOM() {
   // add floating div menu with version info & buttons
   function buildFloatingMenuDiv() {
     function addMenuBody() {
-      infoCS("creating menu", "javadom.js", "buildFloatingMenuDiv");
+      infoCS("creating menu", "javaDom.js", "buildFloatingMenuDiv");
       menuPanel.classList.add("fixed");
       let versionPar = document.createElement("p");
       //@ts-ignore
@@ -94,7 +87,7 @@ function javaDOM() {
     function addFullWidthButton() {
       let fullWidthButton = document.createElement("button");
       fullWidthButton.id = "fullWidth"
-      fullWidthButton.innerHTML="Full Width";
+      fullWidthButton.innerHTML="Reading Mode";
       menuPanel.appendChild(fullWidthButton);
       fullWidthButton.addEventListener("click", toggleFullWidth);
     }
