@@ -1,6 +1,6 @@
 # mORS
 
-Extension (Google Chrome/Firefox) that alters appearance of Oregon Revised Statutes on Oregon State Legisature website and allows for easier retrieval of Oregon session law from the Oregon Legislative Assembly. The Oregon Revised Statutes are the codified laws of the State of Oregon.
+Extension (Google Chrome/Firefox) that alters appearance of Oregon Revised Statutes on Oregon State Legislature website and allows for easier retrieval of Oregon session law from the Oregon Legislative Assembly. The Oregon Revised Statutes are the codified laws of the State of Oregon.
 
 ## Installation instructions (Chrome)
 
@@ -45,8 +45,8 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 
 ### Version 1.5.0 - 2/28/2022
 
-
 ### Version 1.4.18 - 2/25/2022
+
 * Fixed burnt sections at beginning of chapter interfering with TOC (#48)
 * Made headings sticky to page
 * Redid collapsing/expanding of sections and links
@@ -117,7 +117,7 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 * Bugfix - buttons are working again
 * use of css sheets reorganized to clean code
 
-### Vesion 1.4.5 - 11/20/2021
+### Version 1.4.5 - 11/20/2021
 
 * Height of collapsed sections automatically resizes
 
@@ -152,8 +152,8 @@ See further disclaimers on [ORS website](https://www.oregonlegislature.gov/bills
 
 ### Version 1.0 - 10/28/2021
 
-* Separates table of contents; sections; forms and notes into separetly styled divisions
-* Collapsable sections
+* Separates table of contents; sections; forms and notes into separately styled divisions
+* Collapsible sections
 * Links to internal and external ORS sections
 * Links to source notes / session laws in Oregon Laws at HeinOnline (for state employees) or from Oregon legislature.
 * Identifies & tabs different subdivision units for subsections, paragraphs, subparagraphs, etc.

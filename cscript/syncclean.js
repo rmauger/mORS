@@ -1,15 +1,16 @@
-//syncclean.js
+//syncClean.js
 //@ts-check
 
 function SyncReplaceText() {
-  /** Strip existing html garbage (span syntex & msoClasses & existing divs & empty tags() */
+  
+  /** Strip existing html garbage (span syntax & msoClasses & existing divs & empty tags() */
   const htmlCleanup = () => {
     body.replacerAll(/(\n|\r|\f)/, " "); // removes line breaks
     body.replacerAll(/\s\s/, " "); // removes double spaces
     body.replacerAll(/\s\s/, " "); // removes left over double spaces
     body.replacerAll(/\s\s/, " "); // removes left over double spaces ('done twice to deal with odd number of spaces >2)
     body.replacerAll(/<span style=[^]+?>([^]+?)<\/span>/, "$1"); // deletes span style=;
-    body.replacerAll(/<p\sclass=\W?Mso[^>]*>/, "<p class=default>"); // reclasses all paragraphs to "default"
+    body.replacerAll(/<p\sclass=\W?Mso[^>]*>/, "<p class=default>"); // re-classes all paragraphs to "default"
     body.replacerAll(/<div[^>]*?>/, ""); // deletes existing <div> tags
     body.replacerAll(`<(\\w)[^>]*?>${tabs}<\\/\\1>`, ""); // deletes empty nodes (e.g. "<p></p>")
   };
@@ -34,7 +35,7 @@ function SyncReplaceText() {
     const runningTitle = (() => {
       if (ifRegExMatch(/\(Former Provisions\)/, body.aHtml).length > 1) {
         const ans = ifRegExMatch(titleParsing, body.aHtml, 0, 3); // gets running head (para #3)
-        body.replacerOne(titleParsing, ""); // de`letes existing head
+        body.replacerOne(titleParsing, ""); // deletes existing head
         return ans;
       } else {
         const ans = ifRegExMatch(titleParsing, body.aHtml, 0, 2); // gets running head (para #2)
@@ -45,6 +46,7 @@ function SyncReplaceText() {
     })();
     return `<div class=mainHead><h2>${runningTitle}</h2><h1>Chapter ${thisChapNum} : ${thisChapName}</h1><h3>Oregon Revised Statutes (${thisEdYear})</h3></div>`;
   };
+  
   /** create & label new division for table of contents */
   const createTOC = () => {
     body.replacerOne(
@@ -66,30 +68,34 @@ function SyncReplaceText() {
       // First tag ORS sections (with or without leadlines) following div ending with "user's convenience"
       `(user\\Ws\\sconvenience\\.</p>)\\s?<p[^>]*?><b>${tabs}<span [^>]*?>(${thisChapORS})\\s?</span>([^]*?)<\\/b>`,
       // Class as leadline, but no button or id
-      `$1<p class=leadline><b>$2$3</b></p><p class=default>`
+      `$1<p class=leadline break="\`"><b>$2$3</b></p><p class=default>`
     );
     body.replacerAll(
       // leadlines (<b>+tab+ors.sec+leadline+</b>):
       `<p[^>]*?><b>${tabs}(?:<span [^>]*?>)(${thisChapORS})\\s?</span>([^\`\\]~]{3,}?)<\\/b>`,
       // use to start collapsible section div with button in leadline:
-      `${endSec}<div class="section" break="~"><button class="collapser" id="$1"><p class="leadline">$1$2
-      </p></button><div class="collapsible"><p class=default>`
+      `${endSec}<div class="section" break="~"><button class="collapser" id="$1"><p class="leadline">$1$2</p></button><div class="collapsible"><p class=default>`
     );
   };
+
+  /** Creates divs for forms */
   const createFormDivs = () => {
-    const endFormCleanup = body.replacerAll(
-      `(form[^]*?:<\\/p>)${tabs}<p[^>]*>_{78}<\\/p>`, // finds starts of form);
+    body.replacerAll(
+      `(form[^]*?:<\\/p>)${tabs}<p[^>]*>_{77,}<\\/p>`, // finds starts of each form (contains "form" and ends in ":" followed by horizontal line);
       "$1<div class=orsForm break='`'>" // puts in new form div and tags with (`) (form break)
-    );
-    console.log(/(`([^~`]*_{78}|[^`~]*?(?=<div class=orsForm)))/)
+    ); 
+    // to find form end, start with new break (`) look forward until last ending mend line before end of section OR new form starts)
+    const formEnd = /(orsForm break='`'>)(([^~`]*_{77,})|([^~`]*?)(?=<div class=orsForm))/ 
+    console.log(formEnd)
     console.log(body.aHtml)
     body.replacerAll(
-      /(`([^~`]*_{78}|[^`~]*?(?=<div class=orsForm)))/, // finds form end (last ending mend line before section ends OR new form starts `)
-      "$1</div break='`'>" // closes form div (break is necessary for keeping headings straight, below)
-    );
-    body.replacerAll(/_{78}(<\/div>)/, "$1"); // removes ending form underlines _____
+        formEnd, // finds form end 
+        "$1$2</p></div break='`'>" // closes form div (break is necessary for keeping headings straight, below)
+      );
+    body.replacerAll(`<p[^>]*?>${tabs}_{77,}(?:<\/p>)?${tabs}(<\/div[^>]*>)`, "$1"); // removes ending form underlines _____
+    //body.replacerAll(/_{68,}/, '<hr style="width:80%; text-align:center>') // replaces horizontal lines of underscores with actual horizontal lines
   };
-  // replace ORS sections inside and
+  /** replace ORS cross references for sections within chapter */  
   function orsChapLink() {
     body.replacerAll(
       `<span class=ors(>(${thisChapNum}\\.\\d{3,4}\\b)[^]*?<\\/)span`, // finds ORS references to ORS within chapter
@@ -101,6 +107,7 @@ function SyncReplaceText() {
     );
     body.replacerAll(/(ors)0+(\d{3})/, "$1$2"); // delete any extra zeros in link URLs
   }
+  /** Moves TOC to a separate variable (theTOC) to edit separately */
   function separateToc() {
     theTOC.aHtml = ifRegExMatch(`<div id[^]*(?:${tocBreak})`, body.aHtml); // copy TOC to separate variable
     body.replacerOne(
@@ -108,8 +115,9 @@ function SyncReplaceText() {
       "<p class=default>"
     ); // and remove it from the body document
     if (theTOC.aHtml == "")
-      warnCS("No table of contents found", "syncclean.js", "separateTOC");
+      warnCS("No table of contents found", "syncClean.js", "separateTOC");
   }
+  /** Classifies <p> tags as subsections, paragraphs and sub(+)paragraph based on info in parentheses */
   function classifySubunits() {
     body.replacerAll(
       `<p[^>]*?>${tabs}?\\s?(\\(\\d{1,2}\\)[^]+?)</p>`, // finding paragraphs starting with subsections (e.g., (2), (14))
@@ -125,11 +133,11 @@ function SyncReplaceText() {
     );
     body.replacerAll(
       /=subsubpara>(\(([a-z])(?:\2){0,3}\))/, // lowercase duplicates only (e.g., (a), (cc), (iii), (zzzz))
-      "=para break='!'>$1" // reclassing all as paragraphs (lowercase) and adding "!" tag
+      "=para break='!'>$1" // re-classing all as paragraphs (lowercase) and adding "!" tag
     );
     body.replacerAll(
       /=subsubsubpara>(\(([A-Z])(?:\2){0,4}\))/, // uppercase (A) through ZZZZ
-      "=subpara break='?'>$1" // reclassing all as subparagraphs (uppercase) and adding "?" tag
+      "=subpara break='?'>$1" // re-classing all as subparagraphs (uppercase) and adding "?" tag
     );
     RomanNumbers: {
       const romanLowerLead = "((=subsubpara>[^!~]*))=para[^>]*?>(?=\\("; // common data in para that needs converted to roman
@@ -165,7 +173,7 @@ function SyncReplaceText() {
     }
     body.replacerAll(
       /((=para[^>]*>\(k\)[^~!]*))(?:=subpara)[^>]*(?=>\(L\))/, // big (L) following directly after a little (k)
-      "$1=para" // reclass as paragraph
+      "$1=para" // re-class as paragraph
     );
   }
   function headingReformat() {
@@ -180,12 +188,12 @@ function SyncReplaceText() {
       );
       body.replacerAll(
         headFind,
-        `#hclose#${endSec}<div class=heading><p class=headingLabel><b>$1</b></p><div><div>`
-      ); // wrap with div after #hclose tag
+        `#hClose#${endSec}<div class=heading><p class=headingLabel><b>$1</b></p><div><div>`
+      ); // wrap with div after #hClose tag
       body.replacerAll(
         subheadFind,
-        `#sclose#${endSec}<div class=subhead><p class=subheadLabel>$1</p><div><div>`
-      ); // wrap with div after #sclose tag
+        `#sClose#${endSec}<div class=subhead><p class=subheadLabel>$1</p><div><div>`
+      ); // wrap with div after #sClose tag
     }
     replaceTOCHeadings: {
       theTOC.replacerAll(tempHeadFind, "<p class=tocTemp>$1</p>");
@@ -197,9 +205,9 @@ function SyncReplaceText() {
      * Repeats until it finds them all */
     HeadingsInForms: {
       const headInForm =
-        /(=orsForm break='`'[^`~]*)#hclose#[^`~]*?<p[^`~>]*>([^`~]*?)<div><div>/;
+        /(=orsForm break='`'[^`~]*)#hClose#[^`~]*?<p[^`~>]*>([^`~]*?)<div><div>/;
       const subheadInForm =
-        /(=orsForm break='`'[^`~]*)#sclose#[^`~]*?<p[^`~>]*>([^`~]*?)<div><div>/;
+        /(=orsForm break='`'[^`~]*)#sClose#[^`~]*?<p[^`~>]*>([^`~]*?)<div><div>/;
       while (headInForm.test(body.aHtml) || subheadInForm.test(body.aHtml)) {
         body.replacerAll(headInForm, "$1<p class=formHeading>$2"); // "headings" remain headings (bold & colors), but don't start new div
         body.replacerAll(subheadInForm, "$1<p class=default>$2"); // "subheadings" turned to default text
@@ -208,7 +216,7 @@ function SyncReplaceText() {
   }
   function notesRepl() {
     body.replacerAll(
-      `<p[^>]*>\\s?<b>${tabs}(Note(\\s\\d)?:\\s?<\\/b>[^]*?<\\/p>)`, // Notes pargraphs ("Note:", "Note #:")
+      `<p[^>]*>\\s?<b>${tabs}(Note(\\s\\d)?:\\s?<\\/b>[^]*?<\\/p>)`, // Notes paragraphs ("Note:", "Note #:")
       "<div class=note><p><b>$1</div>" // Wrap in new bold note div
     );
     body.replacerAll(
@@ -222,13 +230,13 @@ function SyncReplaceText() {
       body.replacerAll(
         // session law preamble (Section xx, chapter xx ... provides:) ...
         /<div\sclass=note>[^~]{0,15}\s((Section[^\<~]+),\sc[^~]+?\sprovides?:)[^~]*?<\/div>([^~]*?)<div/,
-        // close previous sec; put in separate note div classed as "notesec"
+        // close previous sec; put in separate note div classed as "noteSec"
         `${endSec}<div class="section" break="~"><button id="$2" class="collapser"><p class=leadline>$1</p></button><div class="collapsible">$3<div`
       );
     }
     body.replacerAll(
       `<b>${tabs}(Sec\\.\\s\\d{1,3}\\.[^>\\]]*?)<\\/b>`, // session law sections (E.g., "Sec. 14.") and leadline, if any
-      "<p class=leadline>$1</p><p class=default>" // reclassed as leadline (whether there is a leadline or not) but not collapsible
+      "<p class=leadline>$1</p><p class=default>" // re-classed as leadline (whether there is a leadline or not) but not collapsible
     );
     body.replacerAll(
       /(Preface\sto\sOregon\sRevised\sStatutes)/, // "Preface to ORS text"
@@ -239,26 +247,27 @@ function SyncReplaceText() {
       '<a href="https://www.oregonlegislature.gov/bills_laws/Pages/ORS.aspx#" target="_blank">$1</a>' // links to ORS page for CST (not great, can't find better option)
     );
     body.replacerAll(
-      /<p[^>]*?>\s?(\(1\)[^]+?)<\/p>/, // all subsec (1)'s (which were ignored first round before because they didn't start paragraph)
-      "<p class=subsec>$1</p>" // classed as subsecs
+      /<p[^>]*?>\s?(\(1\)[^]+?)<\/p>/, // all subSec (1)'s (which were ignored first round before because they didn't start paragraph)
+      "<p class=subsec>$1</p>" // classed as subSecs
     );
   }
   function sourceNotesRepl() {
     body.replacerAll(
       /(\[(19\d{2}|20\d{2}|Sub|Fo|Re|Am)[^]+?\]<\/p>)/, // source notes (e.g., [20.., [Formerly, ... etc.) not in separate paragraph
-      "<p class=sourceNote>$1</p>" // labled as source notes
+      "<p class=sourceNote>$1</p>" // labeled as source notes
     );
     body.replacerAll(
-      /<p class=default><b>[^>\[]*?<a[^>\[]+?>([^<\[]+?)\s?<\/a>\s?<\/b>\s?<p class=sourceNote>/, // source notes renumbered or repealed (rsecs)
-      `${endSec}<div><button class="collapser" id="$1"><p class="burnt"><b>[Former ORS $1]
-      </b></p></button><div class="collapsible burnt">` // wrap in div labeled as burnt
+      // source notes renumbered or repealed (rsec)
+      /<p class=default><b>[^>\[]*?<a[^>\[]+?>([^<\[]+?)\s?<\/a>\s?<\/b>\s?<p class=sourceNote>/, 
+      // wrap in div labeled as burnt
+      `${endSec}<div p class="burntDiv"><button class="collapser" id="$1"><p class="burnt"><b>[Former ORS $1]</b></p></button><div class="collapsible burnt">` 
     );
   }
 
   /** Makes sure all headings & subheading divs close exactly once & no subheading w/o heading
-   * by replacing #hclose & #sclose tags with appropriate number of closing divs */
+   * by replacing #hClose & #sClose tags with appropriate number of closing divs */
   function matchHeadingDivs() {
-    const closeHeadTags = /(#hclose#|#sclose#)/;
+    const closeHeadTags = /(#hClose#|#sClose#)/;
     let hCount = 0;
     let divHeadClose = "";
     while (closeHeadTags.test(body.aHtml)) {
@@ -287,7 +296,7 @@ function SyncReplaceText() {
   const orsSection = `(?:${orsChapter}\\.\\d{3}\\b|\\b7\\dA?\\.\\d{4}\\b)`;
   let theTOC = wordObj();
   // run functions
-  htmlCleanup(); // delete span syntex & msoClasses & existing divs & empty tags from HTML
+  htmlCleanup(); // delete span syntax & msoClasses & existing divs & empty tags from HTML
   const mainHead = chapterHeadRepl(); // Replace heading at top of page.
   createTOC(); // create & label new table of contents div
   classifyOrsRefs(); // classify internal cross references to ORS sections (xx.xxx) (to be replaced later by relevant links)
@@ -298,10 +307,10 @@ function SyncReplaceText() {
   separateToc(); // separate TOC & chapter heading from rest of body to facilitate editing body
   classifySubunits(); // finds and classifies subunits (subsections, paragraphs, subsections etc.)
   headingReformat(); // classify HEADINGS and (Subheadings) and (Temporary Labels) & build divs for each
-  notesRepl(); // Notes put into divs, sourcenotes styled, adds hyperlinks for Preface to ORS & vol22
+  notesRepl(); // Notes put into divs, source notes styled, adds hyperlinks for Preface to ORS & vol22
   sourceNotesRepl(); // Find source notes and classify
   matchHeadingDivs(); // Ensures heading & subheading divs close properly
-  // returns cleanedup Heading, TOC & body as object
+  // returns cleaned up Heading, TOC & body as object
   const emptyContent = `<(\\w+)(\s[^>]*?)?>${tabs}<\\/\\1>`;
   body.replacerAll(emptyContent, ""); // deletes empty nodes (e.g. "<p></p>")
   return {

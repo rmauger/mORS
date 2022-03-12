@@ -42,6 +42,8 @@
         case "getCssObjectJson":
           msgHandler(promiseReadJsonFile("cssObject.json"), response);
           break;
+        case "getErrataJson":
+          msgHandler(promiseReadJsonFile("errataList.json"), response);
         default:
           warnLog(
             `Received message "${received}"made no sense.`,

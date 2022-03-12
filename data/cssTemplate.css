@@ -1,9 +1,6 @@
 :root { 
   --temp:#000;
 }
-:root {
-  --SectionWidth:85ch
-}
 html {
   scroll-behavior: smooth;
 }
@@ -36,7 +33,7 @@ p {
   margin: 0;
 }
 
-/* MainHead */
+/* MainHead (top of page)*/
 .mainhead {
   border: 2px solid var(--heading);
   background-color: var(--altBack);
@@ -102,7 +99,7 @@ h3 {
   column-gap: 5%;
 }
 
-/* Main Content */
+/* Main Content (following TOC)*/
 #main {
   max-width:var(--SectionWidth);
   margin:auto;
@@ -114,7 +111,7 @@ h3 {
   position:sticky;
   top:0pt;
   padding: 0.5em;
-  background-color: var(--background);
+  background-color: var(--background) !important;
 }
 .headingLabel {
   font: 1.4rem "Times New Roman", Times, serif;
@@ -213,6 +210,11 @@ button:hover {
   font: 15px "Times New Roman", Times, serif;
   font-style: italic
 }
+.burntDiv {
+  position:var(--burntPos);
+  left:var(--burntLeft);
+}
+
 .burnt {
   color: var(--highContrast)
 }
@@ -224,10 +226,6 @@ button:hover {
   color:var(--maintext);
   font-style: normal;
   background-color: var(--altBack);
-}
-.hideMe {
-  position: absolute;
-  left: -9999px;
 }
 
 /* Section Subunits */

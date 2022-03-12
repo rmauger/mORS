@@ -1,6 +1,6 @@
 # Search Help
 
-Something went wrong when you tried to use the omnibar to search with MORS (for Oregon Revised Statutes), so you ended up here.
+Something went wrong when you tried to use the omnibox (search bar) to search with MORS (for Oregon Revised Statutes), so you ended up here.
 
 Some searches that will work:
 

@@ -98,8 +98,7 @@ function sendMsgToOrsTabs(message) {
     .catch((e) => warnPU(`getOrsTabs ${e}`));
 }
 
-/**Retrieves list of options from background (webresources.js) & puts it in userform
- */
+/**Retrieves list of options from background (webResources.js) & puts it in user form */
 function promiseRefreshOptions() {
   return new Promise((resolve, reject) => {
     promiseBGMessage("getCssObjectJson")
@@ -134,6 +133,7 @@ async function displayUserOptions() {
       promiseBGMessage("getOrLaw"),
       promiseBGMessage("getShowBurnt"),
       promiseBGMessage("getShowSNs"),
+      promiseBGMessage("getFullWidth"),
       promiseBGMessage("getCollapsed"),
       promiseBGMessage("getShowMenu"),
       promiseRefreshOptions(),
@@ -165,9 +165,11 @@ async function displayUserOptions() {
     // @ts-ignore (value exists)
     showSNsCheck.checked = storedData[3];
     // @ts-ignore (value exists)
-    collapseCheck.checked = storedData[4];
+    showFWCheck.checked = storedData[4];
     // @ts-ignore (value exists)
-    showMenuCheck.checked = storedData[5];
+    collapseCheck.checked = storedData[5];
+    // @ts-ignore (value exists)
+    showMenuCheck.checked = storedData[6];
     let manifest = browser.runtime.getManifest();
     versionID.innerHTML = `v.${manifest.version}`      
   } catch (e) {
@@ -177,7 +179,7 @@ async function displayUserOptions() {
 const userMsg=(text, color='default') => {
   htmlMsgBox.innerHTML=`<span style='color:${color}'>${text}</span>`
 }
-/**setup event listeners for form dropdowns & buttons*/
+/**setup event listeners for form drop downs & buttons*/
 function addAllListeners() {
   launchButton.addEventListener("click", () => {
     //@ts-ignore (value exists)
@@ -223,7 +225,7 @@ function addAllListeners() {
     promiseStoreKey({ showBurntStored: showBurntCheck.checked })
       .then(() => {
         //@ts-ignore (checked value exists)
-        sendMsgToOrsTabs({ burnt: showBurntCheck.checked }); // alert tabs that visibility of rsecs has changed
+        sendMsgToOrsTabs({ burnt: showBurntCheck.checked }); // alert tabs that visibility of rsec has changed
       })
       .catch((e) => {
         warnPU(`store burnt sec check ${e}`);
@@ -356,5 +358,5 @@ const promiseStoreKey = setPromiseStorage(getBrowserPopup());
 // then set up popup displays and functions
 Promise.all([promiseMsgResponse, promiseStoreKey]).then(() => {
   displayUserOptions(); // display saved info
-  addAllListeners(); // set up logic for buttons, dropdowns & checkboxes
+  addAllListeners(); // set up logic for buttons, drop downs & checkboxes
 });
