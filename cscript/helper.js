@@ -1,8 +1,8 @@
 //helper.js
 //@ts-check
-/** Object consisting of html as string and functions for modifying the html 
- * @param {string} aHtml 
-*/
+/** Object consisting of html as string and functions for modifying the html
+ * @param {string} aHtml
+ */
 const wordObj = (aHtml = "") => {
   return {
     aHtml,
@@ -42,10 +42,10 @@ const wordObj = (aHtml = "") => {
 /** Searches for 'searchFor' in the 'initialText' and returns 'index'th place result; and can accept matchPos from RegExp
  * @param {string | RegExp} searchFor,
  * @param {string} initialText
- * @param {number} index 
+ * @param {number} index
  * @param {number} matchPos
  */
-const ifRegExMatch = (searchFor, initialText, index=0, matchPos=0) => {
+const ifRegExMatch = (searchFor, initialText, index = 0, matchPos = 0) => {
   const aRegExp = (() => {
     if (typeof searchFor == "string") {
       return new RegExp(searchFor, (index != 0 && "g") || ""); // search for all only if index > 0
@@ -109,19 +109,19 @@ const doShowSourceNotes = (doShow) => {
 };
 /** toggle Full Width of ORS display*/
 const toggleFullWidth = () => {
-  const docStyle=document.documentElement.style
-  const fwButtonLabel=document.getElementById('fullWidth')
-  console.log(fwButtonLabel.innerText)
-  if (fwButtonLabel.innerText=="Full Width") {
-    infoCS("Turning on Full Width")
-    docStyle.setProperty('--SectionWidth', "100%")
-    fwButtonLabel.innerText="Reading Mode";
+  const docStyle = document.documentElement.style;
+  const fwButtonLabel = document.getElementById("fullWidth");
+  console.log(fwButtonLabel.innerText);
+  if (fwButtonLabel.innerText == "Full Width") {
+    infoCS("Turning on Full Width");
+    docStyle.setProperty("--SectionWidth", "100%");
+    fwButtonLabel.innerText = "Reading Mode";
   } else {
-    docStyle.setProperty('--SectionWidth', "85ch")
-    fwButtonLabel.innerText="Full Width";
-    infoCS("Turning off Full Width")
+    docStyle.setProperty("--SectionWidth", "85ch");
+    fwButtonLabel.innerText = "Full Width";
+    infoCS("Turning off Full Width");
   }
-}
+};
 /** Toggles display of source notes when changed in popup or burnt (rsec) sections
  * @param {boolean} doShow */
 const doShowRSecs = (doShow) => {

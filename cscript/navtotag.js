@@ -1,4 +1,4 @@
-//navtotag.js
+//navToTag.js
 //@ts-check
 
 const promiseGetTabURL = () => {
@@ -9,12 +9,13 @@ const promiseGetTabURL = () => {
         resolve(tab.url);
       },
       (e) => {
-        warnCS(`Error retrieving URL: ${e}`, "navtoTag");
+        warnCS(`Error retrieving URL: ${e}`, "navToTag.js", "promiseGetTabURL");
         reject(`Error retrieving URL: ${e}`);
       }
     );
   });
 };
+/**  */
 const promiseGetNavID = (theTabUrl) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -34,19 +35,19 @@ const promiseGetNavID = (theTabUrl) => {
         }
       }, 10);
     } catch (e) {
-      warnCS(`Threw error ${e}`, "navtotag.js");
+      warnCS(`Threw error ${e}`, "navToTag.js", "promiseGetNavID");
       reject(`promiseGetNavID: ${e}`);
     }
   });
 };
+/** scroll to html id tag in url, if any */
 const navigateToTag = async (tabUrl) => {
   try {
     const navID = await promiseGetNavID(tabUrl);
-
     if (navID) {
       infoCS(
         `navigating to ${navID.innerText}`,
-        "navtotag.js",
+        "navToTag.js",
         "navigateToTag"
       );
       navID.scrollIntoView();
@@ -54,11 +55,11 @@ const navigateToTag = async (tabUrl) => {
     } else {
       infoCS(
         "No ORS section found in content URL",
-        "navtotag.js",
+        "navToTag.js",
         "navigateToTag"
       );
     }
   } catch (error) {
-    warnCS(`Error getting tabURL: ${error}`, "navtotag.js", "navigateToTag");
+    warnCS(`Error getting tabURL: ${error}`, "navToTag.js", "navigateToTag");
   }
 };
